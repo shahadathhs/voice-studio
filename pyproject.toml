@@ -64,7 +64,7 @@ dev = [
     "build>=1.4.3",
     "bandit>=1.9.4",
     "python-semantic-release>=10.5.3",
-    "ruff==0.15.14",
+    "ruff==0.15.21",
     "black==26.5.1",
     "mypy==2.1.0",
     "types-requests",
