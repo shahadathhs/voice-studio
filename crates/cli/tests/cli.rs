@@ -97,7 +97,7 @@ fn bad_flags_are_a_usage_error() {
 fn json_errors_are_one_json_object_on_stderr() {
     let out = vtt().args(["--json", "speak", "hello"]).output().unwrap();
     assert_eq!(out.status.code(), Some(70));
-    assert!(out.stdout.is_empty());
+    assert_eq!(out.stdout.len(), 0);
     let v: serde_json::Value = serde_json::from_slice(&out.stderr).unwrap();
     assert_eq!(v["event"], "error");
     assert_eq!(v["code"], 70);

@@ -89,9 +89,9 @@ mod tests {
     fn app_info_reports_versions_and_a_data_dir() {
         let info = app_info();
         assert_eq!(info.name, "Voice Studio");
-        assert!(!info.version.is_empty());
+        assert_ne!(info.version, "");
         assert_eq!(info.core_version, vtt_core::VERSION);
-        assert!(!info.data_dir.is_empty());
+        assert_ne!(info.data_dir, "");
     }
 
     #[test]

@@ -99,7 +99,7 @@ mod tests {
     #[test]
     fn bundled_catalog_parses_and_is_not_empty() {
         let catalog = Catalog::bundled().unwrap();
-        assert!(!catalog.models.is_empty());
+        assert_ne!(catalog.models.len(), 0);
         assert!(catalog.of_kind(ModelKind::Stt).count() > 0);
     }
 
