@@ -1,5 +1,8 @@
 {
-  "*.{js,mjs,cjs,ts,tsx,svelte}": ["oxlint --fix", "prettier --write"],
+  "*.{js,mjs,cjs,ts,tsx,svelte}": [
+    "oxlint --fix --no-error-on-unmatched-pattern",
+    "prettier --write"
+  ],
   "*.{json,md,yaml,yml,css,html}": ["prettier --write"],
   "*.rs": ["rustfmt --edition 2024"]
 }
