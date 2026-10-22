@@ -7,6 +7,7 @@
   import { formatClock } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { library } from "../lib/library.svelte";
+  import { player } from "../lib/player.svelte";
   import { nav } from "../lib/nav.svelte";
   import type { TranscriptView } from "../lib/types";
 
@@ -23,6 +24,7 @@
 
   $effect(() => {
     void getTranscript(id).then((loaded) => (view = loaded));
+    return () => player.stop();
   });
 
   async function copy(): Promise<void> {
@@ -60,6 +62,10 @@
             bind:value={query}
           />
         </label>
+        <button class="btn" onclick={() => player.play(id, "all", 0, null)}>
+          <Icon name={player.active === "all" ? "pause" : "play"} />
+          {player.active === "all" ? "Pause" : "Play"}
+        </button>
         <button class="btn" onclick={copy}><Icon name="copy" />{copied ? "Copied" : "Copy"}</button>
         <button class="btn primary" onclick={() => (exporting = true)}>
           <Icon name="down" />Export
@@ -70,11 +76,12 @@
           <button class="btn" onclick={() => (confirmingDelete = true)}>Delete</button>
         {/if}
       </header>
+      {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
       <div class="lines">
         {#if view.transcript.segments.length === 0}
           <p class="muted empty">No speech was found in this recording.</p>
         {:else}
-          <TranscriptLines segments={view.transcript.segments} {query} {speakerOrder} />
+          <TranscriptLines itemId={id} segments={view.transcript.segments} {query} {speakerOrder} />
         {/if}
       </div>
     </div>
@@ -139,6 +146,12 @@
     background: none;
     font: inherit;
     color: var(--text);
+    user-select: text;
+  }
+
+  .error {
+    padding: 8px 32px;
+    color: var(--danger);
     user-select: text;
   }
 

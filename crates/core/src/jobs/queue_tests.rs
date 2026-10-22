@@ -206,8 +206,10 @@ fn waiting_jobs_can_be_reordered_and_removed_but_a_running_one_cannot() {
     assert!(f.queue.remove(b.id));
 
     f.queue.cancel(running.id);
+    // The job behind it starts once the running one stops, so wait until nothing is active.
     wait_until(&f.queue, |jobs| {
-        jobs.iter().all(|j| j.state != JobState::Running)
+        jobs.iter()
+            .all(|j| !matches!(j.state, JobState::Waiting | JobState::Running))
     });
     f.queue.clear_finished();
     assert_eq!(f.queue.snapshot().len(), 0);

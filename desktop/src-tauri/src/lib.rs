@@ -5,6 +5,7 @@ mod commands;
 mod downloads;
 mod jobs;
 mod library;
+mod playback;
 
 /// Starts the desktop application.
 ///
@@ -15,6 +16,7 @@ pub fn run() -> tauri::Result<()> {
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             jobs::start(app.handle());
+            playback::init(app.handle());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -35,7 +37,8 @@ pub fn run() -> tauri::Result<()> {
             library::get_transcript,
             library::delete_library_item,
             library::render_export,
-            library::save_export
+            library::save_export,
+            playback::prepare_playback
         ])
         .run(tauri::generate_context!())
 }

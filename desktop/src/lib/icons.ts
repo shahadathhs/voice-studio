@@ -19,6 +19,8 @@ export const ICONS = {
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14z M20 20l-4-4",
   copy: "M9 9h10v11H9z M5 15V4h10",
   back: "M15 5l-7 7 7 7",
+  play: "M8 5l11 7-11 7z",
+  pause: "M8 5v14 M16 5v14",
 } as const;
 
 export type IconName = keyof typeof ICONS;

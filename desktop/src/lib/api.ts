@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open, save } from "@tauri-apps/plugin-dialog";
@@ -160,4 +160,11 @@ export async function saveExport(
   path: string,
 ): Promise<void> {
   if (insideTauri()) await invoke("save_export", { id, format, settings, path });
+}
+
+/** URL the webview can play the original recording of a library item from. Rejects with a
+ *  readable reason when the file was moved or deleted. */
+export async function playbackUrl(id: number): Promise<string | null> {
+  if (!insideTauri()) return null;
+  return convertFileSrc(await invoke<string>("prepare_playback", { id }));
 }
