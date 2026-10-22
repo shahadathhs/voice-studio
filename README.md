@@ -47,7 +47,7 @@ from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also th
 [Tauri system packages](https://tauri.app/start/prerequisites/).
 
 ```bash
-make setup                        # JS dependencies, git hooks, first UI build
+make setup                        # Rust + CMake if missing, JS dependencies, git hooks, first UI build
 make dev                          # desktop app with hot reload
 make cli ARGS="export t.json -f srt"   # the CLI
 make check                        # everything CI runs

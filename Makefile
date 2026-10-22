@@ -13,7 +13,8 @@ help: ## Show this help
 
 # ---- Setup -------------------------------------------------------------------
 
-setup: ## Install JS dependencies and git hooks, then build the UI once
+setup: ## Install Rust and CMake if missing, JS dependencies and git hooks, then build the UI once
+	scripts/setup-toolchain.sh
 	pnpm install
 	$(PNPM) build
 
