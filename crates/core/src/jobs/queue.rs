@@ -3,11 +3,11 @@
 
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Condvar, Mutex, MutexGuard, PoisonError};
+use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
 
 use serde::Serialize;
 
-use super::JobState;
+use super::{JobState, Notify};
 use crate::library::title_for;
 
 /// What to transcribe and how.
@@ -55,6 +55,8 @@ pub(super) struct Inner {
 pub(super) struct Shared {
     pub inner: Mutex<Inner>,
     pub wake: Condvar,
+    /// Set once by [`Queue::start`]; lets the handle announce changes it makes itself.
+    pub notify: OnceLock<Notify>,
 }
 
 impl Shared {
@@ -112,7 +114,7 @@ impl Queue {
     }
 
     /// Stops a job: a waiting job is cancelled at once, a running one at its next progress check.
-    /// Returns the job if its state changed immediately.
+    /// Returns the job if its state changed immediately; that change is also announced.
     pub fn cancel(&self, id: u64) -> Option<JobInfo> {
         let mut inner = self.shared.lock();
         let entry = inner.entry(id)?;
@@ -121,7 +123,12 @@ impl Queue {
             return None;
         }
         entry.info.state = JobState::Cancelled;
-        Some(entry.info.clone())
+        let info = entry.info.clone();
+        drop(inner);
+        if let Some(notify) = self.shared.notify.get() {
+            notify(&info);
+        }
+        Some(info)
     }
 
     /// Takes a job off the list. A running job cannot be removed; cancel it first.

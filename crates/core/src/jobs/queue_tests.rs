@@ -186,6 +186,8 @@ fn cancelling_a_waiting_job_skips_it() {
 
     assert_eq!(changed.state, JobState::Cancelled);
     assert_eq!(f.ran.lock().unwrap().len(), 0);
+    let announced = f.events.try_iter().last().unwrap();
+    assert_eq!(announced.state, JobState::Cancelled);
 }
 
 #[test]

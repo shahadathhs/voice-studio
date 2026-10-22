@@ -19,7 +19,7 @@ pub struct AppInfo {
 
 /// Failure sent to the UI as a plain message.
 #[derive(Debug)]
-pub struct CommandError(String);
+pub struct CommandError(pub(crate) String);
 
 impl Serialize for CommandError {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -43,7 +43,7 @@ pub fn app_info() -> AppInfo {
     }
 }
 
-fn store() -> ModelStore {
+pub(crate) fn store() -> ModelStore {
     ModelStore::new(&Paths::resolve(None))
 }
 

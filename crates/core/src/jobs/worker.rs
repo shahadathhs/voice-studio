@@ -24,6 +24,8 @@ impl Queue {
             shared: Arc::default(),
         };
         let shared = Arc::clone(&queue.shared);
+        // A fresh queue has no notifier yet, so this cannot fail.
+        let _ = shared.notify.set(Arc::clone(&notify));
         std::thread::spawn(move || work(&shared, runner, &paths, &notify));
         queue
     }
