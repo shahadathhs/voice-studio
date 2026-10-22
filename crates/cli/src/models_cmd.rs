@@ -10,13 +10,9 @@ use vtt_core::paths::Paths;
 use vtt_core::{Error, Result};
 
 use crate::cli::{KindArg, Models};
+use crate::output::Output;
 
-pub struct Output {
-    pub json: bool,
-    pub quiet: bool,
-}
-
-pub fn run(cmd: Models, paths: &Paths, out: &Output) -> Result<()> {
+pub fn run(cmd: Models, paths: &Paths, out: Output) -> Result<()> {
     let catalog = Catalog::bundled()?;
     let store = ModelStore::new(paths);
     match cmd {
@@ -64,7 +60,7 @@ fn list(
     store: &ModelStore,
     kind: Option<KindArg>,
     installed_only: bool,
-    out: &Output,
+    out: Output,
 ) -> Result<()> {
     let kind = kind.map(kind_filter);
     let statuses: Vec<ModelStatus> = catalog
@@ -94,7 +90,7 @@ fn list(
     Ok(())
 }
 
-fn info(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
+fn info(entry: &ModelEntry, store: &ModelStore, out: Output) -> Result<()> {
     let status = store.status(entry);
     if out.json {
         println!("{}", serde_json::to_string_pretty(&status)?);
@@ -113,7 +109,7 @@ fn info(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
     Ok(())
 }
 
-fn pull(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
+pub fn pull(entry: &ModelEntry, store: &ModelStore, out: Output) -> Result<()> {
     if store.is_installed(entry) {
         if !out.quiet {
             eprintln!("{} is already installed", entry.id);
@@ -142,7 +138,7 @@ fn pull(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
     Ok(())
 }
 
-fn print_progress(id: &str, p: Progress, out: &Output, show_bar: bool) {
+fn print_progress(id: &str, p: Progress, out: Output, show_bar: bool) {
     if out.json {
         let event = Event::Download {
             id: id.to_string(),
@@ -166,7 +162,7 @@ fn print_progress(id: &str, p: Progress, out: &Output, show_bar: bool) {
     }
 }
 
-fn remove(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
+fn remove(entry: &ModelEntry, store: &ModelStore, out: Output) -> Result<()> {
     store.remove(entry)?;
     if !out.quiet && !out.json {
         eprintln!("removed {}", entry.id);
@@ -174,7 +170,7 @@ fn remove(entry: &ModelEntry, store: &ModelStore, out: &Output) -> Result<()> {
     Ok(())
 }
 
-fn verify(catalog: &Catalog, store: &ModelStore, id: Option<&str>, out: &Output) -> Result<()> {
+fn verify(catalog: &Catalog, store: &ModelStore, id: Option<&str>, out: Output) -> Result<()> {
     let targets: Vec<&ModelEntry> = match id {
         Some(id) => vec![find(catalog, id)?],
         None => catalog

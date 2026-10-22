@@ -3,6 +3,9 @@
 mod cli;
 mod commands;
 mod models_cmd;
+mod output;
+mod transcribe_cmd;
+mod transcribe_job;
 
 use std::process::ExitCode;
 
@@ -23,6 +26,9 @@ fn main() -> ExitCode {
                 eprintln!("{}", serde_json::to_string(&event).unwrap_or_default());
             } else {
                 eprintln!("error: {e}");
+                if let vtt_core::Error::ModelMissing(id) = &e {
+                    eprintln!("hint: run `vtt models pull {id}`");
+                }
             }
             ExitCode::from(e.exit_code())
         }

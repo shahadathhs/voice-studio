@@ -84,7 +84,6 @@ fn docx_is_reported_as_not_implemented() {
 
 #[test]
 fn engine_commands_are_not_implemented_yet() {
-    vtt().args(["transcribe", "a.wav"]).assert().code(70);
     vtt().args(["speak", "hello"]).assert().code(70);
 }
 
@@ -96,10 +95,7 @@ fn bad_flags_are_a_usage_error() {
 
 #[test]
 fn json_errors_are_one_json_object_on_stderr() {
-    let out = vtt()
-        .args(["--json", "transcribe", "a.wav"])
-        .output()
-        .unwrap();
+    let out = vtt().args(["--json", "speak", "hello"]).output().unwrap();
     assert_eq!(out.status.code(), Some(70));
     assert!(out.stdout.is_empty());
     let v: serde_json::Value = serde_json::from_slice(&out.stderr).unwrap();
@@ -201,4 +197,76 @@ fn list_installed_is_empty_on_a_fresh_data_dir() {
         .assert()
         .success()
         .stdout("");
+}
+
+const TONE: &str = concat!(
+    env!("CARGO_MANIFEST_DIR"),
+    "/../core/tests/fixtures/tone.wav"
+);
+
+fn transcribe_in(dir: &tempfile::TempDir) -> Command {
+    let mut cmd = vtt();
+    cmd.arg("transcribe")
+        .args(["--data-dir", dir.path().to_str().unwrap()]);
+    cmd
+}
+
+#[test]
+fn transcribing_a_missing_file_is_exit_3_before_any_model_is_needed() {
+    let dir = tempfile::tempdir().unwrap();
+    transcribe_in(&dir)
+        .arg("/no/such/file.wav")
+        .assert()
+        .code(3)
+        .stderr(contains("no such file"));
+}
+
+#[test]
+fn transcribing_without_an_installed_model_is_exit_4_with_a_pull_hint() {
+    let dir = tempfile::tempdir().unwrap();
+    transcribe_in(&dir)
+        .arg(TONE)
+        .assert()
+        .code(4)
+        .stderr(contains("model not installed: whisper-base"))
+        .stderr(contains("vtt models pull whisper-base"));
+}
+
+#[test]
+fn an_unknown_model_name_is_exit_3() {
+    let dir = tempfile::tempdir().unwrap();
+    transcribe_in(&dir)
+        .args([TONE, "--model", "nope"])
+        .assert()
+        .code(3)
+        .stderr(contains("unknown model"));
+}
+
+#[test]
+fn several_files_need_an_output_directory() {
+    let dir = tempfile::tempdir().unwrap();
+    transcribe_in(&dir)
+        .args([TONE, TONE])
+        .assert()
+        .code(3)
+        .stderr(contains("-o <directory>"));
+}
+
+#[test]
+fn features_that_are_not_built_yet_exit_70() {
+    let dir = tempfile::tempdir().unwrap();
+    transcribe_in(&dir)
+        .args([TONE, "--diarize"])
+        .assert()
+        .code(70);
+    transcribe_in(&dir)
+        .args([TONE, "-f", "docx"])
+        .assert()
+        .code(70);
+    transcribe_in(&dir).arg("-").assert().code(70);
+}
+
+#[test]
+fn transcribe_requires_at_least_one_file() {
+    vtt().arg("transcribe").assert().code(2);
 }

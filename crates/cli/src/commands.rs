@@ -7,20 +7,19 @@ use vtt_core::{Error, Result, Transcript};
 
 use crate::cli::{Cli, Command, Config, Export};
 use crate::models_cmd;
+use crate::output::Output;
+use crate::transcribe_cmd;
 
 pub fn run(cli: Cli) -> Result<()> {
     let json = cli.global.json;
+    let out = Output {
+        json,
+        quiet: cli.global.quiet,
+    };
     let paths = Paths::resolve(cli.global.data_dir.clone());
     match cli.command {
         Command::Export(a) => export_cmd(&a),
-        Command::Models(m) => models_cmd::run(
-            m,
-            &paths,
-            &models_cmd::Output {
-                json,
-                quiet: cli.global.quiet,
-            },
-        ),
+        Command::Models(m) => models_cmd::run(m, &paths, out),
         Command::Config(Config::Path) => {
             if json {
                 println!(
@@ -40,7 +39,7 @@ pub fn run(cli: Cli) -> Result<()> {
             clap_complete::generate(shell, &mut cmd, "vtt", &mut std::io::stdout());
             Ok(())
         }
-        Command::Transcribe(_) => Err(Error::NotImplemented("transcribe")),
+        Command::Transcribe(args) => transcribe_cmd::run(&args, &paths, out),
         Command::Speak(_) => Err(Error::NotImplemented("speak")),
         Command::Record(_) => Err(Error::NotImplemented("record")),
         Command::Library(_) => Err(Error::NotImplemented("library")),
