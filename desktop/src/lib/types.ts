@@ -34,3 +34,79 @@ export interface FinishedEvent {
   outcome: "installed" | "cancelled" | "failed";
   message: string | null;
 }
+
+export type JobState = "waiting" | "running" | "paused" | "done" | "failed" | "cancelled";
+
+/** Event `job-updated` and the rows of `list_jobs`. Same fields as `JobInfo` in vtt-core. */
+export interface JobInfo {
+  id: number;
+  file: string;
+  title: string;
+  model: string;
+  state: JobState;
+  processed_ms: number;
+  total_ms: number;
+  error: string | null;
+  item_id: number | null;
+}
+
+/** One stored transcript, from `list_library`. Same fields as `Item` in vtt-core. */
+export interface LibraryItem {
+  id: number;
+  title: string;
+  /** Seconds since the Unix epoch. */
+  created_at: number;
+  duration_ms: number;
+  source_path: string | null;
+  model: string | null;
+  language: string | null;
+  segment_count: number;
+  speaker_count: number;
+}
+
+/** A library item that matched a search, with the matching line. */
+export interface SearchHit {
+  item: LibraryItem;
+  start_ms: number;
+  /** The line with matches wrapped in `[` and `]`. */
+  snippet: string;
+}
+
+export interface Segment {
+  start_ms: number;
+  end_ms: number;
+  speaker?: string;
+  text: string;
+}
+
+export interface Transcript {
+  segments: Segment[];
+  language: string | null;
+  duration_ms: number;
+  model: string | null;
+}
+
+/** Speaking time of one speaker. */
+export interface SpeakerShare {
+  name: string;
+  talk_ms: number;
+}
+
+/** Result of `get_transcript`. */
+export interface TranscriptView {
+  item: LibraryItem;
+  transcript: Transcript;
+  word_count: number;
+  /** Longest speaker first. */
+  speakers: SpeakerShare[];
+}
+
+export type ExportFormat = "txt" | "srt" | "vtt" | "json" | "md";
+
+/** Argument of `render_export` and `save_export`; `ExportSettings` in desktop/src-tauri. */
+export interface ExportSettings {
+  speakerNames: boolean;
+  timestamps: boolean;
+  maxCharsPerLine: number;
+  linesPerCue: number;
+}

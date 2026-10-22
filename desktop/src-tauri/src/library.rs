@@ -13,11 +13,36 @@ use crate::commands::CommandError;
 
 const SEARCH_LIMIT: usize = 50;
 
+/// Speaking time of one speaker. Mirrored by `SpeakerShare` in `desktop/src/lib/types.ts`.
+#[derive(Debug, Serialize)]
+pub struct SpeakerShare {
+    name: String,
+    talk_ms: u64,
+}
+
 /// One stored transcript with its lines. Mirrored by `TranscriptView` in `desktop/src/lib/types.ts`.
 #[derive(Debug, Serialize)]
 pub struct TranscriptView {
     item: Item,
     transcript: Transcript,
+    word_count: usize,
+    speakers: Vec<SpeakerShare>,
+}
+
+impl TranscriptView {
+    fn new(item: Item, transcript: Transcript) -> TranscriptView {
+        let speakers = transcript
+            .talk_time_by_speaker()
+            .into_iter()
+            .map(|(name, talk_ms)| SpeakerShare { name, talk_ms })
+            .collect();
+        TranscriptView {
+            word_count: transcript.word_count(),
+            item,
+            transcript,
+            speakers,
+        }
+    }
 }
 
 /// The export dialog's options. Mirrored by `ExportSettings` in `desktop/src/lib/types.ts`.
@@ -69,7 +94,7 @@ pub fn search_library(query: &str) -> Result<Vec<SearchHit>, CommandError> {
 #[tauri::command]
 pub fn get_transcript(id: i64) -> Result<TranscriptView, CommandError> {
     let (item, transcript) = open()?.get(id)?;
-    Ok(TranscriptView { item, transcript })
+    Ok(TranscriptView::new(item, transcript))
 }
 
 #[tauri::command]
@@ -151,6 +176,15 @@ mod tests {
         let (library, id) = library_with_one_line();
         assert!(render_in(&library, id, "wat", settings()).is_err());
         assert!(render_in(&library, id + 1, "txt", settings()).is_err());
+    }
+
+    #[test]
+    fn the_viewer_gets_word_count_and_speaker_shares_with_the_transcript() {
+        let (library, id) = library_with_one_line();
+        let (item, transcript) = library.get(id).unwrap();
+        let view = TranscriptView::new(item, transcript);
+        assert_eq!(view.word_count, 2);
+        assert_eq!(view.speakers.len(), 0);
     }
 
     #[test]

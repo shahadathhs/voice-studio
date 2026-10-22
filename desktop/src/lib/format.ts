@@ -23,3 +23,28 @@ export function languageLabel(languages: readonly string[]): string {
 export function percent(done: number, total: number): number {
   return total > 0 ? Math.min(100, Math.floor((done / total) * 100)) : 0;
 }
+
+/** `m:ss`, or `h:mm:ss` from one hour up. */
+export function formatClock(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const seconds = String(total % 60).padStart(2, "0");
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`
+    : `${minutes}:${seconds}`;
+}
+
+/** Local date of a Unix timestamp in seconds, e.g. "Oct 22, 2026". */
+export function formatDate(seconds: number): string {
+  return new Date(seconds * 1000).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/** The last path component, for showing where a file came from. */
+export function baseName(path: string): string {
+  return path.split(/[\\/]/).pop() ?? path;
+}

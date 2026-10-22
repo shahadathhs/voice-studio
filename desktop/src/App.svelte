@@ -4,16 +4,22 @@
   import Sidebar from "./components/Sidebar.svelte";
   import StatusBar from "./components/StatusBar.svelte";
   import { info } from "./lib/app-info.svelte";
+  import { jobs } from "./lib/jobs.svelte";
+  import { library } from "./lib/library.svelte";
   import { models } from "./lib/models.svelte";
   import { nav } from "./lib/nav.svelte";
   import ComingSoonPage from "./pages/ComingSoonPage.svelte";
+  import LibraryPage from "./pages/LibraryPage.svelte";
   import ModelsPage from "./pages/ModelsPage.svelte";
   import SettingsPage from "./pages/SettingsPage.svelte";
   import TranscribePage from "./pages/TranscribePage.svelte";
+  import TranscriptPage from "./pages/TranscriptPage.svelte";
 
   onMount(() => {
     void info.load();
     void models.start();
+    void jobs.start();
+    void library.load();
   });
 </script>
 
@@ -30,11 +36,11 @@
           text="Text to speech arrives in phase 4 of the roadmap."
         />
       {:else if nav.current === "library"}
-        <ComingSoonPage
-          title="Library"
-          subtitle="Everything you have transcribed or generated, searchable."
-          text="The library arrives together with transcription."
-        />
+        {#if nav.viewing !== null}
+          <TranscriptPage id={nav.viewing} />
+        {:else}
+          <LibraryPage />
+        {/if}
       {:else if nav.current === "models"}
         <ModelsPage />
       {:else}
