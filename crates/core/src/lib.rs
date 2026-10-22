@@ -14,6 +14,7 @@ pub mod paths;
 #[cfg(feature = "testing")]
 pub mod testing;
 pub mod transcribe;
+pub mod tts;
 pub mod types;
 
 /// Version of the core crate, shown in the app's About section.

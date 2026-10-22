@@ -5,8 +5,10 @@ mod resample;
 #[cfg(test)]
 pub(crate) mod synthetic;
 mod vad;
+mod wav;
 
 pub use vad::{speech_chunks, voiced_span};
+pub use wav::encode_wav;
 
 use std::path::Path;
 

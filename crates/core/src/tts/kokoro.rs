@@ -1,0 +1,289 @@
+//! Text to speech with Kokoro-82M, run with ONNX Runtime.
+//!
+//! Text is cut into sentences, each sentence is turned into phonemes (see [`super::phonemes`]) and
+//! then into numbers, and the model speaks it in the chosen voice. A voice is a table of 256-number
+//! style vectors, one per possible sentence length.
+
+use std::collections::HashMap;
+use std::fmt::Display;
+use std::path::{Path, PathBuf};
+
+use ort::environment::Environment;
+use ort::session::Session;
+use ort::value::Tensor;
+
+use super::lexicon::Lexicon;
+use super::phonemes::Phonemizer;
+use super::sentences::{self, Piece};
+use super::vocab::Vocab;
+use crate::engines::{AudioBuffer, Control, TtsEngine, TtsOptions};
+use crate::{Error, Result};
+
+/// File names inside the model's folder; `catalog/models.json` lists the same names.
+pub const MODEL_FILE: &str = "model_quantized.onnx";
+pub const TOKENIZER_FILE: &str = "tokenizer.json";
+pub const GOLD_FILE: &str = "us_gold.json";
+pub const SILVER_FILE: &str = "us_silver.json";
+/// Extension of a voice file, named after the voice (`af_heart.bin`).
+const VOICE_EXTENSION: &str = "bin";
+
+/// Kokoro produces audio at this rate.
+pub const SAMPLE_RATE: u32 = 24_000;
+/// Slowest and fastest speaking speed.
+pub const MIN_SPEED: f32 = 0.5;
+pub const MAX_SPEED: f32 = 2.0;
+/// The model reads up to 510 symbols; shorter pieces sound better, so longer ones are halved.
+const MAX_TOKENS: usize = 400;
+const STYLE_SIZE: usize = 256;
+const SENTENCE_PAUSE_MS: usize = 250;
+const PARAGRAPH_PAUSE_MS: usize = 650;
+const SPLIT_PAUSE_MS: usize = 120;
+
+fn engine_error(e: impl Display) -> Error {
+    Error::Engine(format!("kokoro: {e}"))
+}
+
+/// A loaded Kokoro model with its pronunciation dictionary and voices.
+pub struct KokoroEngine {
+    session: Session,
+    _environment: Environment,
+    vocab: Vocab,
+    phonemizer: Phonemizer,
+    dir: PathBuf,
+    voices: HashMap<String, Vec<f32>>,
+}
+
+impl KokoroEngine {
+    /// Loads the model from `dir`, where the catalog installs it. `model_id` only labels the
+    /// error when files are missing.
+    pub fn load(dir: &Path, model_id: &str) -> Result<KokoroEngine> {
+        for file in [MODEL_FILE, TOKENIZER_FILE, GOLD_FILE, SILVER_FILE] {
+            if !dir.join(file).is_file() {
+                return Err(Error::ModelMissing(model_id.to_string()));
+            }
+        }
+        let read = |name: &str| std::fs::read_to_string(dir.join(name));
+        let environment = ort::environment::init()
+            .with_name("voice-studio")
+            .build()
+            .map_err(engine_error)?;
+        let session = Session::builder(&environment)
+            .and_then(|mut builder| builder.commit_from_file(dir.join(MODEL_FILE)))
+            .map_err(engine_error)?;
+        Ok(KokoroEngine {
+            session,
+            _environment: environment,
+            vocab: Vocab::from_tokenizer_json(&read(TOKENIZER_FILE)?)?,
+            phonemizer: Phonemizer::new(Lexicon::from_json(
+                &read(GOLD_FILE)?,
+                &read(SILVER_FILE)?,
+            )?),
+            dir: dir.to_path_buf(),
+            voices: HashMap::new(),
+        })
+    }
+
+    /// The voices installed in `dir`, by name, in alphabetical order.
+    pub fn voices_in(dir: &Path) -> Vec<String> {
+        let mut names: Vec<String> = std::fs::read_dir(dir)
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| {
+                let path = entry.ok()?.path();
+                (path.extension()? == VOICE_EXTENSION)
+                    .then(|| path.file_stem()?.to_str().map(str::to_string))?
+            })
+            .collect();
+        names.sort();
+        names
+    }
+
+    /// The style vector for a sentence of `tokens` symbols in `voice`.
+    fn style(&mut self, voice: &str, tokens: usize) -> Result<Vec<f32>> {
+        if !self.voices.contains_key(voice) {
+            let path = self.dir.join(format!("{voice}.{VOICE_EXTENSION}"));
+            let bytes = std::fs::read(&path).map_err(|_| {
+                Error::Input(format!(
+                    "unknown voice: {voice} (installed: {})",
+                    KokoroEngine::voices_in(&self.dir).join(", ")
+                ))
+            })?;
+            let (words, _) = bytes.as_chunks::<4>();
+            let numbers: Vec<f32> = words.iter().map(|b| f32::from_le_bytes(*b)).collect();
+            if numbers.is_empty() || !numbers.len().is_multiple_of(STYLE_SIZE) {
+                return Err(Error::Engine(format!(
+                    "kokoro: voice file {voice} is damaged"
+                )));
+            }
+            self.voices.insert(voice.to_string(), numbers);
+        }
+        let table = &self.voices[voice];
+        let rows = table.len() / STYLE_SIZE;
+        let row = tokens.min(rows - 1);
+        Ok(table[row * STYLE_SIZE..(row + 1) * STYLE_SIZE].to_vec())
+    }
+
+    fn infer(&mut self, tokens: &[i64], style: Vec<f32>, speed: f32) -> Result<Vec<f32>> {
+        // The model expects a padding symbol (0) before and after the sentence.
+        let mut ids = Vec::with_capacity(tokens.len() + 2);
+        ids.push(0);
+        ids.extend_from_slice(tokens);
+        ids.push(0);
+        let length = ids.len();
+        let outputs = self
+            .session
+            .run(ort::inputs![
+                "input_ids" => Tensor::from_array(([1usize, length], ids)).map_err(engine_error)?,
+                "style" => Tensor::from_array(([1usize, STYLE_SIZE], style)).map_err(engine_error)?,
+                "speed" => Tensor::from_array(([1usize], vec![speed])).map_err(engine_error)?,
+            ])
+            .map_err(engine_error)?;
+        let (_, audio) = outputs[0]
+            .try_extract_tensor::<f32>()
+            .map_err(engine_error)?;
+        Ok(audio.to_vec())
+    }
+
+    /// Speaks one sentence, halving it first when it is too long for the model.
+    fn say(&mut self, text: &str, options: &TtsOptions) -> Result<Vec<f32>> {
+        let tokens = self.vocab.encode(&self.phonemizer.phonemize(text));
+        if tokens.is_empty() {
+            return Ok(Vec::new());
+        }
+        if tokens.len() > MAX_TOKENS
+            && let Some((head, tail)) = sentences::halve(text)
+        {
+            let mut audio = self.say(&head, options)?;
+            audio.extend(silence(SPLIT_PAUSE_MS));
+            audio.extend(self.say(&tail, options)?);
+            return Ok(audio);
+        }
+        let style = self.style(&options.voice, tokens.len())?;
+        self.infer(
+            &tokens[..tokens.len().min(MAX_TOKENS + 100)],
+            style,
+            options.speed,
+        )
+    }
+
+    /// Speaks `text`. `on_progress(done, total)` is called after each sentence and can cancel.
+    pub fn speak(
+        &mut self,
+        text: &str,
+        options: &TtsOptions,
+        on_progress: &mut dyn FnMut(usize, usize) -> Control,
+    ) -> Result<AudioBuffer> {
+        if !(MIN_SPEED..=MAX_SPEED).contains(&options.speed) {
+            return Err(Error::Input(format!(
+                "speed must be between {MIN_SPEED} and {MAX_SPEED}"
+            )));
+        }
+        let pieces = sentences::pieces(text);
+        if pieces.is_empty() {
+            return Err(Error::Input("there is no text to speak".into()));
+        }
+        let total = pieces.len();
+        let mut samples = Vec::new();
+        for (
+            n,
+            Piece {
+                text,
+                paragraph_end,
+            },
+        ) in pieces.iter().enumerate()
+        {
+            let mut audio = self.say(text, options)?;
+            quieten(&mut audio);
+            samples.extend(audio);
+            if n + 1 < total {
+                samples.extend(silence(if *paragraph_end {
+                    PARAGRAPH_PAUSE_MS
+                } else {
+                    SENTENCE_PAUSE_MS
+                }));
+            }
+            if on_progress(n + 1, total) == Control::Cancel {
+                return Err(Error::Cancelled);
+            }
+        }
+        Ok(AudioBuffer {
+            samples,
+            sample_rate: SAMPLE_RATE,
+        })
+    }
+}
+
+fn silence(ms: usize) -> Vec<f32> {
+    vec![0.0; ms * SAMPLE_RATE as usize / 1000]
+}
+
+/// Scales audio down when its peak would clip; quiet audio is left alone.
+fn quieten(samples: &mut [f32]) {
+    let peak = samples.iter().fold(0.0_f32, |peak, s| peak.max(s.abs()));
+    if peak > 1.0 {
+        for sample in samples.iter_mut() {
+            *sample /= peak;
+        }
+    }
+}
+
+impl TtsEngine for KokoroEngine {
+    fn synthesize(&mut self, text: &str, options: &TtsOptions) -> Result<AudioBuffer> {
+        self.speak(text, options, &mut |_, _| Control::Continue)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn missing_model_files_are_reported_as_not_installed() {
+        let dir = tempfile::tempdir().unwrap();
+        let result = KokoroEngine::load(dir.path(), "kokoro-82m");
+        assert!(matches!(result, Err(Error::ModelMissing(id)) if id == "kokoro-82m"));
+    }
+
+    #[test]
+    fn voices_are_the_bin_files_in_the_folder() {
+        let dir = tempfile::tempdir().unwrap();
+        for name in ["bf_emma.bin", "af_heart.bin", "tokenizer.json"] {
+            std::fs::write(dir.path().join(name), b"").unwrap();
+        }
+        assert_eq!(KokoroEngine::voices_in(dir.path()), ["af_heart", "bf_emma"]);
+        assert_eq!(KokoroEngine::voices_in(Path::new("/no/such/dir")).len(), 0);
+    }
+
+    #[test]
+    fn only_audio_that_would_clip_is_scaled_down() {
+        let mut loud = vec![2.0, -1.0, 0.5];
+        quieten(&mut loud);
+        assert_eq!(loud, [1.0, -0.5, 0.25]);
+        let mut quiet = vec![0.2, -0.4];
+        quieten(&mut quiet);
+        assert_eq!(quiet, [0.2, -0.4]);
+    }
+
+    #[test]
+    fn the_catalog_installs_every_file_the_engine_reads() {
+        let catalog = crate::models::Catalog::bundled().unwrap();
+        let entry = catalog.find("kokoro-82m").unwrap();
+        let names: Vec<&str> = entry.files.iter().map(|f| f.name.as_str()).collect();
+        for needed in [MODEL_FILE, TOKENIZER_FILE, GOLD_FILE, SILVER_FILE] {
+            assert!(names.contains(&needed), "{needed}");
+        }
+        assert!(
+            names
+                .iter()
+                .filter(|n| Path::new(n).extension().is_some_and(|e| e == "bin"))
+                .count()
+                >= 2
+        );
+        assert_eq!(entry.kind, crate::models::ModelKind::Tts);
+    }
+
+    #[test]
+    fn pauses_have_the_right_length() {
+        assert_eq!(silence(250).len(), 6000);
+    }
+}

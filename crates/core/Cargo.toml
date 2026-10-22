@@ -19,6 +19,8 @@ workspace = true
 
 [dependencies]
 directories = "6.0.0"
+num-traits = "0.2.19"
+ort = "2.0.0-rc.15"
 rubato = "5.0.1"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 serde = { version = "1.0.229", features = ["derive"] }
