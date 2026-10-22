@@ -54,7 +54,6 @@
     {/if}
   </button>
   <div class="actions">
-    event.key === "Escape" && (confirming = false)} role="group" >
     {#if confirming}
       <button class="btn danger" onclick={remove}>Delete</button>
       <button class="btn" onclick={() => (confirming = false)}>Keep</button>
