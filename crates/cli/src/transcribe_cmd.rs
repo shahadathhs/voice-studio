@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 use vtt_core::engines::{Device, SttOptions, WhisperEngine};
 use vtt_core::export::Format;
-use vtt_core::library::{Library, NewItem};
+use vtt_core::library::{Library, NewItem, title_for};
 use vtt_core::models::{Catalog, ModelEntry, ModelKind, ModelStore};
 use vtt_core::paths::Paths;
 use vtt_core::{Error, Result, Transcript};
@@ -62,9 +62,7 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
 
 /// Stores a finished transcript in the shared library, titled after the file.
 fn keep(library: &mut Library, file: &Path, transcript: &Transcript) -> Result<()> {
-    let title = file
-        .file_stem()
-        .map_or_else(|| "Transcript".into(), |s| s.to_string_lossy().into_owned());
+    let title = title_for(file);
     let source = std::path::absolute(file)?.display().to_string();
     let new = NewItem {
         title: &title,

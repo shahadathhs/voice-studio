@@ -6,6 +6,7 @@ mod search;
 
 pub use search::SearchHit;
 
+use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use rusqlite::{Connection, OptionalExtension, Row, params};
@@ -31,6 +32,12 @@ pub struct Item {
     pub language: Option<String>,
     pub segment_count: u64,
     pub speaker_count: u64,
+}
+
+/// The title a file gets in the library: its name without the extension.
+pub fn title_for(file: &Path) -> String {
+    file.file_stem()
+        .map_or_else(|| "Transcript".into(), |s| s.to_string_lossy().into_owned())
 }
 
 /// What the caller knows about a transcript that the transcript itself does not say.
