@@ -1,6 +1,7 @@
 <script lang="ts">
   import { formatClock, formatDate } from "../lib/format";
   import { languageName } from "../lib/languages";
+  import { library } from "../lib/library.svelte";
   import { nav } from "../lib/nav.svelte";
   import { player } from "../lib/player.svelte";
   import type { LibraryItem } from "../lib/types";
@@ -17,6 +18,13 @@
       ? ` · ${item.speaker_count} speaker${item.speaker_count === 1 ? "" : "s"}`
       : "",
   );
+  let confirming = $state(false);
+
+  async function remove(): Promise<void> {
+    if (player.itemId === item.id) player.stop();
+    await library.remove(item.id);
+  }
+
   const playing = $derived(player.isActive(item.id, "all"));
   /** Splits "a [b] c" into plain and matched parts so matches can be marked without HTML. */
   const parts = $derived((snippet ?? "").split(/(\[[^\]]*\])/).filter((part) => part !== ""));
@@ -45,6 +53,17 @@
       </span>
     {/if}
   </button>
+  <div class="actions">
+    event.key === "Escape" && (confirming = false)} role="group" >
+    {#if confirming}
+      <button class="btn danger" onclick={remove}>Delete</button>
+      <button class="btn" onclick={() => (confirming = false)}>Keep</button>
+    {:else}
+      <button class="trash" aria-label="Delete {item.title}" onclick={() => (confirming = true)}>
+        <Icon name="trash" />
+      </button>
+    {/if}
+  </div>
 </li>
 
 <style>
@@ -69,6 +88,31 @@
     border-radius: 50%;
     background: var(--accent-bg);
     color: var(--accent);
+  }
+
+  .actions {
+    display: flex;
+    flex: none;
+    gap: 6px;
+    padding: 0 12px;
+  }
+
+  .trash {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    color: var(--text3);
+  }
+
+  .trash:hover {
+    background: var(--line);
+    color: var(--danger);
+  }
+
+  .danger {
+    color: var(--danger);
   }
 
   .row {
