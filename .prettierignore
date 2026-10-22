@@ -1,0 +1,8 @@
+node_modules/
+pnpm-lock.yaml
+dist/
+target/
+desktop/.svelte-check/
+desktop/src-tauri/gen/
+# Hand-written HTML used to render the design PNGs
+docs/design/mockups/
