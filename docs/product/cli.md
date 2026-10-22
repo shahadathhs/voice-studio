@@ -75,11 +75,26 @@ Behaviour: if the model is missing and the session is interactive, offer to down
 
 ```
 vtt speak "Hello there" -o hello.wav
-vtt speak -f article.md --voice emma --speed 1.1 -o article.mp3
-echo "Build finished" | vtt speak --play
+vtt speak -f article.txt --voice adam --speed 1.1 -o article.wav
+echo "Build finished" | vtt speak -o done.wav
+vtt speak --list-voices
 ```
 
-Options: `-f/--file`, `--voice <id>`, `--speed <0.5-2.0>`, `--format <wav|mp3|flac>`, `-o`, `--play` (play instead of / as well as saving), `--pause-between-paragraphs <sec>`, `--no-library`. Text comes from the argument, `--file`, or stdin.
+Speaks English text with Kokoro-82M (model id `kokoro-82m`, about 100 MB, six American voices; `vtt models pull
+kokoro-82m`, or accept the offer to download it). Everything runs on the CPU; a sentence takes well under a second
+once the model is loaded.
+
+Options: `-f/--file <path>` (read the text from a file), `--voice <name>` (default `af_heart`; the part after the
+prefix works too, `adam` for `am_adam`), `--speed <0.5-2.0>`, `-o/--output <path>` (a file, a folder, or `-` for
+standard output; default `speech.wav`), `--list-voices`, `-y/--yes` and `--json`. Text comes from the argument, from
+`--file`, or from standard input (`-` forces it).
+
+Text is spoken one sentence at a time, with a short pause between sentences and a longer one between paragraphs
+(blank lines). Numbers, years, ordinals, percentages, dollar amounts and common abbreviations are read out as words.
+Words missing from the pronunciation dictionary are guessed from their spelling, so unusual names may sound off.
+
+**Not yet:** `--format mp3|flac` and `--play` (exit code 70), voices for other languages, and keeping the result in the
+library. Only WAV (16-bit mono, 24 kHz) is written. Pronunciation is described in [speech.md](speech.md).
 
 ### `vtt record`
 

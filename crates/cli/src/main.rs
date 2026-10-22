@@ -5,6 +5,7 @@ mod commands;
 mod library_cmd;
 mod models_cmd;
 mod output;
+mod speak_cmd;
 mod transcribe_cmd;
 mod transcribe_job;
 

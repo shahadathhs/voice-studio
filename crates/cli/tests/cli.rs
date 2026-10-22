@@ -84,7 +84,7 @@ fn docx_is_reported_as_not_implemented() {
 
 #[test]
 fn engine_commands_are_not_implemented_yet() {
-    vtt().args(["speak", "hello"]).assert().code(70);
+    vtt().args(["record"]).assert().code(70);
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn bad_flags_are_a_usage_error() {
 
 #[test]
 fn json_errors_are_one_json_object_on_stderr() {
-    let out = vtt().args(["--json", "speak", "hello"]).output().unwrap();
+    let out = vtt().args(["--json", "record"]).output().unwrap();
     assert_eq!(out.status.code(), Some(70));
     assert_eq!(out.stdout.len(), 0);
     let v: serde_json::Value = serde_json::from_slice(&out.stderr).unwrap();

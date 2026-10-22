@@ -10,6 +10,9 @@ mod store;
 /// Catalog id of the model that tells speakers apart (see [`crate::diarize`]).
 pub const SPEAKER_MODEL_ID: &str = "wespeaker-resnet34";
 
+/// Catalog id of the text-to-speech model (see [`crate::tts`]).
+pub const SPEECH_MODEL_ID: &str = "kokoro-82m";
+
 pub use catalog::{Catalog, ModelEntry, ModelFile, ModelKind};
 pub use download::{Progress, download_file};
 pub use store::{ModelStatus, ModelStore};

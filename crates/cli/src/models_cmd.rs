@@ -1,6 +1,6 @@
 //! `vtt models ...`: list, inspect, download, remove and verify speech models.
 
-use std::io::IsTerminal;
+use std::io::{BufRead, IsTerminal, Write};
 use std::time::Duration;
 
 use vtt_core::engines::Control;
@@ -107,6 +107,36 @@ fn info(entry: &ModelEntry, store: &ModelStore, out: Output) -> Result<()> {
     );
     println!("  location:  {}", store.model_dir(entry).display());
     Ok(())
+}
+
+/// Makes sure the model is on disk: downloads it with `--yes`, offers to when interactive, and
+/// otherwise fails with exit code 4 so scripts get a clear signal.
+pub fn ensure_installed(
+    entry: &ModelEntry,
+    store: &ModelStore,
+    yes: bool,
+    out: Output,
+) -> Result<()> {
+    if store.is_installed(entry) {
+        return Ok(());
+    }
+    let interactive =
+        !out.json && std::io::stdin().is_terminal() && std::io::stderr().is_terminal();
+    if yes || (interactive && confirm_download(entry)) {
+        return pull(entry, store, out);
+    }
+    Err(Error::ModelMissing(entry.id.clone()))
+}
+
+fn confirm_download(entry: &ModelEntry) -> bool {
+    eprint!("{} is not installed. Download it now? [Y/n] ", entry.name);
+    let _ = std::io::stderr().flush();
+    let mut answer = String::new();
+    std::io::stdin().lock().read_line(&mut answer).is_ok()
+        && matches!(
+            answer.trim().to_ascii_lowercase().as_str(),
+            "" | "y" | "yes"
+        )
 }
 
 pub fn pull(entry: &ModelEntry, store: &ModelStore, out: Output) -> Result<()> {

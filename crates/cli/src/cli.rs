@@ -160,24 +160,32 @@ pub struct Transcribe {
 
 #[derive(Args, Debug)]
 pub struct Speak {
-    /// Text to speak (or use --file / stdin)
+    /// Text to speak (or use --file, or pipe it in; '-' reads stdin)
     pub text: Option<String>,
+    /// Read the text from a file
     #[arg(short, long, value_name = "PATH")]
     pub file: Option<PathBuf>,
+    /// Voice name, e.g. `af_heart` or just `heart` (see --list-voices)
     #[arg(long)]
     pub voice: Option<String>,
+    /// Speaking speed, 0.5 to 2.0
     #[arg(long, default_value_t = 1.0, value_name = "0.5-2.0")]
     pub speed: f32,
-    /// wav, mp3 or flac
+    /// Output format; only wav so far
     #[arg(long, default_value = "wav")]
     pub format: String,
+    /// Output file, '-' for stdout; default speech.wav
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
-    /// Play the audio
+    /// Play the audio instead of saving it (not available yet)
     #[arg(long)]
     pub play: bool,
+    /// List the installed voices and exit
     #[arg(long)]
-    pub no_library: bool,
+    pub list_voices: bool,
+    /// Accept prompts (e.g. download a missing model)
+    #[arg(short = 'y', long)]
+    pub yes: bool,
 }
 
 #[derive(Args, Debug)]

@@ -25,3 +25,8 @@ card says Apache-2.0; WeSpeaker's documentation says VoxCeleb-trained models fol
 
 `can_translate` (default `true`) is `false` for the large-v3 turbo models, which Whisper trained without
 translation.
+
+The text-to-speech entry `kokoro-82m` is the 8-bit ONNX export of Kokoro-82M by onnx-community (Apache-2.0), with the
+`misaki` pronunciation dictionaries (Apache-2.0, pinned to a commit of github.com/hexgrad/misaki) and six voices. The
+file names must match the constants in `crates/core/src/tts/kokoro.rs`; a test checks it. See
+`docs/product/speech.md`.

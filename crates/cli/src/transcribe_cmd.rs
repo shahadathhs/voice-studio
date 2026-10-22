@@ -1,6 +1,5 @@
 //! `vtt transcribe`: audio or video files to text.
 
-use std::io::{BufRead, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 
 use vtt_core::diarize::{SpeakerDiarizer, SpeakerModel};
@@ -29,7 +28,7 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
     let catalog = Catalog::bundled()?;
     let store = ModelStore::new(paths);
     let entry = choose_model(&catalog, &store, args)?;
-    ensure_installed(entry, &store, args.yes, out)?;
+    models_cmd::ensure_installed(entry, &store, args.yes, out)?;
     let speakers = speaker_labeller(args, &catalog, &store, out)?;
     let mut engine = load_engine(args, entry, &store)?;
     let options = SttOptions {
@@ -93,7 +92,7 @@ fn speaker_labeller(
     let entry = catalog
         .find(SPEAKER_MODEL_ID)
         .ok_or_else(|| Error::ModelMissing(SPEAKER_MODEL_ID.into()))?;
-    ensure_installed(entry, store, args.yes, out)?;
+    models_cmd::ensure_installed(entry, store, args.yes, out)?;
     let path = store.file_path(entry, &entry.files[0]);
     let options = DiarizeOptions {
         speakers: args.speakers.speakers,
@@ -152,31 +151,6 @@ fn choose_model<'a>(
         )));
     }
     Ok(entry)
-}
-
-/// Makes sure the model is on disk: downloads it with `--yes`, offers to when interactive, and
-/// otherwise fails with exit code 4 so scripts get a clear signal.
-fn ensure_installed(entry: &ModelEntry, store: &ModelStore, yes: bool, out: Output) -> Result<()> {
-    if store.is_installed(entry) {
-        return Ok(());
-    }
-    let interactive =
-        !out.json && std::io::stdin().is_terminal() && std::io::stderr().is_terminal();
-    if yes || (interactive && confirm_download(entry)) {
-        return models_cmd::pull(entry, store, out);
-    }
-    Err(Error::ModelMissing(entry.id.clone()))
-}
-
-fn confirm_download(entry: &ModelEntry) -> bool {
-    eprint!("{} is not installed. Download it now? [Y/n] ", entry.name);
-    let _ = std::io::stderr().flush();
-    let mut answer = String::new();
-    std::io::stdin().lock().read_line(&mut answer).is_ok()
-        && matches!(
-            answer.trim().to_ascii_lowercase().as_str(),
-            "" | "y" | "yes"
-        )
 }
 
 #[cfg(test)]
