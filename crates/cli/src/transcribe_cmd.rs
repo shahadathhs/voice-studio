@@ -5,9 +5,10 @@ use std::path::{Path, PathBuf};
 
 use vtt_core::engines::{Device, SttOptions, WhisperEngine};
 use vtt_core::export::Format;
+use vtt_core::library::{Library, NewItem};
 use vtt_core::models::{Catalog, ModelEntry, ModelKind, ModelStore};
 use vtt_core::paths::Paths;
-use vtt_core::{Error, Result};
+use vtt_core::{Error, Result, Transcript};
 
 use crate::cli::{DeviceChoice, Transcribe};
 use crate::models_cmd;
@@ -22,6 +23,11 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
     let destination = Destination::resolve(&args.files, args.out.output.as_deref())?;
     check_inputs(&args.files)?;
 
+    let mut library = if args.no_library {
+        None
+    } else {
+        Some(Library::open(paths)?)
+    };
     let catalog = Catalog::bundled()?;
     let store = ModelStore::new(paths);
     let entry = choose_model(&catalog, &store, args.model.as_deref())?;
@@ -46,8 +52,25 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
             export_options: &export_options,
             destination: &destination,
         };
-        job.run(&mut engine, &entry.id, &options, out)?;
+        let transcript = job.run(&mut engine, &entry.id, &options, out)?;
+        if let Some(library) = library.as_mut() {
+            keep(library, file, &transcript)?;
+        }
     }
+    Ok(())
+}
+
+/// Stores a finished transcript in the shared library, titled after the file.
+fn keep(library: &mut Library, file: &Path, transcript: &Transcript) -> Result<()> {
+    let title = file
+        .file_stem()
+        .map_or_else(|| "Transcript".into(), |s| s.to_string_lossy().into_owned());
+    let source = std::path::absolute(file)?.display().to_string();
+    let new = NewItem {
+        title: &title,
+        source_path: Some(&source),
+    };
+    library.add(transcript, &new)?;
     Ok(())
 }
 
@@ -117,4 +140,35 @@ fn confirm_download(entry: &ModelEntry) -> bool {
             answer.trim().to_ascii_lowercase().as_str(),
             "" | "y" | "yes"
         )
+}
+
+#[cfg(test)]
+mod tests {
+    use vtt_core::library::Library;
+    use vtt_core::paths::Paths;
+
+    use super::*;
+
+    #[test]
+    fn a_finished_transcript_is_stored_under_the_file_name() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut library = Library::open(&Paths::resolve(Some(dir.path().to_path_buf()))).unwrap();
+        let transcript = Transcript {
+            duration_ms: 1500,
+            ..Transcript::default()
+        };
+
+        keep(&mut library, Path::new("talks/standup.m4a"), &transcript).unwrap();
+
+        let items = library.list().unwrap();
+        assert_eq!(items[0].title, "standup");
+        assert_eq!(items[0].duration_ms, 1500);
+        assert!(
+            items[0]
+                .source_path
+                .as_deref()
+                .unwrap()
+                .ends_with("standup.m4a")
+        );
+    }
 }

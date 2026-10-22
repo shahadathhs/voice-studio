@@ -32,8 +32,8 @@ vtt serve                              optional local HTTP API (later phase)
 
 **Implemented:** files in WAV, MP3, M4A/AAC, FLAC, OGG and the audio of MP4/MOV/MKV; `-m`, `-l`, `--translate`,
 `--device`, `-f txt|srt|vtt|json|md`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
-`--lines`, `-y`, `--json`. **Not yet:** `--diarize`/`--speakers` (phase 3), `-f docx`, reading audio from stdin (`-`),
-and the shared library (`--no-library` is accepted and has no effect yet). These exit with code 70.
+`--lines`, `-y`, `--json`, and saving every result to the shared library (`--no-library` skips it). **Not yet:**
+`--diarize`/`--speakers` (phase 3), `-f docx` and reading audio from stdin (`-`). These exit with code 70.
 
 ```
 vtt transcribe talk.m4a                               # prints text to stdout
@@ -87,7 +87,10 @@ Voices are models of kind `tts`; `vtt models list --kind tts` is the voice list.
 
 ### `vtt library`
 
-`list`, `search <query>` (full-text), `show <id> [-f fmt]`, `export <id>... -f fmt -o dir`, `delete <id>...`.
+`list`, `search <query> [--limit N]` (full-text, every word must match, the last as a prefix; the match is shown
+between `[` and `]`), `show <id> [-f fmt]`, `export <id>... -f fmt -o dir` (one `<id>-<title>.<ext>` file each) and
+`delete <id>...`. With `--json`, `list` and `search` print one JSON array. Ids that are not numbers or not in the
+library exit with code 3. The library is one SQLite file, `library.sqlite`, in the data directory.
 
 ### `vtt config`, `vtt doctor`
 
@@ -105,7 +108,7 @@ Config file: TOML in the platform config directory; `vtt config set model whispe
 | Code | Meaning                                                             |
 | ---- | ------------------------------------------------------------------- |
 | 0    | Success                                                             |
-| 1    | Unexpected error                                                    |
+| 1    | Unexpected error, or the library database cannot be read/written    |
 | 2    | Usage error (bad flags)                                             |
 | 3    | Input error (file missing/unreadable/unsupported, bad JSON)         |
 | 4    | Required model is not installed                                     |

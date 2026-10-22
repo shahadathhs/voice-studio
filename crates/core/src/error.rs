@@ -24,8 +24,17 @@ pub enum Error {
     NotImplemented(&'static str),
     #[error(transparent)]
     Io(#[from] std::io::Error),
+    /// The library database could not be opened, read or written.
+    #[error("library: {0}")]
+    Storage(String),
     #[error("invalid JSON: {0}")]
     Json(#[from] serde_json::Error),
+}
+
+impl From<rusqlite::Error> for Error {
+    fn from(error: rusqlite::Error) -> Self {
+        Error::Storage(error.to_string())
+    }
 }
 
 impl Error {
@@ -38,7 +47,7 @@ impl Error {
             Error::Network(_) => 7,
             Error::NotImplemented(_) => 70,
             Error::Cancelled => 130,
-            Error::Io(_) => 1,
+            Error::Io(_) | Error::Storage(_) => 1,
         }
     }
 }

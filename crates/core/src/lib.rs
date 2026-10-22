@@ -7,6 +7,7 @@ pub mod engines;
 pub mod error;
 pub mod export;
 pub mod jobs;
+pub mod library;
 pub mod models;
 pub mod paths;
 #[cfg(feature = "testing")]

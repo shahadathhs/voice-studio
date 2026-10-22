@@ -228,11 +228,33 @@ pub enum Models {
 
 #[derive(Subcommand, Debug)]
 pub enum Library {
+    /// List stored transcripts, newest first
     List,
-    Search { query: String },
-    Show { id: String },
-    Export { ids: Vec<String> },
-    Delete { ids: Vec<String> },
+    /// Find transcripts by the words they contain
+    Search {
+        query: String,
+        /// Most results to show
+        #[arg(long, default_value_t = 20, value_name = "N")]
+        limit: usize,
+    },
+    /// Print one transcript
+    Show {
+        id: String,
+        #[command(flatten)]
+        out: OutputArgs,
+    },
+    /// Write transcripts to files (-o is a directory for several ids)
+    Export {
+        #[arg(required = true)]
+        ids: Vec<String>,
+        #[command(flatten)]
+        out: OutputArgs,
+    },
+    /// Remove transcripts from the library
+    Delete {
+        #[arg(required = true)]
+        ids: Vec<String>,
+    },
 }
 
 #[derive(Subcommand, Debug)]

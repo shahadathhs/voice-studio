@@ -2,6 +2,7 @@
 
 mod cli;
 mod commands;
+mod library_cmd;
 mod models_cmd;
 mod output;
 mod transcribe_cmd;

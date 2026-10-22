@@ -54,7 +54,7 @@ impl Job<'_> {
         model: &str,
         options: &SttOptions,
         out: Output,
-    ) -> Result<()> {
+    ) -> Result<Transcript> {
         let name = self
             .file
             .file_name()
@@ -65,7 +65,8 @@ impl Job<'_> {
             Control::Continue
         });
         reporter.finish_line();
-        let written = self.write(&result?, out)?;
+        let transcript = result?;
+        let written = self.write(&transcript, out)?;
         emit(
             out,
             &Event::Done {
@@ -73,7 +74,7 @@ impl Job<'_> {
                 elapsed_ms: reporter.elapsed_ms(),
             },
         );
-        Ok(())
+        Ok(transcript)
     }
 
     /// Writes the transcript where the user asked and returns the path, if it went to a file.

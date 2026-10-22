@@ -6,6 +6,7 @@ use vtt_core::paths::Paths;
 use vtt_core::{Error, Result, Transcript};
 
 use crate::cli::{Cli, Command, Config, Export};
+use crate::library_cmd;
 use crate::models_cmd;
 use crate::output::Output;
 use crate::transcribe_cmd;
@@ -42,7 +43,7 @@ pub fn run(cli: Cli) -> Result<()> {
         Command::Transcribe(args) => transcribe_cmd::run(&args, &paths, out),
         Command::Speak(_) => Err(Error::NotImplemented("speak")),
         Command::Record(_) => Err(Error::NotImplemented("record")),
-        Command::Library(_) => Err(Error::NotImplemented("library")),
+        Command::Library(command) => library_cmd::run(command, &paths, out),
         Command::Devices => Err(Error::NotImplemented("devices")),
     }
 }
