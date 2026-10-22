@@ -1,0 +1,6 @@
+# Function-level limits from docs/guidelines.md
+too-many-lines-threshold = 50
+too-many-arguments-threshold = 5
+cognitive-complexity-threshold = 15
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
