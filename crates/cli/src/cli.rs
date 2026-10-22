@@ -111,11 +111,12 @@ pub struct SpeakerArgs {
     /// Identify speakers
     #[arg(long)]
     pub diarize: bool,
-    /// Fixed number of speakers (alias: --max-speakers)
-    #[arg(long, alias = "max-speakers", value_name = "N")]
+    /// Exact number of speakers (alias: --max-speakers)
+    #[arg(long, alias = "max-speakers", value_name = "N", requires = "diarize")]
     pub speakers: Option<usize>,
-    /// Clustering threshold 0-1 when --speakers is not set
-    #[arg(long, value_name = "X")]
+    /// How different two voices must be to count as two speakers, 0 to 2 (default 0.45); used when
+    /// --speakers is not set
+    #[arg(long, value_name = "X", requires = "diarize")]
     pub diarize_threshold: Option<f32>,
 }
 

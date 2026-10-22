@@ -30,6 +30,7 @@ fn transcribes_real_speech_on_cpu_and_gpu() {
             &mut engine,
             &speech,
             &SttOptions::default(),
+            None,
             &mut |done, total| {
                 last = (done, total);
                 Control::Continue
@@ -63,9 +64,13 @@ fn cancelling_stops_transcription() {
     let model = env_path("VTT_TEST_MODEL");
     let speech = env_path("VTT_TEST_SPEECH");
     let mut engine = WhisperEngine::load(&model, "test-model", Device::Cpu).unwrap();
-    let result = transcribe_file(&mut engine, &speech, &SttOptions::default(), &mut |_, _| {
-        Control::Cancel
-    });
+    let result = transcribe_file(
+        &mut engine,
+        &speech,
+        &SttOptions::default(),
+        None,
+        &mut |_, _| Control::Cancel,
+    );
     assert!(
         matches!(result, Err(vtt_core::Error::Cancelled)),
         "{result:?}"

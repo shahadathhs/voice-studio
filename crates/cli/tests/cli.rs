@@ -256,10 +256,6 @@ fn several_files_need_an_output_directory() {
 fn features_that_are_not_built_yet_exit_70() {
     let dir = tempfile::tempdir().unwrap();
     transcribe_in(&dir)
-        .args([TONE, "--diarize"])
-        .assert()
-        .code(70);
-    transcribe_in(&dir)
         .args([TONE, "-f", "docx"])
         .assert()
         .code(70);

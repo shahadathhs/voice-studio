@@ -3,6 +3,7 @@
 //! Nothing in here knows about a UI. Front ends call these modules directly, in-process.
 
 pub mod audio;
+pub mod diarize;
 pub mod engines;
 pub mod error;
 pub mod export;

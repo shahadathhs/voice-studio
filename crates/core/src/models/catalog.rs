@@ -30,7 +30,14 @@ pub struct ModelEntry {
     #[serde(default)]
     pub languages: Vec<String>,
     pub license: String,
+    /// Whether a speech model can translate to English; the turbo Whisper models cannot.
+    #[serde(default = "can_translate_by_default")]
+    pub can_translate: bool,
     pub files: Vec<ModelFile>,
+}
+
+fn can_translate_by_default() -> bool {
+    true
 }
 
 impl ModelEntry {
@@ -92,6 +99,7 @@ fn ensure_safe_name(name: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::models::SPEAKER_MODEL_ID;
 
     const ENTRY: &str = r#"{"id":"m","name":"M","kind":"stt","license":"MIT",
         "files":[{"name":"m.bin","url":"http://x/m.bin","sha256":"00","size_bytes":3}]}"#;
@@ -116,6 +124,26 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn the_speaker_model_is_listed_and_the_turbo_models_cannot_translate() {
+        let catalog = Catalog::bundled().unwrap();
+        let speaker = catalog.find(SPEAKER_MODEL_ID).unwrap();
+        assert_eq!(speaker.kind, ModelKind::Diarization);
+        assert!(catalog.find("whisper-base").unwrap().can_translate);
+        assert!(
+            !catalog
+                .find("whisper-large-v3-turbo")
+                .unwrap()
+                .can_translate
+        );
+        assert!(
+            !catalog
+                .find("whisper-large-v3-turbo-q5")
+                .unwrap()
+                .can_translate
+        );
     }
 
     #[test]

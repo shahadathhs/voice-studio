@@ -6,7 +6,7 @@ mod resample;
 pub(crate) mod synthetic;
 mod vad;
 
-pub use vad::speech_chunks;
+pub use vad::{speech_chunks, voiced_span};
 
 use std::path::Path;
 

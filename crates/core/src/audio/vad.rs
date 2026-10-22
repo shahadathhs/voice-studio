@@ -116,6 +116,19 @@ pub fn speech_chunks(samples: &[f32], rate: u32) -> Vec<Range<usize>> {
     chunks
 }
 
+/// The stretch of `samples` from its first to its last loud frame, or `None` when it is silent.
+pub fn voiced_span(samples: &[f32], rate: u32) -> Option<Range<usize>> {
+    let frame = samples_per(FRAME_MS, rate).max(1);
+    let levels = frame_levels(samples, frame);
+    let runs = speech_frames(
+        &levels,
+        MERGE_GAP_MS.div_ceil(FRAME_MS),
+        MIN_SPEECH_MS.div_ceil(FRAME_MS),
+    );
+    let (first, last) = (runs.first()?, runs.last()?);
+    Some(first.start * frame..(last.end * frame).min(samples.len()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -186,6 +199,16 @@ mod tests {
         assert_eq!(chunks[0].start, 0);
         assert_eq!(chunks.last().unwrap().end, audio.samples.len());
         assert!(chunks.windows(2).all(|w| w[0].end == w[1].start));
+    }
+
+    #[test]
+    fn the_voiced_span_drops_silence_at_both_ends() {
+        let audio = recording(&[silence(500), voice(1000), silence(700)]);
+        let span = voiced_span(&audio.samples, RATE).unwrap();
+        let (start, end) = millis(&span);
+        assert!((450..=550).contains(&start), "{start}");
+        assert!((1450..=1550).contains(&end), "{end}");
+        assert!(voiced_span(&silence(2000), RATE).is_none());
     }
 
     #[test]

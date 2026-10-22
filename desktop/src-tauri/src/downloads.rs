@@ -120,6 +120,7 @@ mod tests {
             description: String::new(),
             languages: vec![],
             license: "MIT".into(),
+            can_translate: true,
             files: vec![file],
         }
     }

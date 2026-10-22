@@ -78,7 +78,8 @@
           "sha256": "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
           "size_bytes": 1624555275
         }
-      ]
+      ],
+      "can_translate": false
     },
     {
       "id": "whisper-large-v3-turbo-q5",
@@ -94,7 +95,8 @@
           "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
           "size_bytes": 574041195
         }
-      ]
+      ],
+      "can_translate": false
     },
     {
       "id": "whisper-large-v3",
@@ -109,6 +111,22 @@
           "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3.bin",
           "sha256": "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2",
           "size_bytes": 3095033483
+        }
+      ]
+    },
+    {
+      "id": "wespeaker-resnet34",
+      "name": "Speaker identification (WeSpeaker ResNet34)",
+      "kind": "diarization",
+      "description": "Tells voices apart so transcripts can label who is speaking. Small and fast on the CPU.",
+      "languages": ["multilingual"],
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "name": "voxceleb_resnet34.onnx",
+          "url": "https://huggingface.co/Wespeaker/wespeaker-voxceleb-resnet34/resolve/ff1ac5bca8ef11e90662b879aa923979e0bd277b/voxceleb_resnet34.onnx",
+          "sha256": "9fea6516d7ad6bf0a76c7689f5a49b65d330fad6dde96c91bb4435ffbfe056a1",
+          "size_bytes": 26534127
         }
       ]
     }

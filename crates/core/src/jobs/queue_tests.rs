@@ -84,6 +84,7 @@ fn spec(name: &str) -> JobSpec {
         model_id: "whisper-base".into(),
         language: None,
         translate: false,
+        speakers: None,
     }
 }
 

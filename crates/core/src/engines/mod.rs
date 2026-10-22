@@ -68,7 +68,7 @@ pub trait TtsEngine: Send {
     fn synthesize(&mut self, text: &str, options: &TtsOptions) -> Result<AudioBuffer>;
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct DiarizeOptions {
     pub speakers: Option<usize>,
     pub threshold: Option<f32>,

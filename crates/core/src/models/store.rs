@@ -18,6 +18,7 @@ pub struct ModelStatus {
     pub description: String,
     pub languages: Vec<String>,
     pub license: String,
+    pub can_translate: bool,
     pub size_bytes: u64,
     pub installed: bool,
 }
@@ -87,6 +88,7 @@ impl ModelStore {
             description: entry.description.clone(),
             languages: entry.languages.clone(),
             license: entry.license.clone(),
+            can_translate: entry.can_translate,
             size_bytes: entry.size_bytes(),
             installed: self.is_installed(entry),
         }
@@ -150,6 +152,7 @@ mod tests {
             description: String::new(),
             languages: vec![],
             license: "MIT".into(),
+            can_translate: true,
             files: vec![ModelFile {
                 name: "tiny.bin".into(),
                 url: "http://127.0.0.1:9/never".into(),

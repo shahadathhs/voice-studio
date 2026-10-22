@@ -16,3 +16,12 @@ Rules for adding a model:
 
 The speech-to-text entries are the ggml conversions of OpenAI Whisper published in
 [ggerganov/whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp) (MIT).
+
+The speaker model `wespeaker-resnet34` is the ONNX export published by the WeSpeaker authors
+([Wespeaker/wespeaker-voxceleb-resnet34](https://huggingface.co/Wespeaker/wespeaker-voxceleb-resnet34)). Its model
+card says Apache-2.0; WeSpeaker's documentation says VoxCeleb-trained models follow the dataset licence
+(CC BY 4.0). Both permit commercial use, but the dataset terms have not been reviewed. See
+`docs/product/diarization.md`.
+
+`can_translate` (default `true`) is `false` for the large-v3 turbo models, which Whisper trained without
+translation.

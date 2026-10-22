@@ -4,10 +4,11 @@ use std::io::{IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use vtt_core::engines::{Control, SttOptions, WhisperEngine};
+use vtt_core::diarize::{SpeakerDiarizer, SpeakerModel};
+use vtt_core::engines::{Control, DiarizeOptions, SttOptions, WhisperEngine};
 use vtt_core::export::{self, ExportOptions, Format};
 use vtt_core::jobs::{Event, Throttle};
-use vtt_core::transcribe::transcribe_file;
+use vtt_core::transcribe::{Speakers, transcribe_file};
 use vtt_core::{Error, Result, Transcript};
 
 use crate::output::Output;
@@ -47,23 +48,37 @@ pub struct Job<'a> {
     pub destination: &'a Destination,
 }
 
+/// Everything that turns audio into a transcript: the loaded models and their settings.
+pub struct Recognizer<'a> {
+    pub engine: &'a mut WhisperEngine,
+    pub model: &'a str,
+    pub options: &'a SttOptions,
+    /// The speaker labeller and its settings, when `--diarize` was given.
+    pub speakers: Option<(SpeakerDiarizer<SpeakerModel>, DiarizeOptions)>,
+}
+
 impl Job<'_> {
-    pub fn run(
-        &self,
-        engine: &mut WhisperEngine,
-        model: &str,
-        options: &SttOptions,
-        out: Output,
-    ) -> Result<Transcript> {
+    pub fn run(&self, recognizer: &mut Recognizer<'_>, out: Output) -> Result<Transcript> {
+        let model = recognizer.model;
         let name = self
             .file
             .file_name()
             .map_or_else(String::new, |n| n.to_string_lossy().into_owned());
         let mut reporter = Reporter::new(out, &name, model);
-        let result = transcribe_file(engine, self.file, options, &mut |done, total| {
-            reporter.update(done, total);
-            Control::Continue
-        });
+        let speakers = recognizer
+            .speakers
+            .as_mut()
+            .map(|(diarizer, options)| Speakers { diarizer, options });
+        let result = transcribe_file(
+            recognizer.engine,
+            self.file,
+            recognizer.options,
+            speakers,
+            &mut |done, total| {
+                reporter.update(done, total);
+                Control::Continue
+            },
+        );
         reporter.finish_line();
         let transcript = result?;
         let written = self.write(&transcript, out)?;

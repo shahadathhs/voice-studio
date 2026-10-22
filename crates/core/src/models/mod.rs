@@ -7,6 +7,9 @@ mod catalog;
 mod download;
 mod store;
 
+/// Catalog id of the model that tells speakers apart (see [`crate::diarize`]).
+pub const SPEAKER_MODEL_ID: &str = "wespeaker-resnet34";
+
 pub use catalog::{Catalog, ModelEntry, ModelFile, ModelKind};
 pub use download::{Progress, download_file};
 pub use store::{ModelStatus, ModelStore};

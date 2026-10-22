@@ -4,24 +4,38 @@ use std::ops::Range;
 use std::path::Path;
 
 use crate::audio;
-use crate::engines::{AudioBuffer, Control, SttEngine, SttOptions};
+use crate::engines::{AudioBuffer, Control, DiarizeOptions, Diarizer, SttEngine, SttOptions};
 use crate::{Error, Result, Transcript};
+
+/// Who-said-what labelling to run after the speech has been transcribed.
+pub struct Speakers<'a> {
+    pub diarizer: &'a mut dyn Diarizer,
+    pub options: &'a DiarizeOptions,
+}
 
 /// Decodes `path`, runs `engine` on it and returns the transcript. `on_progress` receives
 /// `(processed_ms, total_ms)` and can cancel by returning [`Control::Cancel`]. With
-/// `options.vad`, only the stretches containing speech are transcribed.
+/// `options.vad`, only the stretches containing speech are transcribed. With `speakers`, every
+/// line is then labelled with its speaker.
 pub fn transcribe_file(
     engine: &mut dyn SttEngine,
     path: &Path,
     options: &SttOptions,
+    speakers: Option<Speakers<'_>>,
     on_progress: &mut dyn FnMut(u64, u64) -> Control,
 ) -> Result<Transcript> {
     let audio = audio::load_for_whisper(path)?;
-    if options.vad {
-        transcribe_speech(engine, &audio, options, on_progress)
+    let mut transcript = if options.vad {
+        transcribe_speech(engine, &audio, options, on_progress)?
     } else {
-        engine.transcribe(&audio, options, on_progress)
+        engine.transcribe(&audio, options, on_progress)?
+    };
+    if let Some(speakers) = speakers {
+        speakers
+            .diarizer
+            .label_speakers(&audio, &mut transcript, speakers.options)?;
     }
+    Ok(transcript)
 }
 
 fn to_ms(samples: usize, rate: u32) -> u64 {
@@ -110,7 +124,7 @@ mod tests {
             language: Some("en".into()),
             ..SttOptions::default()
         };
-        let transcript = transcribe_file(&mut FakeEngine, &path, &options, &mut |_, _| {
+        let transcript = transcribe_file(&mut FakeEngine, &path, &options, None, &mut |_, _| {
             Control::Continue
         })
         .unwrap();
@@ -128,6 +142,7 @@ mod tests {
             &mut FakeEngine,
             Path::new("/no/such.wav"),
             &SttOptions::default(),
+            None,
             &mut |_, _| Control::Continue,
         );
         assert!(matches!(result, Err(crate::Error::Input(_))));

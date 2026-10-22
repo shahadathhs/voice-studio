@@ -6,9 +6,9 @@ use std::sync::{Arc, OnceLock};
 
 use tauri::{AppHandle, Emitter};
 use vtt_core::Error;
-use vtt_core::engines::Device;
+use vtt_core::engines::{Device, DiarizeOptions};
 use vtt_core::jobs::{JobInfo, JobSpec, Queue, WhisperRunner};
-use vtt_core::models::{Catalog, ModelStore};
+use vtt_core::models::{Catalog, ModelEntry, ModelStore, SPEAKER_MODEL_ID};
 use vtt_core::paths::Paths;
 
 use crate::commands::CommandError;
@@ -41,30 +41,43 @@ struct Batch<'a> {
     model: &'a str,
     language: Option<String>,
     translate: bool,
+    identify_speakers: bool,
 }
 
-/// Checks that a job can run before it is queued, so the UI hears about a missing model or file
-/// now instead of from a failed job later.
-fn check(store: &ModelStore, file: &str, model_id: &str) -> vtt_core::Result<()> {
-    if !PathBuf::from(file).is_file() {
-        return Err(Error::Input(format!("cannot open {file}: no such file")));
-    }
+/// Checks that a model can be used before anything is queued, so the UI hears about a missing or
+/// unsuitable model now instead of from a failed job later.
+fn check_model(store: &ModelStore, id: &str) -> vtt_core::Result<ModelEntry> {
     let catalog = Catalog::bundled()?;
     let entry = catalog
-        .find(model_id)
-        .ok_or_else(|| Error::Input(format!("unknown model: {model_id}")))?;
+        .find(id)
+        .ok_or_else(|| Error::Input(format!("unknown model: {id}")))?;
     if store.is_installed(entry) {
-        Ok(())
+        Ok(entry.clone())
     } else {
-        Err(Error::ModelMissing(model_id.to_string()))
+        Err(Error::ModelMissing(id.to_string()))
     }
 }
 
-/// Queues every file, or none if any file or the model is unusable.
-fn add_all(queue: &Queue, store: &ModelStore, batch: Batch<'_>) -> vtt_core::Result<Vec<JobInfo>> {
-    for file in &batch.files {
-        check(store, file, batch.model)?;
+fn check_batch(store: &ModelStore, batch: &Batch<'_>) -> vtt_core::Result<()> {
+    if let Some(file) = batch.files.iter().find(|f| !PathBuf::from(f).is_file()) {
+        return Err(Error::Input(format!("cannot open {file}: no such file")));
     }
+    let model = check_model(store, batch.model)?;
+    if batch.translate && !model.can_translate {
+        return Err(Error::Input(format!(
+            "{} cannot translate; choose another model",
+            model.name
+        )));
+    }
+    if batch.identify_speakers {
+        check_model(store, SPEAKER_MODEL_ID)?;
+    }
+    Ok(())
+}
+
+/// Queues every file, or none if any file or model is unusable.
+fn add_all(queue: &Queue, store: &ModelStore, batch: Batch<'_>) -> vtt_core::Result<Vec<JobInfo>> {
+    check_batch(store, &batch)?;
     Ok(batch
         .files
         .into_iter()
@@ -74,6 +87,7 @@ fn add_all(queue: &Queue, store: &ModelStore, batch: Batch<'_>) -> vtt_core::Res
                 model_id: batch.model.to_string(),
                 language: batch.language.clone(),
                 translate: batch.translate,
+                speakers: batch.identify_speakers.then(DiarizeOptions::default),
             })
         })
         .collect())
@@ -90,6 +104,7 @@ pub fn add_jobs(
     model: &str,
     language: Option<String>,
     translate: bool,
+    identify_speakers: bool,
 ) -> Result<Vec<JobInfo>, CommandError> {
     let store = ModelStore::new(&Paths::resolve(None));
     let batch = Batch {
@@ -97,6 +112,7 @@ pub fn add_jobs(
         model,
         language,
         translate,
+        identify_speakers,
     };
     Ok(add_all(queue()?, &store, batch)?)
 }
@@ -152,6 +168,7 @@ mod tests {
             model: "whisper-base",
             language: None,
             translate: false,
+            identify_speakers: false,
         }
     }
 
@@ -182,10 +199,61 @@ mod tests {
     fn unknown_models_are_an_input_error() {
         let dir = tempfile::tempdir().unwrap();
         let (_, store) = idle_queue(dir.path());
-        let file = dir.path().join("a.wav");
-        std::fs::write(&file, b"x").unwrap();
-        let error = check(&store, &file.display().to_string(), "nope").unwrap_err();
+        let error = check_model(&store, "nope").unwrap_err();
         assert!(matches!(error, Error::Input(_)));
+    }
+
+    /// Makes `id` count as installed without downloading it: files of the right size, all zeros.
+    fn fake_install(store: &ModelStore, id: &str) {
+        let catalog = Catalog::bundled().unwrap();
+        let entry = catalog.find(id).unwrap();
+        std::fs::create_dir_all(store.model_dir(entry)).unwrap();
+        for file in &entry.files {
+            let path = store.file_path(entry, file);
+            std::fs::File::create(path)
+                .unwrap()
+                .set_len(file.size_bytes)
+                .unwrap();
+        }
+    }
+
+    fn audio_file(dir: &std::path::Path) -> String {
+        let file = dir.join("a.wav");
+        std::fs::write(&file, b"x").unwrap();
+        file.display().to_string()
+    }
+
+    #[test]
+    fn translating_with_a_model_that_cannot_translate_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let (queue, store) = idle_queue(dir.path());
+        fake_install(&store, "whisper-large-v3-turbo");
+        let mut batch = batch(vec![audio_file(dir.path())]);
+        batch.model = "whisper-large-v3-turbo";
+        batch.translate = true;
+
+        let error = add_all(&queue, &store, batch).unwrap_err().to_string();
+
+        assert!(error.contains("cannot translate"), "{error}");
+        assert_eq!(queue.snapshot().len(), 0);
+    }
+
+    #[test]
+    fn identifying_speakers_needs_the_speaker_model_to_be_installed() {
+        let dir = tempfile::tempdir().unwrap();
+        let (queue, store) = idle_queue(dir.path());
+        fake_install(&store, "whisper-base");
+        let mut batch = batch(vec![audio_file(dir.path())]);
+        batch.identify_speakers = true;
+
+        let result = add_all(&queue, &store, batch);
+        assert!(matches!(result, Err(Error::ModelMissing(id)) if id == SPEAKER_MODEL_ID));
+
+        fake_install(&store, SPEAKER_MODEL_ID);
+        let mut batch = self::batch(vec![audio_file(dir.path())]);
+        batch.identify_speakers = true;
+        let jobs = add_all(&queue, &store, batch).unwrap();
+        assert_eq!(jobs.len(), 1);
     }
 
     #[test]
@@ -197,6 +265,7 @@ mod tests {
             model_id: "whisper-base".into(),
             language: None,
             translate: false,
+            speakers: None,
         });
         assert_eq!(first.state, JobState::Waiting);
         assert_eq!(queue.snapshot().len(), 1);

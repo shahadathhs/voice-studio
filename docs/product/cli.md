@@ -33,7 +33,8 @@ vtt serve                              optional local HTTP API (later phase)
 **Implemented:** files in WAV, MP3, M4A/AAC, FLAC, OGG and the audio of MP4/MOV/MKV; `-m`, `-l`, `--translate`,
 `--device`, `-f txt|srt|vtt|json|md`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
 `--lines`, `-y`, `--no-vad`, `--json`, and saving every result to the shared library (`--no-library` skips it). **Not yet:**
-`--diarize`/`--speakers` (phase 3), `-f docx` and reading audio from stdin (`-`). These exit with code 70.
+`-f docx` and reading audio from stdin (`-`). These exit with code 70. Speaker identification is described in
+[diarization.md](diarization.md).
 
 ```
 vtt transcribe talk.m4a                               # prints text to stdout
@@ -43,27 +44,30 @@ vtt transcribe call.wav --translate --json
 cat clip.wav | vtt transcribe - -f txt                # '-' reads audio from stdin
 ```
 
-| Option                          | Meaning                                              |
-| ------------------------------- | ---------------------------------------------------- |
-| `-m, --model <id>`              | STT model (default from config, e.g. `whisper-base`) |
-| `-l, --language <code>`         | Source language; default auto-detect                 |
-| `--translate`                   | Translate to English                                 |
-| `--diarize`                     | Identify speakers                                    |
-| `--speakers <N>`                | Fixed speaker count (replaces `--max-speakers`)      |
-| `--diarize-threshold <0-1>`     | Clustering threshold when `--speakers` is not set    |
-| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx`  |
-| `-o, --output <path>`           | File, or directory for several inputs; `-` = stdout  |
-| `--timestamps`                  | Include timestamps in `txt`/`md`                     |
-| `--no-speaker-names`            | Omit speaker labels                                  |
-| `--max-line <N>`, `--lines <N>` | Subtitle line width / lines per cue                  |
-| `--device <auto\|cpu\|gpu>`     | Compute device                                       |
-| `--no-vad`                      | Transcribe the whole file, not only the speech in it |
-| `--no-library`                  | Do not add the result to the shared Library          |
-| `-y, --yes`                     | Auto-accept the "download missing model?" prompt     |
+| Option                          | Meaning                                                |
+| ------------------------------- | ------------------------------------------------------ |
+| `-m, --model <id>`              | STT model (default from config, e.g. `whisper-base`)   |
+| `-l, --language <code>`         | Source language; default auto-detect                   |
+| `--translate`                   | Translate to English (not with the turbo models)       |
+| `--diarize`                     | Identify speakers                                      |
+| `--speakers <N>`                | Exact speaker count (replaces `--max-speakers`)        |
+| `--diarize-threshold <X>`       | Voice distance, 0 to 2 (default 0.45), no `--speakers` |
+| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx`    |
+| `-o, --output <path>`           | File, or directory for several inputs; `-` = stdout    |
+| `--timestamps`                  | Include timestamps in `txt`/`md`                       |
+| `--no-speaker-names`            | Omit speaker labels                                    |
+| `--max-line <N>`, `--lines <N>` | Subtitle line width / lines per cue                    |
+| `--device <auto\|cpu\|gpu>`     | Compute device                                         |
+| `--no-vad`                      | Transcribe the whole file, not only the speech in it   |
+| `--no-library`                  | Do not add the result to the shared Library            |
+| `-y, --yes`                     | Auto-accept the "download missing model?" prompt       |
 
 By default only the stretches that contain speech are transcribed, in chunks of at most 28 s (an energy-based
 detector; it needs no extra model). Silence is skipped, so timestamps follow the speech and Whisper does not
 invent text for quiet parts. `--no-vad` restores one pass over the whole file.
+
+`--speakers` and `--diarize-threshold` need `--diarize` (exit 2 otherwise). `--translate` with a model that cannot
+translate (the Whisper large-v3 turbo models) exits with code 3.
 
 Behaviour: if the model is missing and the session is interactive, offer to download it; otherwise exit with code 4 and print the exact `vtt models pull` command.
 

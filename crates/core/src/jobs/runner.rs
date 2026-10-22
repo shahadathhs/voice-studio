@@ -2,10 +2,11 @@
 //! use a fake and the app uses [`WhisperRunner`].
 
 use super::JobSpec;
+use crate::diarize::{SpeakerDiarizer, SpeakerModel};
 use crate::engines::{Control, Device, SttOptions, WhisperEngine};
-use crate::models::{Catalog, ModelStore};
+use crate::models::{Catalog, ModelEntry, ModelStore, SPEAKER_MODEL_ID};
 use crate::paths::Paths;
-use crate::transcribe::transcribe_file;
+use crate::transcribe::{Speakers, transcribe_file};
 use crate::{Error, Result, Transcript};
 
 /// Turns one job into a transcript. `on_progress(processed_ms, total_ms)` can cancel.
@@ -17,11 +18,13 @@ pub trait JobRunner: Send + 'static {
     ) -> Result<Transcript>;
 }
 
-/// Transcribes with whisper.cpp, keeping the loaded model between jobs that use the same one.
+/// Transcribes with whisper.cpp and labels speakers with the speaker model, keeping both loaded
+/// between jobs that use the same ones.
 pub struct WhisperRunner {
     store: ModelStore,
     device: Device,
     loaded: Option<(String, WhisperEngine)>,
+    speakers: Option<SpeakerDiarizer<SpeakerModel>>,
 }
 
 impl WhisperRunner {
@@ -30,26 +33,54 @@ impl WhisperRunner {
             store: ModelStore::new(paths),
             device,
             loaded: None,
+            speakers: None,
         }
     }
 
-    fn engine_for(&mut self, model_id: &str) -> Result<&mut WhisperEngine> {
-        if self.loaded.as_ref().is_none_or(|(id, _)| id != model_id) {
-            let catalog = Catalog::bundled()?;
-            let entry = catalog
-                .find(model_id)
-                .ok_or_else(|| Error::Input(format!("unknown model: {model_id}")))?;
-            if !self.store.is_installed(entry) {
-                return Err(Error::ModelMissing(model_id.to_string()));
-            }
-            let path = self.store.file_path(entry, &entry.files[0]);
-            let engine = WhisperEngine::load(&path, model_id, self.device)?;
-            self.loaded = Some((model_id.to_string(), engine));
+    /// The catalog entry of an installed model.
+    fn installed_entry(&self, catalog: &Catalog, model_id: &str) -> Result<ModelEntry> {
+        let entry = catalog
+            .find(model_id)
+            .ok_or_else(|| Error::Input(format!("unknown model: {model_id}")))?;
+        if self.store.is_installed(entry) {
+            Ok(entry.clone())
+        } else {
+            Err(Error::ModelMissing(model_id.to_string()))
         }
-        self.loaded
-            .as_mut()
-            .map(|(_, engine)| engine)
-            .ok_or_else(|| Error::Engine("no model loaded".into()))
+    }
+
+    fn load_engine(&mut self, spec: &JobSpec) -> Result<()> {
+        let catalog = Catalog::bundled()?;
+        let entry = self.installed_entry(&catalog, &spec.model_id)?;
+        if spec.translate && !entry.can_translate {
+            return Err(Error::Input(format!(
+                "{} cannot translate; choose another model",
+                entry.name
+            )));
+        }
+        if self
+            .loaded
+            .as_ref()
+            .is_none_or(|(id, _)| *id != spec.model_id)
+        {
+            let path = self.store.file_path(&entry, &entry.files[0]);
+            let engine = WhisperEngine::load(&path, &spec.model_id, self.device)?;
+            self.loaded = Some((spec.model_id.clone(), engine));
+        }
+        Ok(())
+    }
+
+    fn load_speakers(&mut self) -> Result<()> {
+        if self.speakers.is_none() {
+            let catalog = Catalog::bundled()?;
+            let entry = self.installed_entry(&catalog, SPEAKER_MODEL_ID)?;
+            let path = self.store.file_path(&entry, &entry.files[0]);
+            self.speakers = Some(SpeakerDiarizer::new(SpeakerModel::load(
+                &path,
+                SPEAKER_MODEL_ID,
+            )?));
+        }
+        Ok(())
     }
 }
 
@@ -64,8 +95,20 @@ impl JobRunner for WhisperRunner {
             translate: spec.translate,
             vad: true,
         };
-        let engine = self.engine_for(&spec.model_id)?;
-        transcribe_file(engine, &spec.file, &options, on_progress)
+        self.load_engine(spec)?;
+        if spec.speakers.is_some() {
+            self.load_speakers()?;
+        }
+        let engine = self
+            .loaded
+            .as_mut()
+            .map(|(_, engine)| engine)
+            .ok_or_else(|| Error::Engine("no model loaded".into()))?;
+        let speakers = match (self.speakers.as_mut(), spec.speakers.as_ref()) {
+            (Some(diarizer), Some(options)) => Some(Speakers { diarizer, options }),
+            _ => None,
+        };
+        transcribe_file(engine, &spec.file, &options, speakers, on_progress)
     }
 }
 
@@ -83,6 +126,7 @@ mod tests {
             model_id: "whisper-base".into(),
             language: None,
             translate: false,
+            speakers: None,
         };
         let error = runner
             .run(&spec, &mut |_, _| Control::Continue)
@@ -99,6 +143,7 @@ mod tests {
             model_id: "nope".into(),
             language: None,
             translate: false,
+            speakers: None,
         };
         let error = runner
             .run(&spec, &mut |_, _| Control::Continue)

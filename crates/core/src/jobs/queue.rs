@@ -8,16 +8,19 @@ use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
 use serde::Serialize;
 
 use super::{JobState, Notify};
+use crate::engines::DiarizeOptions;
 use crate::library::title_for;
 
 /// What to transcribe and how.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct JobSpec {
     pub file: PathBuf,
     pub model_id: String,
     /// `None` means auto-detect.
     pub language: Option<String>,
     pub translate: bool,
+    /// Label who is speaking; `None` leaves the transcript without speakers.
+    pub speakers: Option<DiarizeOptions>,
 }
 
 /// What a front end shows for one job.
