@@ -22,6 +22,7 @@ make setup          # pnpm install (also installs git hooks), builds the UI once
 make dev            # desktop app with hot reload
 make cli ARGS="..." # run the CLI
 make check          # format-check, lint, types, UI build, clippy, tests: run before finishing
+make test-e2e       # real model + real speech (needs VTT_TEST_MODEL, VTT_TEST_SPEECH); not part of check
 make format         # rustfmt + Prettier (also run by the pre-commit hook on staged files)
 make                # list all targets
 ```

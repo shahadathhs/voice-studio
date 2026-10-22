@@ -5,7 +5,8 @@ and behavior covered by tests. By taking part you agree to the [Code of Conduct]
 
 ## Setup
 
-Install [Rust](https://rustup.rs) (stable; `rust-toolchain.toml` adds rustfmt and clippy), Node.js 22+,
+Install [Rust](https://rustup.rs) (stable; `rust-toolchain.toml` adds rustfmt and clippy), a C++ compiler and
+[CMake](https://cmake.org) (the speech engine, whisper.cpp, is compiled during the build), Node.js 22+,
 [pnpm](https://pnpm.io) and `make`. On Linux, install the
 [Tauri system packages](https://tauri.app/start/prerequisites/). On Windows, use Git Bash or WSL for
 `make`, or run the commands in the [Makefile](Makefile) directly.

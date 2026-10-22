@@ -30,6 +30,11 @@ vtt serve                              optional local HTTP API (later phase)
 
 ### `vtt transcribe`
 
+**Implemented:** files in WAV, MP3, M4A/AAC, FLAC, OGG and the audio of MP4/MOV/MKV; `-m`, `-l`, `--translate`,
+`--device`, `-f txt|srt|vtt|json|md`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
+`--lines`, `-y`, `--json`. **Not yet:** `--diarize`/`--speakers` (phase 3), `-f docx`, reading audio from stdin (`-`),
+and the shared library (`--no-library` is accepted and has no effect yet). These exit with code 70.
+
 ```
 vtt transcribe talk.m4a                               # prints text to stdout
 vtt transcribe talk.m4a -m small --diarize -f srt -o talk.srt

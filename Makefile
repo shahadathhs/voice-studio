@@ -6,7 +6,7 @@ CARGO := cargo
 
 .DEFAULT_GOAL := help
 .PHONY: help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
-        format format-check typecheck test check clean mockups
+        format format-check typecheck test test-e2e check clean mockups
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -47,6 +47,9 @@ format: ## Format all code (rustfmt + Prettier)
 format-check: ## Check formatting without changing files
 	$(CARGO) fmt --all --check
 	pnpm exec prettier --check .
+
+test-e2e: ## Transcribe real speech with a real model (set VTT_TEST_MODEL and VTT_TEST_SPEECH)
+	$(CARGO) test -p vtt-core --release --test whisper_e2e -- --ignored
 
 lint-rust: ## Clippy with warnings denied
 	$(CARGO) lint

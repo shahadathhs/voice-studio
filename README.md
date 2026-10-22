@@ -27,19 +27,23 @@ vtt export transcript.json -f srt       # convert a transcript to txt, srt, vtt,
 vtt models list                         # the model catalog and what is installed
 vtt models pull whisper-base            # download a model (resumable, checksum-verified)
 vtt models remove whisper-base          # delete it again
+vtt transcribe talk.m4a                 # transcribe audio or video (prints the text)
+vtt transcribe talk.m4a -f srt -o talk.srt   # subtitles; also txt, vtt, md, json
 vtt config path                         # where data and config live
 vtt doctor                              # basic environment check
 vtt completions zsh                     # shell completions
 ```
 
-`transcribe`, `speak`, `record`, `library` and `devices` are defined but not implemented yet; they exit
+`transcribe` runs Whisper locally (GPU on macOS) on WAV, MP3, M4A/AAC, FLAC, OGG and MKV/MP4/MOV audio.
+Speaker identification, `speak`, `record`, `library` and `devices` are defined but not implemented yet; they exit
 with code 70 and a clear message. The desktop app opens with navigation, theming (system, light, dark),
 a **working Models page** (install, cancel, remove, with live download progress) and Settings. The
 transcription screens are present but disabled until the engine lands.
 
 ## Build from source
 
-Requirements: [Rust](https://rustup.rs) (stable), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
+Requirements: [Rust](https://rustup.rs) (stable), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
+from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
 [Tauri system packages](https://tauri.app/start/prerequisites/).
 
 ```bash
