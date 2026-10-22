@@ -17,9 +17,13 @@
   let chosenModel = $state<string | null>(null);
   let language = $state("");
   let translate = $state(false);
+  let identifySpeakers = $state(false);
   const model = $derived(
     speechModels.find((m) => m.id === chosenModel)?.id ?? speechModels[0]?.id ?? null,
   );
+  const chosen = $derived(speechModels.find((m) => m.id === model));
+  const canTranslate = $derived(chosen?.can_translate ?? true);
+  const speakerModel = $derived(models.installed.find((m) => m.kind === "diarization"));
   const recent = $derived((library.items ?? []).slice(0, RECENT_COUNT));
   const summary = $derived(
     jobs.items.length === 0
@@ -28,7 +32,14 @@
   );
 
   function queue(paths: string[]): void {
-    if (model) void jobs.add(paths, model, language || null, translate);
+    if (!model) return;
+    const settings = {
+      model,
+      language: language || null,
+      translate: translate && canTranslate,
+      identifySpeakers: identifySpeakers && speakerModel !== undefined,
+    };
+    void jobs.add(settings, paths);
   }
 
   $effect(() => () => player.stop());
@@ -70,11 +81,16 @@
         {/each}
       </select>
     </div>
-    <label class="check"
-      ><input type="checkbox" bind:checked={translate} />Translate to English</label
+    <label
+      class="check"
+      title={canTranslate ? "" : `${chosen?.name} cannot translate. Choose another model.`}
     >
-    <label class="check" title="Speaker identification arrives in phase 3">
-      <input type="checkbox" disabled />Identify speakers
+      <input type="checkbox" bind:checked={translate} disabled={!canTranslate} />Translate to
+      English
+    </label>
+    <label class="check" title={speakerModel ? "" : "Install the speaker model in Models first."}>
+      <input type="checkbox" bind:checked={identifySpeakers} disabled={!speakerModel} />Identify
+      speakers
     </label>
   </div>
 

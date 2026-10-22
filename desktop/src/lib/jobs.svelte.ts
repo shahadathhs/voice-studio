@@ -14,6 +14,14 @@ import type { JobInfo } from "./types";
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
+/** How a batch of files is transcribed. */
+export interface JobSettings {
+  model: string;
+  language: string | null;
+  translate: boolean;
+  identifySpeakers: boolean;
+}
+
 const isActive = (job: JobInfo): boolean => job.state === "waiting" || job.state === "running";
 
 /** The transcription queue. Lives for the whole session, so jobs keep reporting while another
@@ -32,10 +40,16 @@ class JobsStore {
   }
 
   /** Queues files with the given settings. A rejected batch shows its reason in `error`. */
-  async add(files: string[], model: string, language: string | null, translate: boolean) {
+  async add(settings: JobSettings, files: string[]): Promise<void> {
     this.error = null;
     try {
-      await addJobs(files, model, language, translate);
+      await addJobs(
+        files,
+        settings.model,
+        settings.language,
+        settings.translate,
+        settings.identifySpeakers,
+      );
       await this.#reload();
     } catch (failure) {
       this.error = messageOf(failure);

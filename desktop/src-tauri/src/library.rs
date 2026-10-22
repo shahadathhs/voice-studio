@@ -102,6 +102,13 @@ pub fn delete_library_item(id: i64) -> Result<bool, CommandError> {
     Ok(open()?.delete(id)?)
 }
 
+/// Renames a speaker in one transcript; an existing name merges the two speakers.
+#[tauri::command]
+pub fn rename_speaker(id: i64, from: &str, to: &str) -> Result<(), CommandError> {
+    open()?.rename_speaker(id, from, to)?;
+    Ok(())
+}
+
 /// The exported text, for the dialog's preview and for Copy.
 #[tauri::command]
 pub fn render_export(

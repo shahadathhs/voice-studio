@@ -17,6 +17,7 @@ export interface ModelStatus {
   description: string;
   languages: string[];
   license: string;
+  can_translate: boolean;
   size_bytes: number;
   installed: boolean;
 }

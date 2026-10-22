@@ -36,6 +36,7 @@ pub fn run() -> tauri::Result<()> {
             library::search_library,
             library::get_transcript,
             library::delete_library_item,
+            library::rename_speaker,
             library::render_export,
             library::save_export,
             playback::prepare_playback

@@ -2,8 +2,30 @@
   import { baseName, formatClock, percent } from "../lib/format";
   import { languageName } from "../lib/languages";
   import type { TranscriptView } from "../lib/types";
+  import Icon from "./Icon.svelte";
 
-  let { view }: { view: TranscriptView } = $props();
+  let { view, onrename }: { view: TranscriptView; onrename: (from: string, to: string) => void } =
+    $props();
+
+  let editing = $state<string | null>(null);
+  let draft = $state("");
+
+  function edit(name: string): void {
+    editing = name;
+    draft = name;
+  }
+
+  function commit(): void {
+    const name = draft.trim();
+    if (editing && name && name !== editing) onrename(editing, name);
+    editing = null;
+  }
+
+  /** Svelte action: focus the element when it appears. */
+  function focus(node: HTMLInputElement): void {
+    node.focus();
+    node.select();
+  }
 
   const total = $derived(view.speakers.reduce((sum, speaker) => sum + speaker.talk_ms, 0));
   const details = $derived([
@@ -20,7 +42,31 @@
     <ul>
       {#each view.speakers as speaker, index (speaker.name)}
         <li style:--colour="var(--sp{index % 4})">
-          <div class="name"><span class="dot"></span>{speaker.name}</div>
+          <div class="name">
+            <span class="dot"></span>
+            {#if editing === speaker.name}
+              <input
+                aria-label="New name for {speaker.name}"
+                bind:value={draft}
+                onblur={commit}
+                onkeydown={(event) => {
+                  if (event.key === "Enter") commit();
+                  if (event.key === "Escape") editing = null;
+                }}
+                use:focus
+              />
+            {:else}
+              <span class="label-text">{speaker.name}</span>
+              <button
+                class="edit"
+                aria-label="Rename {speaker.name}"
+                title="Rename. A name that is already taken merges the two speakers."
+                onclick={() => edit(speaker.name)}
+              >
+                <Icon name="edit" size={14} />
+              </button>
+            {/if}
+          </div>
           <div class="bar"><div style:width="{percent(speaker.talk_ms, total)}%"></div></div>
           <div class="muted small mono">
             {formatClock(speaker.talk_ms)} · {percent(speaker.talk_ms, total)}%
@@ -62,6 +108,33 @@
     gap: 8px;
     font-weight: 600;
     color: var(--colour);
+  }
+
+  .label-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .edit {
+    margin-left: auto;
+    color: var(--text3);
+  }
+
+  .edit:hover {
+    color: var(--text);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    padding: 0 6px;
+    border: 1px solid var(--line-strong);
+    border-radius: 4px;
+    background: var(--surface);
+    font: inherit;
+    color: var(--text);
+    user-select: text;
   }
 
   .dot {

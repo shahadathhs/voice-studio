@@ -3,7 +3,7 @@
   import Icon from "../components/Icon.svelte";
   import SpeakerPanel from "../components/SpeakerPanel.svelte";
   import TranscriptLines from "../components/TranscriptLines.svelte";
-  import { getTranscript, renderExport } from "../lib/api";
+  import { getTranscript, renameSpeaker, renderExport } from "../lib/api";
   import { formatClock } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { library } from "../lib/library.svelte";
@@ -31,6 +31,12 @@
     await navigator.clipboard.writeText(await renderExport(id, "txt", PLAIN_TEXT));
     copied = true;
     setTimeout(() => (copied = false), 1500);
+  }
+
+  async function rename(from: string, to: string): Promise<void> {
+    await renameSpeaker(id, from, to);
+    view = await getTranscript(id);
+    await library.load();
   }
 
   async function remove(): Promise<void> {
@@ -85,7 +91,7 @@
         {/if}
       </div>
     </div>
-    <SpeakerPanel {view} />
+    <SpeakerPanel {view} onrename={rename} />
   </div>
   {#if exporting}
     <ExportDialog itemId={id} title={view.item.title} onclose={() => (exporting = false)} />

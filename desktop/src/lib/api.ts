@@ -99,8 +99,11 @@ export async function addJobs(
   model: string,
   language: string | null,
   translate: boolean,
+  identifySpeakers: boolean,
 ): Promise<JobInfo[]> {
-  return insideTauri() ? invoke<JobInfo[]>("add_jobs", { files, model, language, translate }) : [];
+  return insideTauri()
+    ? invoke<JobInfo[]>("add_jobs", { files, model, language, translate, identifySpeakers })
+    : [];
 }
 
 export async function cancelJob(id: number): Promise<void> {
@@ -167,4 +170,9 @@ export async function saveExport(
 export async function playbackUrl(id: number): Promise<string | null> {
   if (!insideTauri()) return null;
   return convertFileSrc(await invoke<string>("prepare_playback", { id }));
+}
+
+/** Renames a speaker in one transcript; a name another speaker has merges the two. */
+export async function renameSpeaker(id: number, from: string, to: string): Promise<void> {
+  if (insideTauri()) await invoke("rename_speaker", { id, from, to });
 }

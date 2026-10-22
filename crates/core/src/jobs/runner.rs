@@ -134,6 +134,40 @@ mod tests {
         assert!(matches!(error, Error::ModelMissing(_)));
     }
 
+    /// Makes a model count as installed without downloading it: files of the right size, all zeros.
+    fn fake_install(paths: &Paths, id: &str) {
+        let catalog = Catalog::bundled().unwrap();
+        let entry = catalog.find(id).unwrap();
+        let store = ModelStore::new(paths);
+        std::fs::create_dir_all(store.model_dir(entry)).unwrap();
+        for file in &entry.files {
+            let handle = std::fs::File::create(store.file_path(entry, file)).unwrap();
+            handle.set_len(file.size_bytes).unwrap();
+        }
+    }
+
+    #[test]
+    fn translating_with_a_turbo_model_fails_the_job_before_loading_anything() {
+        let dir = tempfile::tempdir().unwrap();
+        let paths = Paths::resolve(Some(dir.path().into()));
+        fake_install(&paths, "whisper-large-v3-turbo");
+        let mut runner = WhisperRunner::new(&paths, Device::Cpu);
+        let spec = JobSpec {
+            file: PathBuf::from("a.wav"),
+            model_id: "whisper-large-v3-turbo".into(),
+            language: None,
+            translate: true,
+            speakers: None,
+        };
+        let error = runner
+            .run(&spec, &mut |_, _| Control::Continue)
+            .unwrap_err();
+        assert!(
+            matches!(&error, Error::Input(m) if m.contains("cannot translate")),
+            "{error}"
+        );
+    }
+
     #[test]
     fn an_unknown_model_is_an_input_error() {
         let dir = tempfile::tempdir().unwrap();

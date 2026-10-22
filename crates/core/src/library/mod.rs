@@ -56,6 +56,10 @@ fn signed(value: impl TryInto<i64>) -> i64 {
     value.try_into().unwrap_or(i64::MAX)
 }
 
+fn signed_back(count: usize) -> u64 {
+    u64::try_from(count).unwrap_or(u64::MAX)
+}
+
 fn item_from_row(row: &Row<'_>) -> rusqlite::Result<Item> {
     Ok(Item {
         id: row.get(0)?,
@@ -184,6 +188,33 @@ impl Library {
         Ok((item, transcript))
     }
 
+    /// Renames a speaker in one transcript. Giving a name that another speaker already has merges
+    /// the two. Returns how many lines changed; fails if nobody has that name.
+    pub fn rename_speaker(&mut self, id: i64, from: &str, to: &str) -> Result<u64> {
+        let to = to.trim();
+        if to.is_empty() {
+            return Err(Error::Input("a speaker needs a name".into()));
+        }
+        let tx = self.conn.transaction()?;
+        let changed = tx.execute(
+            "UPDATE segment SET speaker = ?3 WHERE item_id = ?1 AND speaker = ?2",
+            params![id, from, to],
+        )?;
+        if changed == 0 {
+            return Err(Error::Input(format!(
+                "no speaker named {from} in item {id}"
+            )));
+        }
+        tx.execute(
+            "UPDATE item SET speaker_count = (SELECT COUNT(DISTINCT speaker) FROM segment
+                                              WHERE item_id = ?1 AND speaker IS NOT NULL)
+             WHERE id = ?1",
+            [id],
+        )?;
+        tx.commit()?;
+        Ok(signed_back(changed))
+    }
+
     /// Removes an item and its lines. Returns whether it existed.
     pub fn delete(&mut self, id: i64) -> Result<bool> {
         let tx = self.conn.transaction()?;
@@ -195,94 +226,4 @@ impl Library {
 }
 
 #[cfg(test)]
-pub(crate) mod tests {
-    use super::*;
-
-    pub fn library() -> Library {
-        Library::from_connection(Connection::open_in_memory().unwrap()).unwrap()
-    }
-
-    /// Stores a transcript with one line per second, so line `n` starts at `n * 1000` ms.
-    pub fn add_lines(library: &mut Library, title: &str, lines: &[&str]) -> i64 {
-        let segments = lines
-            .iter()
-            .enumerate()
-            .map(|(n, text)| Segment {
-                start_ms: n as u64 * 1000,
-                end_ms: n as u64 * 1000 + 900,
-                speaker: None,
-                text: (*text).to_string(),
-            })
-            .collect();
-        let transcript = Transcript {
-            segments,
-            ..Transcript::default()
-        };
-        let new = NewItem {
-            title,
-            source_path: None,
-        };
-        library.add(&transcript, &new).unwrap()
-    }
-
-    #[test]
-    fn a_stored_transcript_comes_back_unchanged() {
-        let mut library = library();
-        let transcript = Transcript {
-            segments: vec![
-                Segment {
-                    start_ms: 0,
-                    end_ms: 1500,
-                    speaker: Some("Maria".into()),
-                    text: "Hello there".into(),
-                },
-                Segment {
-                    start_ms: 1500,
-                    end_ms: 3000,
-                    speaker: Some("Lee".into()),
-                    text: "Hi".into(),
-                },
-            ],
-            language: Some("en".into()),
-            duration_ms: 3000,
-            model: Some("whisper-base".into()),
-        };
-        let new = NewItem {
-            title: "Call",
-            source_path: Some("/tmp/call.wav"),
-        };
-
-        let id = library.add(&transcript, &new).unwrap();
-        let (item, loaded) = library.get(id).unwrap();
-
-        assert_eq!(loaded, transcript);
-        assert_eq!(item.title, "Call");
-        assert_eq!(item.source_path.as_deref(), Some("/tmp/call.wav"));
-        assert_eq!((item.segment_count, item.speaker_count), (2, 2));
-        assert!(item.created_at > 0);
-    }
-
-    #[test]
-    fn list_is_newest_first_and_delete_removes_items() {
-        let mut library = library();
-        let first = add_lines(&mut library, "first", &["a"]);
-        let second = add_lines(&mut library, "second", &["b"]);
-
-        let ids: Vec<i64> = library.list().unwrap().iter().map(|i| i.id).collect();
-        assert_eq!(ids, vec![second, first]);
-
-        assert!(library.delete(first).unwrap());
-        assert!(!library.delete(first).unwrap());
-        assert_eq!(library.list().unwrap().len(), 1);
-        assert!(matches!(library.get(first), Err(Error::Input(_))));
-    }
-
-    #[test]
-    fn the_database_lives_in_the_data_directory_and_persists() {
-        let dir = tempfile::tempdir().unwrap();
-        let paths = Paths::resolve(Some(dir.path().to_path_buf()));
-        let id = add_lines(&mut Library::open(&paths).unwrap(), "kept", &["x"]);
-        let reopened = Library::open(&paths).unwrap();
-        assert_eq!(reopened.get(id).unwrap().0.title, "kept");
-    }
-}
+pub(crate) mod tests;

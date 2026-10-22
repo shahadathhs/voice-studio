@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: early development. Phases 0 and 2 are complete; phase 1 is mostly done.
+Status: early development. Phases 0, 2 and 3 are complete; phase 1 is mostly done.
 
 ## Phases
 
@@ -19,8 +19,13 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    library with full-text search (`vtt library`); the Transcribe, Library, transcript viewer and Export
    screens in the app. Not yet: audio player with waveform, inline editing, crash-safe job resume,
    parallel jobs, a neural VAD (Silero), and Vulkan/CUDA builds in CI.
-3. **Speaker identification and translation:** diarization pipeline and `--diarize`, `--translate`;
-   speaker panel in the viewer. Evaluated on a small labelled set.
+3. **Speaker identification and translation (done):** `vtt transcribe --diarize` with a WeSpeaker ResNet34
+   model run in pure Rust (`tract`): windowed embeddings, average-linkage clustering, voting and smoothing, as in
+   the earlier prototype; `--translate` refuses the turbo models, which cannot translate. The app has an
+   "Identify speakers" option, a speaker panel with talk-time shares, and rename or merge of speakers. Evaluated
+   on a small labelled set of synthetic voices (see [diarization.md](diarization.md)). Not yet: a set of real
+   labelled recordings, overlapping speech, speaker progress reporting, recolouring speakers, moving a single line
+   to another speaker.
 4. **Text to speech:** Kokoro and Piper, streaming sentence synthesis, `vtt speak`; Speak screen.
 5. **Recording and live captions:** `vtt record`; Record screen.
 6. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill.
@@ -29,9 +34,9 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
 ## Risks and open questions
 
 1. **Global dictation is the hardest feature.** Needs microphone and accessibility permissions on macOS; Windows is straightforward; **Linux/Wayland restricts global hotkeys and synthetic input**, so it may be X11-only or clipboard-paste-only there. Plan: ship file transcription, recording and TTS first; dictation as a later phase with documented platform limits.
-2. **Diarization quality** depends on the ONNX embedding model and clustering; expect it to match, not beat, the current Python version. Needs a small evaluation set with known speakers.
+2. **Diarization quality** depends on the embedding model and clustering. The shipped model scores perfectly on a small set of synthetic voices, which says little about real meetings (overlap, noise, similar voices). Needs a set of real recordings with known speakers; until then `--speakers N` is the reliable setting.
 3. **Live captions** need a streaming-capable model; accuracy will be below the post-recording pass. Label as draft.
-4. **Model licenses.** Whisper is MIT. Verify the exact license of each Kokoro/Piper voice and each diarization model before listing it in the catalog. Do not ship non-commercial models.
+4. **Model licenses.** Whisper is MIT. The speaker model is Apache-2.0 on its card, but its VoxCeleb training data is CC BY 4.0 and was not reviewed. Verify the exact license of each Kokoro/Piper voice and each diarization model before listing it in the catalog. Do not ship non-commercial models.
 5. **Signing and distribution.** macOS notarization (Apple Developer account) and Windows code signing cost money; unsigned builds trigger OS warnings. Decide before the first public release.
 6. **Whisper repetition loops and long files.** Measured on this machine: natural speech with pauses transcribes
    correctly (54 s in about 1 s on the GPU, identical text on CPU), but audio that repeats the same paragraph
