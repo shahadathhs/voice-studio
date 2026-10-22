@@ -10,5 +10,7 @@ mod sentences;
 mod spelling;
 mod tokens;
 mod vocab;
+mod voices;
 
 pub use kokoro::{KokoroEngine, MAX_SPEED, MIN_SPEED, SAMPLE_RATE};
+pub use voices::{VoiceInfo, describe};

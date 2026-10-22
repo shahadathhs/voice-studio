@@ -1,0 +1,60 @@
+<script lang="ts">
+  import { formatClock } from "../lib/format";
+  import { speech } from "../lib/speech.svelte";
+  import Icon from "./Icon.svelte";
+</script>
+
+<div class="player">
+  <button
+    class="play"
+    aria-label={speech.playing ? "Pause" : "Play"}
+    onclick={() => speech.togglePlay()}
+  >
+    <Icon name={speech.playing ? "pause" : "play"} />
+  </button>
+  <span class="mono time">{formatClock(speech.positionMs)}</span>
+  <input
+    class="seek"
+    type="range"
+    min="0"
+    max={speech.durationMs}
+    step="100"
+    value={speech.positionMs}
+    aria-label="Position"
+    oninput={(event) => speech.seek(Number(event.currentTarget.value))}
+  />
+  <span class="mono time muted">{formatClock(speech.durationMs)}</span>
+  <button class="btn" onclick={() => speech.save()}><Icon name="down" />Save WAV…</button>
+</div>
+
+<style>
+  .player {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  .play {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  .seek {
+    flex: 1;
+    accent-color: var(--accent);
+  }
+
+  .time {
+    min-width: 40px;
+  }
+</style>

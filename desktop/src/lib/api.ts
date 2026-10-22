@@ -13,7 +13,10 @@ import type {
   ModelStatus,
   ProgressEvent,
   SearchHit,
+  SpeechFinished,
+  SpeechProgress,
   TranscriptView,
+  VoiceInfo,
 } from "./types";
 
 /** True inside the Tauri window; false when the UI is opened in a plain browser (pnpm dev). */
@@ -175,4 +178,50 @@ export async function playbackUrl(id: number): Promise<string | null> {
 /** Renames a speaker in one transcript; a name another speaker has merges the two. */
 export async function renameSpeaker(id: number, from: string, to: string): Promise<void> {
   if (insideTauri()) await invoke("rename_speaker", { id, from, to });
+}
+
+/** Asks the user for a plain-text file; null when they cancel or outside the desktop app. */
+export async function chooseTextFile(): Promise<string | null> {
+  if (!insideTauri()) return null;
+  const picked = await open({
+    multiple: false,
+    filters: [{ name: "Text", extensions: ["txt", "md", "text"] }],
+  });
+  return picked ?? null;
+}
+
+export async function readTextFile(path: string): Promise<string> {
+  return insideTauri() ? invoke<string>("read_text_file", { path }) : "";
+}
+
+/** The installed voices; empty until the voice model is installed. */
+export async function listVoices(): Promise<VoiceInfo[]> {
+  return insideTauri() ? invoke<VoiceInfo[]>("list_voices") : [];
+}
+
+/** Starts speaking in the background; follow it with `onSpeechProgress` / `onSpeechFinished`. */
+export async function startSpeech(text: string, voice: string, speed: number): Promise<void> {
+  if (insideTauri()) await invoke("start_speech", { text, voice, speed });
+}
+
+export async function cancelSpeech(): Promise<void> {
+  if (insideTauri()) await invoke("cancel_speech");
+}
+
+/** Copies the latest speech to a file. */
+export async function saveSpeech(path: string): Promise<void> {
+  if (insideTauri()) await invoke("save_speech", { path });
+}
+
+/** URL the webview can play a generated speech file from. */
+export const speechUrl = (path: string): string => convertFileSrc(path);
+
+export function onSpeechProgress(handler: (event: SpeechProgress) => void): Promise<UnlistenFn> {
+  if (!insideTauri()) return Promise.resolve(noop);
+  return listen<SpeechProgress>("speech-progress", (event) => handler(event.payload));
+}
+
+export function onSpeechFinished(handler: (event: SpeechFinished) => void): Promise<UnlistenFn> {
+  if (!insideTauri()) return Promise.resolve(noop);
+  return listen<SpeechFinished>("speech-finished", (event) => handler(event.payload));
 }

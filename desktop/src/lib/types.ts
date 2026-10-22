@@ -111,3 +111,24 @@ export interface ExportSettings {
   maxCharsPerLine: number;
   linesPerCue: number;
 }
+
+/** A voice from `list_voices`. Same fields as `VoiceInfo` in vtt-core. */
+export interface VoiceInfo {
+  id: string;
+  name: string;
+  description: string;
+}
+
+/** Event `speech-progress`: sentences spoken so far. */
+export interface SpeechProgress {
+  done: number;
+  total: number;
+}
+
+/** Event `speech-finished`, emitted once when speaking ends. */
+export interface SpeechFinished {
+  outcome: "done" | "cancelled" | "failed";
+  path: string | null;
+  duration_ms: number;
+  message: string | null;
+}

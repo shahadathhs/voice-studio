@@ -9,7 +9,7 @@ use vtt_core::engines::{Control, TtsOptions};
 use vtt_core::jobs::Event;
 use vtt_core::models::{Catalog, ModelStore, SPEECH_MODEL_ID};
 use vtt_core::paths::Paths;
-use vtt_core::tts::{KokoroEngine, MAX_SPEED, MIN_SPEED};
+use vtt_core::tts::{KokoroEngine, MAX_SPEED, MIN_SPEED, describe};
 use vtt_core::{Error, Result};
 
 use crate::cli::Speak;
@@ -46,8 +46,9 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
     let dir = store.model_dir(entry);
     let voices = KokoroEngine::voices_in(&dir);
     if args.list_voices {
-        for voice in &voices {
-            println!("{voice}");
+        for id in &voices {
+            let voice = describe(id);
+            println!("{:<12} {} ({})", voice.id, voice.name, voice.description);
         }
         return Ok(());
     }

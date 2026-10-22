@@ -6,6 +6,7 @@ mod downloads;
 mod jobs;
 mod library;
 mod playback;
+mod speech;
 
 /// Starts the desktop application.
 ///
@@ -39,7 +40,12 @@ pub fn run() -> tauri::Result<()> {
             library::rename_speaker,
             library::render_export,
             library::save_export,
-            playback::prepare_playback
+            playback::prepare_playback,
+            speech::list_voices,
+            speech::start_speech,
+            speech::cancel_speech,
+            speech::save_speech,
+            speech::read_text_file
         ])
         .run(tauri::generate_context!())
 }

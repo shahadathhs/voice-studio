@@ -1,6 +1,6 @@
 # Roadmap
 
-Status: early development. Phases 0, 2 and 3 are complete; phase 1 is mostly done.
+Status: early development. Phases 0, 2, 3 and 4 are complete; phase 1 is mostly done.
 
 ## Phases
 
@@ -26,11 +26,12 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    on a small labelled set of synthetic voices (see [diarization.md](diarization.md)). Not yet: a set of real
    labelled recordings, overlapping speech, speaker progress reporting, recolouring speakers, moving a single line
    to another speaker.
-4. **Text to speech (CLI done, app next):** Kokoro-82M through ONNX Runtime, English text spoken sentence by
+4. **Text to speech (done):** Kokoro-82M through ONNX Runtime, English text spoken sentence by
    sentence with pauses, pronunciation from the misaki dictionaries in pure Rust, six American voices,
    `vtt speak`. Piper is not included (needs GPL espeak-ng and per-voice licence review; see
-   [speech.md](speech.md)). Still to do: the Speak screen, playing audio from the CLI, mp3 and flac output, keeping
-   speech in the library, British voices.
+   [speech.md](speech.md)). The Speak screen has a text box (or a text file), a voice list, speed, progress per sentence, playback
+   and Save WAV. Still to do: playing audio from the CLI, mp3 and flac output, keeping speech in the library, British
+   voices, a waveform in the player.
 5. **Recording and live captions:** `vtt record`; Record screen.
 6. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill.
 7. **Packaging:** installers for all three platforms, signing, updater, first release.

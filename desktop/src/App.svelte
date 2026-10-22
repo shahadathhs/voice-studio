@@ -8,10 +8,11 @@
   import { library } from "./lib/library.svelte";
   import { models } from "./lib/models.svelte";
   import { nav } from "./lib/nav.svelte";
-  import ComingSoonPage from "./pages/ComingSoonPage.svelte";
+  import { speech } from "./lib/speech.svelte";
   import LibraryPage from "./pages/LibraryPage.svelte";
   import ModelsPage from "./pages/ModelsPage.svelte";
   import SettingsPage from "./pages/SettingsPage.svelte";
+  import SpeakPage from "./pages/SpeakPage.svelte";
   import TranscribePage from "./pages/TranscribePage.svelte";
   import TranscriptPage from "./pages/TranscriptPage.svelte";
 
@@ -20,6 +21,7 @@
     void models.start();
     void jobs.start();
     void library.load();
+    void speech.start();
   });
 </script>
 
@@ -30,11 +32,7 @@
       {#if nav.current === "transcribe"}
         <TranscribePage />
       {:else if nav.current === "speak"}
-        <ComingSoonPage
-          title="Speak"
-          subtitle="Type or paste text, pick a voice, and listen or save it."
-          text="Text to speech arrives in phase 4 of the roadmap."
-        />
+        <SpeakPage />
       {:else if nav.current === "library"}
         {#if nav.viewing !== null}
           <TranscriptPage id={nav.viewing} />
