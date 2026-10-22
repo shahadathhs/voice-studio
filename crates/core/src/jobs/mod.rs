@@ -42,6 +42,9 @@ pub enum Event {
         downloaded_bytes: u64,
         total_bytes: u64,
     },
+    Transcript {
+        transcript: crate::Transcript,
+    },
     Done {
         output: Option<String>,
         elapsed_ms: u64,

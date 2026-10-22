@@ -57,6 +57,28 @@ impl ModelStore {
             .all(|f| fs::metadata(self.file_path(entry, f)).is_ok_and(|m| m.len() == f.size_bytes))
     }
 
+    /// The speech-to-text model to use when the user did not choose one: the first installed model
+    /// in a sensible order (a good balance first, then smaller, then larger).
+    pub fn default_stt<'a>(&self, models: &'a [ModelEntry]) -> Option<&'a ModelEntry> {
+        const PREFERENCE: [&str; 6] = [
+            "whisper-base",
+            "whisper-small",
+            "whisper-tiny",
+            "whisper-medium",
+            "whisper-large-v3-turbo-q5",
+            "whisper-large-v3-turbo",
+        ];
+        PREFERENCE
+            .iter()
+            .filter_map(|id| models.iter().find(|m| m.id == *id))
+            .find(|m| self.is_installed(m))
+            .or_else(|| {
+                models
+                    .iter()
+                    .find(|m| m.kind == ModelKind::Stt && self.is_installed(m))
+            })
+    }
+
     pub fn status(&self, entry: &ModelEntry) -> ModelStatus {
         ModelStatus {
             id: entry.id.clone(),
@@ -155,6 +177,22 @@ mod tests {
         place_file(&store, &entry, b"abc");
         assert!(store.is_installed(&entry));
         assert!(store.status(&entry).installed);
+    }
+
+    #[test]
+    fn default_stt_prefers_base_then_falls_back_to_any_installed_model() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = ModelStore::at(dir.path().to_path_buf());
+        let mut small = entry(3);
+        small.id = "whisper-small".into();
+        let mut odd = entry(3);
+        odd.id = "custom-stt".into();
+        let models = vec![small.clone(), odd.clone()];
+        assert!(store.default_stt(&models).is_none());
+        place_file(&store, &odd, b"abc");
+        assert_eq!(store.default_stt(&models).unwrap().id, "custom-stt");
+        place_file(&store, &small, b"abc");
+        assert_eq!(store.default_stt(&models).unwrap().id, "whisper-small");
     }
 
     #[test]

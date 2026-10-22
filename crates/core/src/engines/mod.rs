@@ -1,12 +1,26 @@
 //! Engine interfaces. Implementations (whisper.cpp / sherpa-onnx, Kokoro, Piper, diarization)
 //! are added behind these traits so front ends never depend on a specific backend.
 
+mod whisper;
+
+pub use whisper::{Device, WhisperEngine};
+
 use crate::{Result, Transcript};
 
 /// Mono PCM audio.
 pub struct AudioBuffer {
     pub samples: Vec<f32>,
     pub sample_rate: u32,
+}
+
+// Printing every sample would flood a failing test or a log line.
+impl std::fmt::Debug for AudioBuffer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("AudioBuffer")
+            .field("frames", &self.samples.len())
+            .field("sample_rate", &self.sample_rate)
+            .finish()
+    }
 }
 
 impl AudioBuffer {

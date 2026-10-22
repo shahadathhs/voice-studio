@@ -2,6 +2,7 @@
 //!
 //! Nothing in here knows about a UI. Front ends call these modules directly, in-process.
 
+pub mod audio;
 pub mod engines;
 pub mod error;
 pub mod export;
@@ -10,6 +11,7 @@ pub mod models;
 pub mod paths;
 #[cfg(feature = "testing")]
 pub mod testing;
+pub mod transcribe;
 pub mod types;
 
 /// Version of the core crate, shown in the app's About section.
