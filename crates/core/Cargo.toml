@@ -1,0 +1,27 @@
+[package]
+name = "vtt-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+# Local HTTP test server shared with the desktop tests.
+testing = []
+
+[lints]
+workspace = true
+
+[dependencies]
+directories = "6.0.0"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sha2 = "0.11.1"
+thiserror = "2.0.21"
+ureq = "3.5.0"
+
+[dev-dependencies]
+# Enables the `testing` feature for this crate's own tests.
+vtt-core = { path = ".", features = ["testing"] }
+tempfile = "3.27.0"

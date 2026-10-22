@@ -1,0 +1,116 @@
+{
+  "models": [
+    {
+      "id": "whisper-tiny",
+      "name": "Whisper tiny",
+      "kind": "stt",
+      "description": "Fastest, lowest accuracy. Good for quick drafts.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-tiny.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-tiny.bin",
+          "sha256": "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21",
+          "size_bytes": 77691713
+        }
+      ]
+    },
+    {
+      "id": "whisper-base",
+      "name": "Whisper base",
+      "kind": "stt",
+      "description": "Balanced for clear speech.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-base.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-base.bin",
+          "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
+          "size_bytes": 147951465
+        }
+      ]
+    },
+    {
+      "id": "whisper-small",
+      "name": "Whisper small",
+      "kind": "stt",
+      "description": "Noticeably better with accents and background noise.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-small.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small.bin",
+          "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
+          "size_bytes": 487601967
+        }
+      ]
+    },
+    {
+      "id": "whisper-medium",
+      "name": "Whisper medium",
+      "kind": "stt",
+      "description": "High accuracy, slower.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-medium.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-medium.bin",
+          "sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208",
+          "size_bytes": 1533763059
+        }
+      ]
+    },
+    {
+      "id": "whisper-large-v3-turbo",
+      "name": "Whisper large-v3 turbo",
+      "kind": "stt",
+      "description": "Near-best accuracy, much faster than large-v3.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-large-v3-turbo.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo.bin",
+          "sha256": "1fc70f774d38eb169993ac391eea357ef47c88757ef72ee5943879b7e8e2bc69",
+          "size_bytes": 1624555275
+        }
+      ]
+    },
+    {
+      "id": "whisper-large-v3-turbo-q5",
+      "name": "Whisper large-v3 turbo (compact)",
+      "kind": "stt",
+      "description": "Quantized large-v3 turbo at about a third of the size.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-large-v3-turbo-q5_0.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3-turbo-q5_0.bin",
+          "sha256": "394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2",
+          "size_bytes": 574041195
+        }
+      ]
+    },
+    {
+      "id": "whisper-large-v3",
+      "name": "Whisper large-v3",
+      "kind": "stt",
+      "description": "Highest accuracy, slowest.",
+      "languages": ["multilingual"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "ggml-large-v3.bin",
+          "url": "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-large-v3.bin",
+          "sha256": "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2",
+          "size_bytes": 3095033483
+        }
+      ]
+    }
+  ]
+}
