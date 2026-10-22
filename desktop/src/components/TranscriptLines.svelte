@@ -16,10 +16,10 @@
     speakerOrder: readonly string[];
   } = $props();
 
-  const isPlaying = (index: number): boolean => player.active === index;
+  const isPlaying = (index: number): boolean => player.isActive(itemId, index);
   /** The line being heard while the whole file plays. */
   const isCurrent = (segment: Segment): boolean =>
-    player.active === "all" &&
+    player.isActive(itemId, "all") &&
     player.position >= segment.start_ms &&
     player.position < segment.end_ms;
 
@@ -46,13 +46,15 @@
   {#each segments as segment, index (index)}
     <li class:current={isPlaying(index) || isCurrent(segment)}>
       <button
-        class="play"
-        aria-label="{isPlaying(index) ? 'Pause' : 'Play'} line at {formatClock(segment.start_ms)}"
+        class="time mono"
+        aria-label="{isPlaying(index) ? 'Pause' : 'Play'} audio from {formatClock(
+          segment.start_ms,
+        )} to {formatClock(segment.end_ms)}"
         onclick={() => player.play(itemId, index, segment.start_ms, segment.end_ms)}
       >
         <Icon name={isPlaying(index) ? "pause" : "play"} size={14} />
+        {formatClock(segment.start_ms)}–{formatClock(segment.end_ms)}
       </button>
-      <span class="time mono">{formatClock(segment.start_ms)}–{formatClock(segment.end_ms)}</span>
       <span class="speaker" style:color={segment.speaker ? colour(segment.speaker) : undefined}>
         {segment.speaker ?? ""}
       </span>
@@ -72,7 +74,7 @@
 
   li {
     display: grid;
-    grid-template-columns: 28px 96px 120px 1fr;
+    grid-template-columns: 124px 120px 1fr;
     gap: 14px;
     padding: 9px 32px;
   }
@@ -81,23 +83,20 @@
     background: var(--highlight);
   }
 
-  .play {
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    color: var(--accent);
-  }
-
-  .play:hover {
-    background: var(--accent-bg);
-  }
-
   .time {
-    color: var(--text3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    padding: 0 8px 0 4px;
+    border-radius: 12px;
+    color: var(--accent);
     font-size: 12px;
-    line-height: 22px;
+    white-space: nowrap;
+  }
+
+  .time:hover {
+    background: var(--accent-bg);
   }
 
   .speaker {

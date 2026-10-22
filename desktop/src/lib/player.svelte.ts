@@ -6,12 +6,19 @@ const MS = 1000;
 class Player {
   /** Which play button is active: a line number, or "all" for the whole file. */
   active = $state<number | "all" | null>(null);
+  /** The library item the active button belongs to. */
+  itemId = $state<number | null>(null);
   /** Playback position in milliseconds while playing. */
   position = $state(0);
   error = $state<string | null>(null);
   #audio: HTMLAudioElement | null = null;
-  #itemId: number | null = null;
+  #loadedItem: number | null = null;
   #endMs: number | null = null;
+
+  /** Whether the button `key` of item `itemId` is the one playing. */
+  isActive(itemId: number, key: number | "all"): boolean {
+    return this.active === key && this.itemId === itemId;
+  }
 
   /** Plays from `startMs` to `endMs` (or to the end of the file). Pressing the active button
    *  again pauses. */
@@ -21,13 +28,14 @@ class Player {
     startMs: number,
     endMs: number | null,
   ): Promise<void> {
-    if (this.active === key) return this.stop();
+    if (this.isActive(itemId, key)) return this.stop();
     this.error = null;
     try {
       const audio = await this.#load(itemId);
       this.#endMs = endMs;
       audio.currentTime = startMs / MS;
       this.active = key;
+      this.itemId = itemId;
       await audio.play();
     } catch (failure) {
       this.active = null;
@@ -41,7 +49,7 @@ class Player {
   }
 
   async #load(itemId: number): Promise<HTMLAudioElement> {
-    if (this.#audio && this.#itemId === itemId) return this.#audio;
+    if (this.#audio && this.#loadedItem === itemId) return this.#audio;
     const url = await playbackUrl(itemId);
     if (!url) throw new Error("Playback is only available in the desktop app.");
     this.#audio?.pause();
@@ -50,7 +58,7 @@ class Player {
     audio.addEventListener("ended", () => (this.active = null));
     audio.addEventListener("error", () => this.#failed());
     this.#audio = audio;
-    this.#itemId = itemId;
+    this.#loadedItem = itemId;
     return audio;
   }
 
@@ -63,7 +71,7 @@ class Player {
     this.active = null;
     this.error = "This audio format cannot be played here.";
     this.#audio = null;
-    this.#itemId = null;
+    this.#loadedItem = null;
   }
 }
 

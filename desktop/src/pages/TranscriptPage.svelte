@@ -63,8 +63,8 @@
           />
         </label>
         <button class="btn" onclick={() => player.play(id, "all", 0, null)}>
-          <Icon name={player.active === "all" ? "pause" : "play"} />
-          {player.active === "all" ? "Pause" : "Play"}
+          <Icon name={player.isActive(id, "all") ? "pause" : "play"} />
+          {player.isActive(id, "all") ? "Pause" : "Play"}
         </button>
         <button class="btn" onclick={copy}><Icon name="copy" />{copied ? "Copied" : "Copy"}</button>
         <button class="btn primary" onclick={() => (exporting = true)}>

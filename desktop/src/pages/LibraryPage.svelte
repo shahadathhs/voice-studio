@@ -4,8 +4,11 @@
   import LibraryRow from "../components/LibraryRow.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import { library } from "../lib/library.svelte";
+  import { player } from "../lib/player.svelte";
 
   const count = $derived(library.items?.length ?? 0);
+
+  $effect(() => () => player.stop());
 </script>
 
 <section>
@@ -27,6 +30,8 @@
     {/snippet}
   </PageHeader>
 
+  {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
+
   {#if library.items === null}
     <p class="muted">Loading…</p>
   {:else if library.hits !== null}
@@ -35,7 +40,7 @@
     {:else}
       <ul class="list" aria-label="Search results">
         {#each library.hits as hit (hit.item.id)}
-          <LibraryRow item={hit.item} snippet={hit.snippet} />
+          <LibraryRow item={hit.item} snippet={hit.snippet} startMs={hit.start_ms} />
         {/each}
       </ul>
     {/if}
@@ -75,6 +80,11 @@
     background: none;
     font: inherit;
     color: var(--text);
+    user-select: text;
+  }
+
+  .error {
+    color: var(--danger);
     user-select: text;
   }
 

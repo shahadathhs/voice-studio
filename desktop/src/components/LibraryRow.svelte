@@ -2,20 +2,34 @@
   import { formatClock, formatDate } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { nav } from "../lib/nav.svelte";
+  import { player } from "../lib/player.svelte";
   import type { LibraryItem } from "../lib/types";
+  import Icon from "./Icon.svelte";
 
-  let { item, snippet }: { item: LibraryItem; snippet?: string } = $props();
+  let {
+    item,
+    snippet,
+    startMs = 0,
+  }: { item: LibraryItem; snippet?: string; startMs?: number } = $props();
 
   const speakers = $derived(
     item.speaker_count > 0
       ? ` · ${item.speaker_count} speaker${item.speaker_count === 1 ? "" : "s"}`
       : "",
   );
+  const playing = $derived(player.isActive(item.id, "all"));
   /** Splits "a [b] c" into plain and matched parts so matches can be marked without HTML. */
   const parts = $derived((snippet ?? "").split(/(\[[^\]]*\])/).filter((part) => part !== ""));
 </script>
 
 <li>
+  <button
+    class="play"
+    aria-label="{playing ? 'Pause' : 'Play'} {item.title}"
+    onclick={() => player.play(item.id, "all", startMs, null)}
+  >
+    <Icon name={playing ? "pause" : "play"} />
+  </button>
   <button class="row" onclick={() => nav.open(item.id)}>
     <span class="title">{item.title}</span>
     <span class="meta muted">
@@ -35,6 +49,9 @@
 
 <style>
   li {
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
     list-style: none;
     border-bottom: 1px solid var(--line);
   }
@@ -43,10 +60,22 @@
     border-bottom: 0;
   }
 
+  .play {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
   .row {
     display: grid;
+    flex: 1;
     gap: 2px;
-    width: 100%;
+    min-width: 0;
     padding: 11px 16px;
     text-align: left;
   }

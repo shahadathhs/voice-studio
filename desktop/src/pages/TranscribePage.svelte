@@ -8,6 +8,7 @@
   import { jobs } from "../lib/jobs.svelte";
   import { LANGUAGES } from "../lib/languages";
   import { library } from "../lib/library.svelte";
+  import { player } from "../lib/player.svelte";
   import { models } from "../lib/models.svelte";
 
   const RECENT_COUNT = 5;
@@ -29,6 +30,8 @@
   function queue(paths: string[]): void {
     if (model) void jobs.add(paths, model, language || null, translate);
   }
+
+  $effect(() => () => player.stop());
 </script>
 
 <section>
@@ -75,6 +78,7 @@
     </label>
   </div>
 
+  {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
   {#if jobs.error}<p class="error" role="alert">{jobs.error}</p>{/if}
 
   {#if jobs.items.length > 0}
