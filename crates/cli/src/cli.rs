@@ -119,6 +119,17 @@ pub struct SpeakerArgs {
     pub diarize_threshold: Option<f32>,
 }
 
+/// How speech is recognised.
+#[derive(Args, Debug)]
+pub struct RecognitionArgs {
+    /// Translate to English
+    #[arg(long)]
+    pub translate: bool,
+    /// Transcribe the whole file instead of only the stretches that contain speech
+    #[arg(long)]
+    pub no_vad: bool,
+}
+
 #[derive(Args, Debug)]
 pub struct Transcribe {
     /// Audio/video files; use '-' to read audio from stdin
@@ -130,9 +141,8 @@ pub struct Transcribe {
     /// Source language code (default: auto-detect)
     #[arg(short, long)]
     pub language: Option<String>,
-    /// Translate to English
-    #[arg(long)]
-    pub translate: bool,
+    #[command(flatten)]
+    pub recognition: RecognitionArgs,
     #[command(flatten)]
     pub speakers: SpeakerArgs,
     #[command(flatten)]

@@ -37,6 +37,8 @@ pub struct SttOptions {
     /// `None` means auto-detect.
     pub language: Option<String>,
     pub translate: bool,
+    /// Transcribe only the stretches that contain speech, in chunks (see `audio::speech_chunks`).
+    pub vad: bool,
 }
 
 /// Returned by progress callbacks so a front end can cancel a running job.

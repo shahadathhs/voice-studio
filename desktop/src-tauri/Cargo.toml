@@ -11,6 +11,11 @@ description = "Voice Studio desktop app"
 name = "vtt_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+# Forwarded to vtt-core; see its Cargo.toml.
+vulkan = ["vtt-core/vulkan"]
+cuda = ["vtt-core/cuda"]
+
 [lints]
 workspace = true
 

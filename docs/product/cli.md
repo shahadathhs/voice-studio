@@ -32,7 +32,7 @@ vtt serve                              optional local HTTP API (later phase)
 
 **Implemented:** files in WAV, MP3, M4A/AAC, FLAC, OGG and the audio of MP4/MOV/MKV; `-m`, `-l`, `--translate`,
 `--device`, `-f txt|srt|vtt|json|md`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
-`--lines`, `-y`, `--json`, and saving every result to the shared library (`--no-library` skips it). **Not yet:**
+`--lines`, `-y`, `--no-vad`, `--json`, and saving every result to the shared library (`--no-library` skips it). **Not yet:**
 `--diarize`/`--speakers` (phase 3), `-f docx` and reading audio from stdin (`-`). These exit with code 70.
 
 ```
@@ -57,8 +57,13 @@ cat clip.wav | vtt transcribe - -f txt                # '-' reads audio from std
 | `--no-speaker-names`            | Omit speaker labels                                  |
 | `--max-line <N>`, `--lines <N>` | Subtitle line width / lines per cue                  |
 | `--device <auto\|cpu\|gpu>`     | Compute device                                       |
+| `--no-vad`                      | Transcribe the whole file, not only the speech in it |
 | `--no-library`                  | Do not add the result to the shared Library          |
 | `-y, --yes`                     | Auto-accept the "download missing model?" prompt     |
+
+By default only the stretches that contain speech are transcribed, in chunks of at most 28 s (an energy-based
+detector; it needs no extra model). Silence is skipped, so timestamps follow the speech and Whisper does not
+invent text for quiet parts. `--no-vad` restores one pass over the whole file.
 
 Behaviour: if the model is missing and the session is interactive, offer to download it; otherwise exit with code 4 and print the exact `vtt models pull` command.
 

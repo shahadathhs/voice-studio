@@ -126,3 +126,14 @@ fn delete_removes_the_item_and_unknown_ids_are_input_errors() {
     vtt(&dir).args(["library", "show", "abc"]).assert().code(3);
     vtt(&dir).args(["library", "show", "99"]).assert().code(3);
 }
+
+#[test]
+fn transcribe_offers_the_options_that_shape_what_is_stored_and_transcribed() {
+    let dir = tempfile::tempdir().unwrap();
+    vtt(&dir)
+        .args(["transcribe", "--help"])
+        .assert()
+        .success()
+        .stdout(contains("--no-vad"))
+        .stdout(contains("--no-library"));
+}

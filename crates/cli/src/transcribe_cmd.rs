@@ -42,7 +42,8 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
     let mut engine = WhisperEngine::load(&model_path, &entry.id, device)?;
     let options = SttOptions {
         language: args.language.clone(),
-        translate: args.translate,
+        translate: args.recognition.translate,
+        vad: !args.recognition.no_vad,
     };
     let export_options = args.out.export_options();
     for file in &args.files {

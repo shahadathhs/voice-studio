@@ -2,6 +2,11 @@
 
 mod decode;
 mod resample;
+#[cfg(test)]
+pub(crate) mod synthetic;
+mod vad;
+
+pub use vad::speech_chunks;
 
 use std::path::Path;
 

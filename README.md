@@ -53,6 +53,10 @@ make cli ARGS="export t.json -f srt"   # the CLI
 make check                        # everything CI runs
 ```
 
+GPU: macOS uses Metal automatically. On Windows and Linux the default build runs on the CPU; build with
+`cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or `--features cuda` (needs the CUDA
+toolkit) for a GPU build. `vtt-desktop` forwards the same features.
+
 `make` lists every target. The package manager is [pnpm](https://pnpm.io). On Windows use Git Bash or
 WSL, or run the underlying commands shown in the [Makefile](Makefile). More in [CONTRIBUTING](CONTRIBUTING.md).
 

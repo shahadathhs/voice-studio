@@ -62,6 +62,7 @@ impl JobRunner for WhisperRunner {
         let options = SttOptions {
             language: spec.language.clone(),
             translate: spec.translate,
+            vad: true,
         };
         let engine = self.engine_for(&spec.model_id)?;
         transcribe_file(engine, &spec.file, &options, on_progress)

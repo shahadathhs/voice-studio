@@ -9,6 +9,10 @@ repository.workspace = true
 [features]
 # Local HTTP test server shared with the desktop tests.
 testing = []
+# Optional GPU backends for whisper.cpp on Windows and Linux (macOS always uses Metal). Each needs
+# its SDK installed to build: the Vulkan SDK, or the CUDA toolkit.
+vulkan = ["whisper-rs/vulkan"]
+cuda = ["whisper-rs/cuda"]
 
 [lints]
 workspace = true
