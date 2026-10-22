@@ -1,0 +1,84 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<style>
+.seg-row{display:grid;grid-template-columns:58px 118px 1fr;gap:0 10px;padding:9px 20px;align-items:baseline}
+.seg-row.cur{background:var(--hl)}
+.seg-row .t{font:12px var(--mono);color:var(--text3)}
+.seg-row .s{font-weight:650;color:var(--c);font-size:12.5px}
+.seg-row .x{font-size:14px;line-height:1.55}
+.lane{height:5px;border-radius:2px;position:absolute}
+mark{background:var(--hl);color:inherit;border-radius:2px;box-shadow:0 0 0 1px #E9D77F}
+</style>
+<body data-active=library data-title="Product planning — Oct 21" data-status="Whisper small · diarization on">
+<main style="flex-direction:row">
+ <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+  <div class=row style="padding:14px 20px;border-bottom:1px solid var(--line);gap:10px">
+   <div><b style="font-size:15px;font-weight:650">Product planning — Oct 21</b><div class=faint>48:12 · English · 3 speakers · Whisper small</div></div>
+   <span style="flex:1"></span>
+   <div class=field style="min-width:200px;height:28px"><span class=faint><i data-i=search></i> &nbsp;Search transcript</span></div>
+   <span class=btn><i data-i=copy></i>Copy</span><span class="btn primary"><i data-i=down></i>Export</span>
+  </div>
+
+  <div style="padding:14px 20px 10px;border-bottom:1px solid var(--line);background:var(--surface)">
+   <div class=row style="gap:14px">
+    <span class="btn icon"><i data-i=back></i></span><span class="btn icon primary"><i data-i=pause></i></span><span class="btn icon"><i data-i=skip></i></span>
+    <span class="mono">17:26</span><span class="mono faint">/ 48:12</span><span style="flex:1"></span>
+    <span class=seg><span>0.75×</span><span class=on>1×</span><span>1.5×</span><span>2×</span></span>
+   </div>
+   <div style="position:relative;margin-top:12px;height:64px">
+    <div class=wave style="position:absolute;top:0;left:0;right:0;height:46px" data-wave="193,44,11,70"></div>
+    <div style="position:absolute;left:36.2%;top:-4px;bottom:14px;width:2px;background:var(--text)"></div>
+    <div class=lane style="top:54px;left:0;width:9%;background:var(--sp0)"></div><div class=lane style="top:54px;left:9.4%;width:14%;background:var(--sp1)"></div><div class=lane style="top:54px;left:23.8%;width:6%;background:var(--sp2)"></div><div class=lane style="top:54px;left:30.2%;width:18%;background:var(--sp0)"></div><div class=lane style="top:54px;left:48.6%;width:10%;background:var(--sp1)"></div><div class=lane style="top:54px;left:59%;width:12%;background:var(--sp2)"></div><div class=lane style="top:54px;left:71.4%;width:15%;background:var(--sp0)"></div><div class=lane style="top:54px;left:87%;width:13%;background:var(--sp1)"></div>
+   </div>
+  </div>
+
+  <div style="flex:1;min-height:0;overflow:hidden;padding:6px 0;background:var(--surface)">
+   <div class="seg-row sp-0"><span class=t>15:02</span><span class=s>Maria Chen</span><span class=x>Okay, so the importer is the last blocker. Daniel, where did we land on the CSV edge cases?</span></div>
+   <div class="seg-row sp-1"><span class=t>15:11</span><span class=s>Daniel Okafor</span><span class=x>Mostly handled. Quoted newlines and mixed encodings are fine now. The open one is files over two gigabytes — we stream them, but progress reporting lies.</span></div>
+   <div class="seg-row sp-2"><span class=t>15:29</span><span class=s>Priya Nair</span><span class=x>From support's side, I'd rather it report <mark>honest progress</mark> late than a smooth bar that jumps to done.</span></div>
+   <div class="seg-row sp-0"><span class=t>15:41</span><span class=s>Maria Chen</span><span class=x>Agreed. Can we ship that as a known limitation and fix it in the next release?</span></div>
+   <div class="seg-row sp-1"><span class=t>15:50</span><span class=s>Daniel Okafor</span><span class=x>Yes, as long as we label it in the release notes.</span></div>
+   <div class="seg-row sp-0 cur"><span class=t>17:26</span><span class=s>Maria Chen</span><span class=x>So if we ship the importer behind a flag first, support can turn it on per customer without a redeploy. Priya, does that work for the pilot accounts?</span></div>
+   <div class="seg-row sp-2"><span class=t>17:41</span><span class=s>Priya Nair</span><span class=x>It does. Three of them already asked for early access, so I can start with those.</span></div>
+   <div class="seg-row sp-1"><span class=t>17:55</span><span class=s>Daniel Okafor</span><span class=x>I'll add the flag today and write the rollout checklist tomorrow morning.</span></div>
+   <div class="seg-row sp-0"><span class=t>18:08</span><span class=s>Maria Chen</span><span class=x>Perfect. Next topic: the pricing page copy.</span></div>
+  </div>
+ </div>
+
+ <div style="width:260px;flex:none;border-left:1px solid var(--line);padding:18px 16px;background:var(--bg)">
+  <h2>Speakers</h2>
+  <div style="margin-top:12px;display:flex;flex-direction:column;gap:14px">
+   <div class=sp-0><div class=row><span style="width:8px;height:8px;border-radius:2px;background:var(--c)"></span><b style="margin-left:8px;font-weight:600">Maria Chen</b><span style="flex:1"></span><span class=faint><i data-i=edit></i></span></div><div class=bar style="margin-top:6px"><i style="width:44%;background:var(--c)"></i></div><div class="faint" style="margin-top:3px">21:08 · 44%</div></div>
+   <div class=sp-1><div class=row><span style="width:8px;height:8px;border-radius:2px;background:var(--c)"></span><b style="margin-left:8px;font-weight:600">Daniel Okafor</b><span style="flex:1"></span><span class=faint><i data-i=edit></i></span></div><div class=bar style="margin-top:6px"><i style="width:36%;background:var(--c)"></i></div><div class="faint" style="margin-top:3px">17:22 · 36%</div></div>
+   <div class=sp-2><div class=row><span style="width:8px;height:8px;border-radius:2px;background:var(--c)"></span><b style="margin-left:8px;font-weight:600">Priya Nair</b><span style="flex:1"></span><span class=faint><i data-i=edit></i></span></div><div class=bar style="margin-top:6px"><i style="width:20%;background:var(--c)"></i></div><div class="faint" style="margin-top:3px">9:42 · 20%</div></div>
+  </div>
+  <p class=faint style="margin-top:16px">Renaming a speaker updates every line and every export.</p>
+  <h2 style="margin-top:26px">Details</h2>
+  <div style="margin-top:10px;display:grid;grid-template-columns:auto 1fr;gap:6px 14px" class=muted>
+   <span>Source</span><span style="text-align:right;color:var(--text)">Oct 21.m4a</span>
+   <span>Model</span><span style="text-align:right;color:var(--text)">Whisper small</span>
+   <span>Language</span><span style="text-align:right;color:var(--text)">English (99%)</span>
+   <span>Words</span><span style="text-align:right;color:var(--text)">7,418</span>
+   <span>Processed</span><span style="text-align:right;color:var(--text)">in 11:42</span>
+  </div>
+ </div>
+</main>
+<div class=scrim></div>
+<div class=panel style="position:absolute;left:380px;top:120px;width:520px;box-shadow:0 12px 40px rgba(0,0,0,.28)">
+ <div class=row style="padding:16px 20px;border-bottom:1px solid var(--line)"><h2 style="font-size:15px">Export transcript</h2><span style="flex:1"></span><span class="btn ghost icon"><i data-i=x></i></span></div>
+ <div style="padding:18px 20px">
+  <div class=label>Format</div>
+  <div class=seg><span>TXT</span><span class=on>SRT</span><span>VTT</span><span>JSON</span><span>DOCX</span><span>Markdown</span></div>
+  <p class=faint style="margin-top:8px">Subtitle file with numbered cues, readable by most video players and editors.</p>
+  <div style="margin-top:18px;display:flex;flex-direction:column;gap:12px">
+   <div class="check on"><span class=box data-i=check></span>Include speaker names</div>
+   <div class=check><span class=box></span>Include timestamps in text</div>
+   <div class="row gap12"><span style="width:200px">Maximum characters per line</span><div class=field style="min-width:90px"><span>42</span><i class=chev data-i=chev></i></div></div>
+   <div class="row gap12"><span style="width:200px">Lines per cue</span><div class=field style="min-width:90px"><span>2</span><i class=chev data-i=chev></i></div></div>
+  </div>
+  <div class=label style="margin-top:20px">Preview</div>
+  <div class=mono style="background:var(--bg);border-radius:6px;padding:10px 12px;font-size:12px;line-height:1.6;color:var(--text2)">12<br>00:17:26,100 --&gt; 00:17:31,480<br>Maria Chen: So if we ship the importer<br>behind a flag first, support can turn it on</div>
+ </div>
+ <div class=row style="padding:14px 20px;border-top:1px solid var(--line);gap:8px"><span style="flex:1" class=faint>Saved next to the audio unless you choose another folder</span><span class=btn>Cancel</span><span class="btn primary">Export…</span></div>
+</div>
+
+<script src=common.js></script>

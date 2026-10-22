@@ -1,414 +1,60 @@
-# Contributing to Voice-to-Text
+# Contributing
 
-First off, thank you for considering contributing to Voice-to-Text! It's people
-like you that make Voice-to-Text such a great tool.
+Thanks for helping. This project is small and aims to stay that way: short files, no duplicated logic,
+and behavior covered by tests. By taking part you agree to the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Table of Contents
+## Setup
 
-- [Code of Conduct](#code-of-conduct)
-- [How Can I Contribute?](#how-can-i-contribute)
-- [Development Setup](#development-setup)
-- [Pull Request Process](#pull-request-process)
-- [Coding Standards](#coding-standards)
-- [Commit Messages](#commit-messages)
-- [Adding Features](#adding-features)
-- [Reporting Bugs](#reporting-bugs)
-- [Suggesting Enhancements](#suggesting-enhancements)
-
-## Code of Conduct
-
-By participating in this project, you agree to abide by our
-[Code of Conduct](CODE_OF_CONDUCT.md).
-
-## How Can I Contribute?
-
-### Reporting Bugs
-
-Before creating bug reports, please check existing issues to avoid duplicates.
-When you create a bug report, include as many details as possible:
-
-**Bug Report Template:**
-
-```markdown
-**Description**
-A clear and concise description of what the bug is.
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
-
-**Expected Behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Environment:**
- - OS: [e.g. Linux, macOS, Windows]
- - Python Version: [e.g. 3.14.0]
- - Project Version: [e.g. 1.0.0]
-
-**Additional Context**
-Add any other context about the problem here.
-```
-
-### Suggesting Enhancements
-
-Enhancement suggestions are tracked as GitHub issues. When creating an
-enhancement suggestion, include:
-
-- **Use a clear and descriptive title**
-- **Provide a detailed description of the suggested enhancement**
-- **Explain why this enhancement would be useful**
-- **List some examples of how this feature would be used**
-- **Include mockups or screenshots if applicable**
-
-## Development Setup
-
-### 1. Fork and Clone
+Install [Rust](https://rustup.rs) (stable; `rust-toolchain.toml` adds rustfmt and clippy), Node.js 22+,
+[pnpm](https://pnpm.io) and `make`. On Linux, install the
+[Tauri system packages](https://tauri.app/start/prerequisites/). On Windows, use Git Bash or WSL for
+`make`, or run the commands in the [Makefile](Makefile) directly.
 
 ```bash
-# Fork the repository on GitHub
-# Clone your fork
-git clone https://github.com/your-username/voice-to-text.git
+git clone https://github.com/shahadathhs/voice-to-text.git
 cd voice-to-text
+git switch dev
+make setup      # pnpm install, git hooks, first UI build
+make dev        # run the desktop app
 ```
 
-### 2. Install Dependencies
+`make` lists all targets. Git hooks (installed by `make setup`) format staged files on commit and reject
+commit messages that are not [Conventional Commits](https://www.conventionalcommits.org).
+
+## Before you open a pull request
 
 ```bash
-# Install UV (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies
-make setup
-
-# Install pre-commit hooks
-make pre-commit-install
+make format     # rustfmt + Prettier
+make check      # format-check, oxlint, svelte-check, UI build, clippy (warnings denied), all tests
 ```
 
-### 3. Create a Branch
+CI runs the same checks on Linux, macOS and Windows.
 
-```bash
-git checkout -b feature/your-feature-name
-# or
-git checkout -b fix/your-bug-fix
-```
+## Guidelines
 
-### 4. Make Changes
+Read [docs/guidelines.md](docs/guidelines.md). In short:
 
-```bash
-# Run development server
-make dev
+- Files stay under 300 lines and functions under 50. Split by responsibility instead of compressing.
+- `vtt-core` has no UI and never prints; the CLI and the desktop shell stay thin.
+- Reuse before you write; extract real duplication; no `utils` dumping grounds.
+- No `unwrap`, `expect`, panics, dead code or commented-out code.
+- Every bug fix comes with a regression test.
 
-# Run tests (when available)
-make test
+## Pull requests
 
-# Run linting and formatting
-make check-all
-```
+1. Branch from `dev`; keep the change focused on one concern.
+2. Use [Conventional Commits](https://www.conventionalcommits.org) (`feat:`, `fix:`, `docs:` ...).
+3. Fill in the PR template. Update `docs/product/cli.md` or `docs/product/features.md` if behavior or
+   scope changes.
+4. Be ready for review feedback; small PRs are reviewed faster.
 
-## Pull Request Process
+## Reporting bugs and ideas
 
-### 1. Before Submitting
+Use the issue templates. For bugs include your OS, app version, whether you used the desktop app or the
+CLI, the exact command, and the output. For security problems do not open a public issue; see
+[SECURITY.md](SECURITY.md).
 
-Ensure your code passes all checks:
+## Adding a model or voice
 
-```bash
-# Format code
-make format
-
-# Fix linting issues
-make lint-fix
-
-# Run type checking
-make type-check
-
-# Run all checks
-make check-all
-```
-
-### 2. Submitting Your PR
-
-1. **Update documentation** if you've changed functionality
-2. **Add tests** for new features or bug fixes
-3. **Update README.md** if needed
-4. **Push to your fork** and create a Pull Request
-
-### 3. PR Description
-
-Include the following in your PR description:
-
-- **Summary**: Brief description of changes
-- **Type**: Feature / Bug Fix / Refactoring / Documentation
-- **Related Issues**: Link to related issues
-- **Breaking Changes**: List any breaking changes
-- **Testing**: Describe how you tested your changes
-
-### 4. Code Review
-
-- All PRs must be reviewed by at least one maintainer
-- Address review comments promptly
-- Keep the PR focused and small if possible
-- Add commits to address review feedback (don't squash)
-
-## Coding Standards
-
-### Python Style Guide
-
-We follow standard Python conventions:
-
-```python
-# Type hints are required
-def transcribe_audio(
-    audio_path: Path,
-    model: str = "base",
-    language: Optional[str] = None
-) -> dict:
-    """Transcribe an audio file.
-
-    Args:
-        audio_path: Path to audio file
-        model: Whisper model size
-        language: Language code (auto-detect if None)
-
-    Returns:
-        Transcription result dict
-    """
-    pass
-
-# Use snake_case for functions and variables
-def process_transcript():
-    transcript_text = "example"
-
-# Use PascalCase for classes
-class TranscriptionService:
-    pass
-
-# Use UPPER_SNAKE_CASE for constants
-MAX_FILE_SIZE = 500 * 1024 * 1024
-DEFAULT_MODEL = "base"
-```
-
-### File Organization
-
-```
-app/
-├── api/           # API endpoints
-├── cli/           # CLI interface
-├── core/          # Configuration, errors
-├── schemas/       # Pydantic models
-├── services/      # Business logic
-├── utils/         # Helper functions
-└── whisper/       # Whisper implementations
-```
-
-### Import Order
-
-```python
-# 1. Standard library imports
-import os
-from pathlib import Path
-
-# 2. Third-party imports
-from fastapi import HTTPException
-from pydantic import BaseModel
-
-# 3. Local imports
-from app.core.config import settings
-from app.services.transcriber import TranscriptionService
-```
-
-### Documentation
-
-- All public functions need docstrings
-- Use Google style docstrings
-- Include type hints
-- Add inline comments for complex logic
-
-```python
-def process_segments(segments: list) -> dict:
-    """Process transcription segments.
-
-    This function takes raw segments from Whisper and processes them
-    to add speaker labels and translations.
-
-    Args:
-        segments: List of transcription segments
-
-    Returns:
-        Processed segments with metadata
-
-    Raises:
-        ValueError: If segments are empty or invalid
-
-    Example:
-        >>> segments = [{"start": 0, "end": 1, "text": "Hello"}]
-        >>> process_segments(segments)
-        {"text": "Hello", "speakers": ["SPEAKER_00"]}
-    """
-    if not segments:
-        raise ValueError("Segments cannot be empty")
-
-    # Process each segment
-    processed = []
-    for segment in segments:
-        processed.append({
-            "text": segment["text"],
-            "start": segment["start"],
-            "end": segment["end"]
-        })
-
-    return {"segments": processed}
-```
-
-## Commit Messages
-
-Follow [Conventional Commits](https://www.conventionalcommits.org/) specification:
-
-### Format
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-### Types
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, etc.)
-- `refactor`: Code refactoring
-- `perf`: Performance improvements
-- `test`: Adding or updating tests
-- `chore`: Build process or auxiliary tool changes
-- `ci`: CI/CD changes
-
-### Examples
-
-```bash
-# Feature
-git commit -m "feat(api): add speaker diarization endpoint"
-
-# Bug fix
-git commit -m "fix(transcriber): handle missing audio files gracefully"
-
-# Documentation
-git commit -m "docs(readme): update Docker setup instructions"
-
-# Refactoring
-git commit -m "refactor(services): extract validation logic"
-
-# Breaking change
-git commit -m "feat(api)!: change response format
-
-BREAKING CHANGE: API responses now use a new format"
-```
-
-## Adding Features
-
-### 1. Discuss First
-
-Open an issue to discuss the feature before implementing:
-
-- **Why** do we need this feature?
-- **What** problem does it solve?
-- **How** should it work?
-
-### 2. Implementation Checklist
-
-- [ ] Feature discussed and approved
-- [ ] Branch created from `main`
-- [ ] Code written with type hints
-- [ ] Docstrings added
-- [ ] Tests written (if applicable)
-- [ ] Documentation updated
-- [ ] All checks passing
-- [ ] PR submitted for review
-
-### 3. Feature Templates
-
-**API Endpoints:**
-
-```python
-from fastapi import APIRouter, UploadFile
-from app.schemas.transcription import TranscriptionResponse
-
-router = APIRouter()
-
-@router.post("/your-endpoint", response_model=TranscriptionResponse)
-async def your_endpoint(
-    file: UploadFile,
-    param: str = "default"
-) -> TranscriptionResponse:
-    """Your endpoint description.
-
-    Args:
-        file: Uploaded file
-        param: Parameter description
-
-    Returns:
-        Transcription response with results
-    """
-    # Implementation here
-    pass
-```
-
-**CLI Commands:**
-
-```python
-import click
-
-@click.command()
-@click.argument('audio_file', type=click.Path(exists=True))
-@click.option('--your-option', default='default', help='Option description')
-def your_command(audio_file: str, your_option: str):
-    """Your command description."""
-    # Implementation here
-    pass
-```
-
-## Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run specific test file
-uv run pytest tests/test_api.py
-
-# Run with coverage
-uv run pytest --cov=app --cov-report=html
-
-# Run with verbose output
-uv run pytest -v
-```
-
-## Getting Help
-
-- **Documentation**: Check [README.md](README.md) and [CLAUDE.md](.claude/CLAUDE.md)
-- **Issues**: Search or create a GitHub issue
-- **Discussions**: Use GitHub Discussions for questions
-
-## Recognition
-
-Contributors who add significant features or fix critical bugs will be:
-- Listed in CONTRIBUTORS.md
-- Mentioned in release notes
-- Credited in the README
-
-## License
-
-By contributing, you agree that your contributions will be licensed under
-the [MIT License](LICENSE).
-
----
-
-Thank you for your contributions! 🎉
+Models go in `catalog/models.json` with a real download URL, SHA-256 and license. Only permissively
+licensed models are accepted (see [catalog/README.md](catalog/README.md)).

@@ -1,0 +1,28 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<style>.sec{padding:0 0 6px}.sec h2{padding:18px 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3)}
+.r{display:flex;align-items:center;gap:20px;padding:12px 18px;border-bottom:1px solid var(--line)}.r:last-child{border:0}.r .l{flex:1}.r .l b{font-weight:600;display:block}.r .l span{color:var(--text2)}</style>
+<body data-active=settings data-title="Settings">
+<main style="flex-direction:row">
+ <div style="width:170px;flex:none;padding:26px 14px;border-right:1px solid var(--line)" class=nav>
+  <a class=on>General</a><a>Audio</a><a>Shortcuts</a><a>Performance</a><a>Storage</a><a>About</a>
+ </div>
+ <div style="flex:1;min-width:0;overflow:hidden;padding:20px 40px"><div style="max-width:760px">
+  <div class=sec><h2 style="padding-top:6px">General</h2><div class=panel>
+   <div class=r><div class=l><b>Appearance</b><span>Follows the system unless you choose.</span></div><div class=seg data-themeseg><span data-v=system>System</span><span data-v=light>Light</span><span data-v=dark>Dark</span></div></div>
+   <div class=r><div class=l><b>Interface language</b></div><div class=field><span>English</span><i class=chev data-i=chev></i></div></div>
+   <div class=r><div class=l><b>Start at login</b><span>Keep dictation and the queue ready in the tray.</span></div><span class="toggle on"></span></div>
+   <div class=r><div class=l><b>Check for updates automatically</b><span>Contacts GitHub releases only; nothing else is ever sent.</span></div><span class="toggle on"></span></div>
+  </div></div>
+  <div class=sec><h2>Shortcuts</h2><div class=panel>
+   <div class=r><div class=l><b>Dictate into any app</b><span>Hold to talk, or press once to start and again to stop.</span></div><span class=kbd>⌥ Space</span></div>
+   <div class=r><div class=l><b>Read selected text aloud</b></div><span class=kbd>⌥ ⇧ S</span></div>
+   <div class=r><div class=l><b>Show Voice Studio</b></div><span class=kbd>⌥ ⇧ V</span></div>
+  </div></div>
+  <div class=sec><h2>Performance</h2><div class=panel>
+   <div class=r><div class=l><b>Compute device</b><span>Apple M2 · Metal is available</span></div><div class=field><span>Automatic (Metal)</span><i class=chev data-i=chev></i></div></div>
+   <div class=r><div class=l><b>CPU threads</b><span>Used when the GPU isn't.</span></div><div class=field style="min-width:90px"><span>6</span><i class=chev data-i=chev></i></div></div>
+   <div class=r><div class=l><b>Run one job at a time</b><span>Slower overall, but keeps the machine responsive.</span></div><span class="toggle on"></span></div>
+  </div></div>
+ </div></div>
+</main>
+<script src=common.js></script>

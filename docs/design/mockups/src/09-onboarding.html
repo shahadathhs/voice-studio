@@ -1,0 +1,23 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<style>.opt{display:flex;gap:14px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--line)}.opt:last-child{border:0}.opt .meta{flex:1}.opt b{font-weight:600}</style>
+<body data-shell=none>
+<div class=win>
+ <div class=titlebar><span class=dot></span><span class=dot></span><span class=dot></span><span class=ttl>Welcome to Voice Studio</span></div>
+ <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:44px 0 0">
+  <div style="width:640px">
+   <div class="row gap8" style="color:var(--text3);font-size:12px;font-weight:600"><span class=muted>1 Welcome</span><span>—</span><span style="color:var(--text)">2 Choose models</span><span>—</span><span>3 Shortcuts</span></div>
+   <h1 style="margin-top:20px">Choose what to download</h1>
+   <p class=sub style="margin-top:6px">Models run on this computer, so they need to be downloaded once. You can add or remove any of them later in Models.</p>
+   <div class=panel style="margin-top:22px">
+    <div class=opt><span class="check on"><span class=box data-i=check></span></span><div class=meta><b>Speech to text — Whisper base</b> <span class="pill ok" style="margin-left:6px">Recommended</span><div class=muted>Transcribes 99 languages. Good for clear recordings.</div><div class=bar style="margin-top:8px"><i style="width:71%"></i></div></div><span class="mono muted">142 MB</span></div>
+    <div class=opt><span class="check on"><span class=box data-i=check></span></span><div class=meta><b>Text to speech — Kokoro</b><div class=muted>Natural English voices, plus a few other languages.</div><div class=bar style="margin-top:8px"><i style="width:0%"></i></div></div><span class="mono muted">330 MB</span></div>
+    <div class=opt><span class="check on"><span class=box data-i=check></span></span><div class=meta><b>Speaker identification</b><div class=muted>Labels who is talking in recordings with several people.</div></div><span class="mono muted">28 MB</span></div>
+    <div class=opt><span class=check><span class=box></span></span><div class=meta><b>Whisper large-v3-turbo</b><div class=muted>Higher accuracy for difficult audio; slower. Can be added later.</div></div><span class="mono muted">1.6 GB</span></div>
+   </div>
+   <div class=row style="margin-top:14px;color:var(--text2)"><span>500 MB total · 11 GB free</span><span style="flex:1"></span><span class=mono>Downloading 1 of 3 · 101 MB / 142 MB</span></div>
+   <div class="row gap8" style="margin-top:26px"><span class=btn>Back</span><span style="flex:1"></span><span class="btn ghost">Skip for now</span><span class="btn primary" style="opacity:.55">Continue</span></div>
+   <div class=row style="margin-top:34px;gap:10px;color:var(--text3)"><i data-i=lock></i><span>Downloads come from the model authors' public hosting. No account, and nothing about you is sent.</span></div>
+  </div>
+ </div>
+</div>
+<script src=common.js></script>
