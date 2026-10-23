@@ -12,8 +12,8 @@ Install [Rust](https://rustup.rs) (stable; `rust-toolchain.toml` adds rustfmt an
 `make`, or run the commands in the [Makefile](Makefile) directly.
 
 ```bash
-git clone https://github.com/shahadathhs/voice-to-text.git
-cd voice-to-text
+git clone https://github.com/shahadathhs/voice-studio.git
+cd voice-studio
 git switch dev
 make setup      # installs Rust/CMake if missing, pnpm install, git hooks, first UI build
 make dev        # run the desktop app
