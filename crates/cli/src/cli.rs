@@ -43,6 +43,10 @@ pub enum Command {
     Transcribe(Transcribe),
     /// Convert text to speech
     Speak(Speak),
+    /// Summarise a transcript with a language model
+    Summarize(crate::text_cmd::Summarize),
+    /// Translate a transcript with a language model
+    Translate(crate::text_cmd::Translate),
     /// Record from the microphone
     Record(Record),
     /// Convert a saved transcript (JSON) to another format

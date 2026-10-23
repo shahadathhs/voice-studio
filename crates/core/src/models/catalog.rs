@@ -8,6 +8,7 @@ pub enum ModelKind {
     Stt,
     Tts,
     Diarization,
+    Text,
     Vad,
 }
 

@@ -17,6 +17,8 @@ Binary name: `vtt` (the Python package already exposes `vtt` and `voice-to-text`
 ```
 vtt transcribe <FILE>... [options]     audio/video → text
 vtt speak [TEXT] [options]             text → audio
+vtt summarize <ID|FILE|->  [--to LANG] summary of a transcript, by a language model
+vtt translate <ID|FILE|-> --to LANG    transcript in another language
 vtt record [options]                   microphone → file (optionally transcribe)
 vtt export <TRANSCRIPT.json> [options] convert a transcript to txt/srt/vtt/md/json
 vtt models <list|info|pull|remove|verify>
@@ -97,6 +99,27 @@ Words missing from the pronunciation dictionary are guessed from their spelling,
 library. WAV and FLAC (16-bit mono, 24 kHz) are written; FLAC is padded with under 0.1 s of silence so every decoder
 accepts it. MP3 needs an encoder under a licence this project does not link, and `--play` would add an audio-output
 library and its system packages on Linux, so neither is planned for now. Pronunciation is described in [speech.md](speech.md).
+
+### `vtt summarize`, `vtt translate`
+
+```
+vtt summarize 12                       # a library item; prints an overview and key points
+vtt summarize talk.json --to es        # a transcript file ('-' reads standard input)
+vtt translate 12 --to zh -f srt -o talk.zh.srt
+```
+
+A small language model (Qwen 2.5, Apache-2.0) runs on this computer: `qwen2.5-1.5b` (1.1 GB, default) or
+`qwen2.5-7b` (4.7 GB, clearer, needs about 6 GB of memory), chosen with `-m`. `vtt models pull` installs them, or `-y`
+accepts the download. `--to` takes a language code: en, es, fr, de, it, pt, nl, ru, pl, tr, ar, hi, bn, ur, zh, ja, ko,
+vi, id, th. A summary is written in the spoken language and then translated if `--to` asks for another one. A long
+transcript is cut into parts, each summarised, and the summaries merged. `translate` keeps every line's times and
+speakers and takes the same `-f`/`-o` options as `export`. With `--json`, `summarize` prints `{"summary","model"}`.
+An unknown language, a model that is not a language model, or a missing transcript is exit 3; a missing model is 4.
+
+Quality was measured on a short meeting (see `crates/core/tests/text_real_e2e.rs`): Spanish and Chinese are readable
+with the small model, with occasional wrong words; **Bengali is not reliable with either model** (mixed scripts and
+invented words) and is labelled so in the app until a native speaker has judged a better model. Output is always
+shown with a warning that a model wrote it.
 
 ### `vtt record`
 

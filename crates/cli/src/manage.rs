@@ -9,6 +9,7 @@ pub enum KindArg {
     Stt,
     Tts,
     Diarization,
+    Text,
     Vad,
 }
 

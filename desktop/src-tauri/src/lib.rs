@@ -1,6 +1,7 @@
 //! Voice Studio desktop shell. A thin layer: the UI calls these commands, which call `vtt-core`
 //! in-process. There is no server and no sidecar process.
 
+mod assistant;
 mod commands;
 mod downloads;
 mod jobs;
@@ -22,6 +23,9 @@ pub fn run() -> tauri::Result<()> {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            assistant::cancel_text_task,
+            assistant::start_text_task,
+            assistant::text_languages,
             commands::app_info,
             commands::list_models,
             commands::install_model,

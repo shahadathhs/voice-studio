@@ -24,6 +24,10 @@ export const models = {
   "models.group.tts.title": "Speech",
   "models.group.tts.purpose":
     "Read text aloud with natural voices. The Speak screen needs one of these.",
+  "models.group.text.title": "Summaries and translation",
+  "models.group.text.purpose":
+    "Write summaries and translations of transcripts, on this computer. Optional; the larger model is clearer, especially outside English and Spanish, but needs more memory.",
+  "models.goLibrary": "Go to Library",
   "models.goTranscribe": "Go to Transcribe",
   "models.goSpeak": "Go to Speak",
   "modelInfo.whisper-tiny":
@@ -42,6 +46,10 @@ export const models = {
     "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
   "modelInfo.kokoro-82m":
     "Reads English text aloud in six natural American voices. Runs on the CPU.",
+  "modelInfo.qwen2.5-1.5b":
+    "Writes summaries and translations of transcripts in about 20 languages. Needs about 2 GB of memory. Read what it writes: it can make mistakes.",
+  "modelInfo.qwen2.5-7b":
+    "A larger model for summaries and translation: clearer and more accurate, especially in languages other than English and Spanish. Needs about 6 GB of memory and is slower.",
   "onboarding.title": "Choose what to download",
   "onboarding.lead":
     "Models run on this computer, so they need to be downloaded once. You can add or remove any of them later in Models.",

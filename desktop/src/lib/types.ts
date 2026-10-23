@@ -7,7 +7,7 @@ export interface AppInfo {
   dataDir: string;
 }
 
-export type ModelKind = "stt" | "tts" | "diarization" | "vad";
+export type ModelKind = "stt" | "tts" | "diarization" | "text" | "vad";
 
 /** Catalog data plus install state, from `list_models`. Same fields as `ModelStatus` in vtt-core. */
 export interface ModelStatus {
@@ -132,6 +132,19 @@ export interface SpeechFinished {
   duration_ms: number;
   message: string | null;
 }
+
+/** Event `text-finished`, emitted once when a summary or translation ends. */
+export interface TextFinished {
+  outcome: "done" | "cancelled" | "failed";
+  task: TextTask;
+  /** The summary. */
+  text: string | null;
+  /** The library item a translation was stored as. */
+  item_id: number | null;
+  message: string | null;
+}
+
+export type TextTask = "summary" | "translation";
 
 export type Device = "auto" | "cpu" | "gpu";
 

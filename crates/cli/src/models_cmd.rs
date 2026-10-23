@@ -35,6 +35,7 @@ fn kind_filter(kind: KindArg) -> ModelKind {
         KindArg::Stt => ModelKind::Stt,
         KindArg::Tts => ModelKind::Tts,
         KindArg::Diarization => ModelKind::Diarization,
+        KindArg::Text => ModelKind::Text,
         KindArg::Vad => ModelKind::Vad,
     }
 }

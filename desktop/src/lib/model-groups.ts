@@ -37,6 +37,14 @@ const GROUPS: readonly ModelGroup[] = [
     page: "speak",
     pageLabel: "models.goSpeak",
   },
+  {
+    kind: "text",
+    title: "models.group.text.title",
+    purpose: "models.group.text.purpose",
+    page: "library",
+    pageLabel: "models.goLibrary",
+    recommended: "qwen2.5-1.5b",
+  },
 ];
 
 /** The non-empty groups for the given models, each sorted from smallest to largest download. */

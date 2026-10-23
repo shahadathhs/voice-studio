@@ -1,5 +1,6 @@
 <script lang="ts">
   import { t } from "../lib/i18n.svelte";
+  import AssistantDialog from "../components/AssistantDialog.svelte";
   import ExportDialog from "../components/ExportDialog.svelte";
   import Icon from "../components/Icon.svelte";
   import SpeakerPanel from "../components/SpeakerPanel.svelte";
@@ -25,6 +26,7 @@
   let view = $state<TranscriptView | null>(null);
   let query = $state("");
   let exporting = $state(false);
+  let assisting = $state(false);
   let copied = $state(false);
   let confirmingDelete = $state(false);
 
@@ -96,6 +98,9 @@
         <button class="btn" onclick={copy}
           ><Icon name="copy" />{copied ? t("transcript.copied") : t("transcript.copy")}</button
         >
+        <button class="btn" onclick={() => (assisting = true)}>
+          <Icon name="sparkle" />{t("assist.open")}
+        </button>
         <button class="btn primary" onclick={() => (exporting = true)}>
           <Icon name="down" />{t("transcript.export")}
         </button>
@@ -126,6 +131,9 @@
     </div>
     <SpeakerPanel {view} onrename={rename} />
   </div>
+  {#if assisting}
+    <AssistantDialog itemId={id} onclose={() => (assisting = false)} />
+  {/if}
   {#if exporting}
     <ExportDialog itemId={id} title={view.item.title} onclose={() => (exporting = false)} />
   {/if}

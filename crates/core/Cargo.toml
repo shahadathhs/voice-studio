@@ -33,9 +33,16 @@ thiserror = "2.0.21"
 ureq = "3.5.0"
 # log_backend sends whisper.cpp output to the `log` facade, which is silent unless a logger is installed.
 whisper-rs = { version = "0.16.0", features = ["log_backend"] }
+candle-core = "0.11.0"
+candle-transformers = "0.11.0"
+candle-nn = "0.11.0"
+tokenizers = { version = "0.23.2", default-features = false, features = ["onig"] }
 
 # GPU acceleration on Apple silicon and Intel Macs.
 [target.'cfg(target_os = "macos")'.dependencies]
+candle-core = { version = "0.11.0", features = ["metal"] }
+candle-nn = { version = "0.11.0", features = ["metal"] }
+candle-transformers = { version = "0.11.0", features = ["metal"] }
 whisper-rs = { version = "0.16.0", features = ["log_backend", "metal"] }
 
 [dev-dependencies]

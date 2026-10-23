@@ -8,6 +8,7 @@ mod manage;
 mod models_cmd;
 mod output;
 mod speak_cmd;
+mod text_cmd;
 mod transcribe_cmd;
 mod transcribe_job;
 

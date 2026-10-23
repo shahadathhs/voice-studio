@@ -73,6 +73,20 @@ pub trait TtsEngine: Send {
     fn synthesize(&mut self, text: &str, options: &TtsOptions) -> Result<AudioBuffer>;
 }
 
+/// A language model that answers one instruction about some text, for summaries and translation.
+pub trait TextEngine: Send {
+    /// Follows `instruction` (the system message) on `input` and returns the answer, at most
+    /// `max_tokens` long. `on_progress` receives the number of tokens written so far and can
+    /// cancel by returning [`Control::Cancel`].
+    fn generate(
+        &mut self,
+        instruction: &str,
+        input: &str,
+        max_tokens: usize,
+        on_progress: &mut dyn FnMut(usize) -> Control,
+    ) -> Result<String>;
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct DiarizeOptions {
     pub speakers: Option<usize>,

@@ -11,6 +11,7 @@ use crate::library_cmd;
 use crate::models_cmd;
 use crate::output::Output;
 use crate::speak_cmd;
+use crate::text_cmd;
 use crate::transcribe_cmd;
 
 pub fn run(cli: Cli) -> Result<()> {
@@ -33,6 +34,8 @@ pub fn run(cli: Cli) -> Result<()> {
         }
         Command::Transcribe(args) => transcribe_cmd::run(&args, &paths, out),
         Command::Speak(args) => speak_cmd::run(&args, &paths, out),
+        Command::Summarize(args) => text_cmd::run_summarize(&args, &paths, out),
+        Command::Translate(args) => text_cmd::run_translate(&args, &paths, out),
         Command::Record(_) => Err(Error::NotImplemented("record")),
         Command::Library(command) => library_cmd::run(command, &paths, out),
         Command::Devices => Err(Error::NotImplemented("devices")),

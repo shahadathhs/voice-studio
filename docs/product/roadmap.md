@@ -38,13 +38,15 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    app on a real Windows and a real Linux machine; write the third-party notices file (see
    [Legal and safety](#legal-and-safety)). Exit: the app starts, installs a model, transcribes and speaks on each
    system. Why first: every later phase adds weight to code that has only run on macOS.
-6. **Language models: summaries and translation.** A text-model engine (`TextEngine` trait) on `candle` with GGUF
-   models: Qwen 2.5 (Apache-2.0) at 1.5B and 3B, optional downloads. Not `llama.cpp`: it cannot share a binary
+6. **Language models: summaries and translation (built; Bengali quality open).** A `TextEngine` trait and a Qwen 2.5
+   engine on `candle` (Metal on Macs, CPU elsewhere) reading GGUF files, with two optional models: 1.5B and 7B (both
+   Apache-2.0). The 3B model is excluded: it uses the Qwen Research licence. Not `llama.cpp`: it cannot share a binary
    with `whisper-rs` (both bundle ggml; measured, it aborts). `vtt summarize`, `vtt translate --to <lang>`, and a
-   Summary and Translate section in the Library; long transcripts are split, summarised in parts and merged;
-   chapters and action items from the same model. Output is labelled AI-generated and links back to timestamps.
-   Exit: Chinese, Spanish, Bengali and English summaries and translations judged readable by a native speaker.
-   Decision gate: if 3B is too slow or poor on Bengali, evaluate a larger or different permissively licensed model.
+   Summary and translate dialog on the transcript screen (a translation is stored as a new library item). Long
+   transcripts are split, summarised in parts and merged. Measured on a short meeting: Spanish and Chinese readable;
+   **Bengali is poor with the 1.5B model and still flawed with 7B**, so it is warned about in the app. Still to do:
+   chapters and action items, summaries stored with the transcript, links back to timestamps, a native speaker's
+   judgement of Chinese and Bengali (exit criterion), and a decision on a stronger Bengali model.
 7. **Speech in more languages.** Translate, then speak. Pronunciation written in Rust per language (no espeak-ng:
    GPL), in this order: Spanish, Italian, Portuguese, French, Chinese (pinyin dictionary), Hindi, Japanese. Kokoro
    v1.0 reportedly has voices for these; verify against the official release first. Each language ships only after

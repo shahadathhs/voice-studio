@@ -16,6 +16,8 @@ import type {
   Settings,
   SpeechFinished,
   SpeechProgress,
+  TextFinished,
+  TextTask,
   TranscriptView,
   VoiceInfo,
 } from "./types";
@@ -261,4 +263,34 @@ export function onSpeechProgress(handler: (event: SpeechProgress) => void): Prom
 export function onSpeechFinished(handler: (event: SpeechFinished) => void): Promise<UnlistenFn> {
   if (!insideTauri()) return Promise.resolve(noop);
   return listen<SpeechFinished>("speech-finished", (event) => handler(event.payload));
+}
+
+/** The language codes a summary or translation can be written in. */
+export async function textLanguages(): Promise<string[]> {
+  return insideTauri() ? invoke<string[]>("text_languages") : [];
+}
+
+/** Starts a summary or translation; follow it with `onTextProgress` / `onTextFinished`. */
+export async function startTextTask(
+  itemId: number,
+  task: TextTask,
+  language: string | null,
+  model: string,
+): Promise<void> {
+  if (insideTauri()) await invoke("start_text_task", { itemId, task, language, model });
+}
+
+export async function cancelTextTask(): Promise<void> {
+  if (insideTauri()) await invoke("cancel_text_task");
+}
+
+/** Progress of the running task, from 0 to 1. */
+export function onTextProgress(handler: (fraction: number) => void): Promise<UnlistenFn> {
+  if (!insideTauri()) return Promise.resolve(noop);
+  return listen<number>("text-progress", (event) => handler(event.payload));
+}
+
+export function onTextFinished(handler: (event: TextFinished) => void): Promise<UnlistenFn> {
+  if (!insideTauri()) return Promise.resolve(noop);
+  return listen<TextFinished>("text-finished", (event) => handler(event.payload));
 }

@@ -26,6 +26,10 @@ export const models: Record<keyof typeof english, string> = {
   "models.group.tts.title": "Voz",
   "models.group.tts.purpose":
     "Lee texto en voz alta con voces naturales. La pantalla Hablar necesita uno de estos.",
+  "models.group.text.title": "Resúmenes y traducción",
+  "models.group.text.purpose":
+    "Escriben resúmenes y traducciones de las transcripciones, en este ordenador. Opcional; el modelo grande es más claro, sobre todo fuera del inglés y el español, pero necesita más memoria.",
+  "models.goLibrary": "Ir a la Biblioteca",
   "models.goTranscribe": "Ir a Transcribir",
   "models.goSpeak": "Ir a Hablar",
   "modelInfo.whisper-tiny":
@@ -45,6 +49,10 @@ export const models: Record<keyof typeof english, string> = {
     "Distingue las voces para que una transcripción indique quién habla. Pequeño y rápido en la CPU.",
   "modelInfo.kokoro-82m":
     "Lee texto en inglés en voz alta con seis voces naturales estadounidenses. Funciona en la CPU.",
+  "modelInfo.qwen2.5-1.5b":
+    "Escribe resúmenes y traducciones de transcripciones en unos 20 idiomas. Necesita unos 2 GB de memoria. Revisa lo que escribe: puede equivocarse.",
+  "modelInfo.qwen2.5-7b":
+    "Un modelo mayor para resúmenes y traducción: más claro y preciso, sobre todo en idiomas distintos del inglés y el español. Necesita unos 6 GB de memoria y es más lento.",
   "onboarding.title": "Elige qué descargar",
   "onboarding.lead":
     "Los modelos se ejecutan en este ordenador, así que hay que descargarlos una vez. Puedes añadir o quitar cualquiera después en Modelos.",

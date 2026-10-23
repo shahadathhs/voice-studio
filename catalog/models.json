@@ -205,6 +205,50 @@
           "size_bytes": 522240
         }
       ]
+    },
+    {
+      "id": "qwen2.5-1.5b",
+      "name": "Qwen 2.5 1.5B (summaries and translation)",
+      "kind": "text",
+      "description": "Writes summaries and translations of transcripts, in about 20 languages. Runs on this computer; works best on short parts and may make mistakes, so read what it writes.",
+      "languages": ["multilingual"],
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "name": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+          "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/91cad51170dc346986eccefdc2dd33a9da36ead9/qwen2.5-1.5b-instruct-q4_k_m.gguf",
+          "sha256": "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e",
+          "size_bytes": 1117320736
+        },
+        {
+          "name": "tokenizer.json",
+          "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer.json",
+          "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "size_bytes": 7031645
+        }
+      ]
+    },
+    {
+      "id": "qwen2.5-7b",
+      "name": "Qwen 2.5 7B (summaries and translation, better quality)",
+      "kind": "text",
+      "description": "A larger model for summaries and translation: clearer and more accurate, especially in languages other than English and Spanish. Needs about 6 GB of memory and is slower. Read what it writes: it can still make mistakes.",
+      "languages": ["multilingual"],
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "name": "qwen2.5-7b-instruct-q4_k_m.gguf",
+          "url": "https://huggingface.co/bartowski/Qwen2.5-7B-Instruct-GGUF/resolve/8911e8a47f92bac19d6f5c64a2e2095bd2f7d031/Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+          "sha256": "65b8fcd92af6b4fefa935c625d1ac27ea29dcb6ee14589c55a8f115ceaaa1423",
+          "size_bytes": 4683074240
+        },
+        {
+          "name": "tokenizer.json",
+          "url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/resolve/989aa7980e4cf806f80c7fef2b1adb7bc71aa306/tokenizer.json",
+          "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "size_bytes": 7031645
+        }
+      ]
     }
   ]
 }
