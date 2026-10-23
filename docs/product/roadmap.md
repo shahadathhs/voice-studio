@@ -30,8 +30,8 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    sentence with pauses, pronunciation from the misaki dictionaries in pure Rust, six American voices,
    `vtt speak`. Piper is not included (needs GPL espeak-ng and per-voice licence review; see
    [speech.md](speech.md)). The Speak screen has a text box (or a text file), a voice list, speed, progress per sentence, playback
-   and Save WAV. Still to do: playing audio from the CLI, mp3 and flac output, keeping speech in the library, British
-   voices, a waveform in the player.
+   and Save audio as WAV or FLAC (`--format flac` in the CLI). Still to do: playing audio from the CLI, mp3 output (needs an
+   LGPL encoder), keeping speech in the library, British voices, a waveform in the player.
 5. **Recording and live captions:** `vtt record`; Record screen.
 6. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill.
 7. **Packaging:** installers for all three platforms, signing, updater, first release.

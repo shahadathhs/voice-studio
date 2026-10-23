@@ -21,7 +21,7 @@ export const speak: Record<keyof typeof english, string> = {
   "speak.privacy": "La voz se genera en este ordenador. No se envía nada a ningún sitio.",
   "speak.failed": "No se pudo generar la voz.",
   "speak.position": "Posición",
-  "speak.saveWav": "Guardar WAV…",
+  "speak.save": "Guardar audio…",
   "settings.title": "Ajustes",
   "settings.general": "General",
   "settings.appearance": "Apariencia",

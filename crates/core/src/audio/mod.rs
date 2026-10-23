@@ -1,6 +1,8 @@
 //! Reading audio and video files into the 16 kHz mono samples that Whisper expects.
 
 mod decode;
+mod flac;
+mod format;
 mod resample;
 #[cfg(test)]
 pub(crate) mod synthetic;
@@ -8,8 +10,10 @@ mod vad;
 mod wav;
 mod waveform;
 
+pub use flac::encode_flac;
+pub use format::AudioFormat;
 pub use vad::{speech_chunks, voiced_span};
-pub use wav::encode_wav;
+pub use wav::{decode_wav, encode_wav};
 pub use waveform::{peaks, waveform_of};
 
 use std::path::Path;

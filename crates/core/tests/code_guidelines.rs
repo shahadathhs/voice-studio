@@ -24,8 +24,10 @@ fn rust_files(dir: &Path, out: &mut Vec<PathBuf>) {
 #[test]
 fn no_rust_file_exceeds_the_line_limit() {
     let crates_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("..");
+    let desktop_dir = crates_dir.join("../desktop/src-tauri");
     let mut files = Vec::new();
     rust_files(&crates_dir, &mut files);
+    rust_files(&desktop_dir, &mut files);
     assert!(
         !files.is_empty(),
         "no source files found under {}",

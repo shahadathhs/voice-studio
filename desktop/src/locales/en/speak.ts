@@ -19,7 +19,7 @@ export const speak = {
   "speak.privacy": "Speech is made on this computer. Nothing is sent anywhere.",
   "speak.failed": "Speaking failed.",
   "speak.position": "Position",
-  "speak.saveWav": "Save WAV…",
+  "speak.save": "Save audio…",
   "settings.title": "Settings",
   "settings.general": "General",
   "settings.appearance": "Appearance",

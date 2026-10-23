@@ -93,11 +93,18 @@ export async function chooseFiles(): Promise<string[]> {
 }
 
 /** Asks where to save an export; null when the user cancels. */
-export async function chooseSavePath(name: string, extension: string): Promise<string | null> {
+/** Asks where to save. `extensions` are the file types on offer; the first is the default. */
+export async function chooseSavePath(
+  name: string,
+  extensions: readonly string[],
+): Promise<string | null> {
   if (!insideTauri()) return null;
   return save({
-    defaultPath: `${name}.${extension}`,
-    filters: [{ name: extension, extensions: [extension] }],
+    defaultPath: `${name}.${extensions[0]}`,
+    filters: extensions.map((extension) => ({
+      name: extension.toUpperCase(),
+      extensions: [extension],
+    })),
   });
 }
 

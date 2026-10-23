@@ -3,6 +3,7 @@
 use num_traits::ToPrimitive;
 
 use crate::engines::AudioBuffer;
+use crate::{Error, Result};
 
 const PCM_HEADER_BYTES: u32 = 36;
 const BITS: u16 = 16;
@@ -36,6 +37,30 @@ pub fn encode_wav(audio: &AudioBuffer) -> Vec<u8> {
         wav.extend(pcm(*sample).to_le_bytes());
     }
     wav
+}
+
+/// The audio of a WAV file written by [`encode_wav`] (16-bit mono PCM, a 44-byte header), at its own
+/// sample rate. Other WAV layouts are an error; this is for converting our own output.
+pub fn decode_wav(bytes: &[u8]) -> Result<AudioBuffer> {
+    let header_ok = bytes.len() >= 44
+        && &bytes[..4] == b"RIFF"
+        && &bytes[8..16] == b"WAVEfmt "
+        && bytes[20..22] == 1u16.to_le_bytes()
+        && bytes[22..24] == 1u16.to_le_bytes()
+        && bytes[34..36] == BITS.to_le_bytes()
+        && &bytes[36..40] == b"data";
+    if !header_ok {
+        return Err(Error::Input("not a 16-bit mono WAV file".into()));
+    }
+    let sample_rate = u32::from_le_bytes([bytes[24], bytes[25], bytes[26], bytes[27]]);
+    let samples = bytes[44..]
+        .chunks_exact(2)
+        .map(|pair| f32::from(i16::from_le_bytes([pair[0], pair[1]])) / f32::from(i16::MAX))
+        .collect();
+    Ok(AudioBuffer {
+        samples,
+        sample_rate,
+    })
 }
 
 #[cfg(test)]
@@ -90,5 +115,28 @@ mod tests {
             "{}",
             decoded.duration_ms()
         );
+    }
+
+    #[test]
+    fn a_wav_we_wrote_reads_back_at_its_own_rate() {
+        let audio = AudioBuffer {
+            samples: vec![0.0, 0.5, -0.5, 1.0],
+            sample_rate: 24_000,
+        };
+        let back = decode_wav(&encode_wav(&audio)).unwrap();
+        assert_eq!(back.sample_rate, 24_000);
+        assert_eq!(back.samples.len(), 4);
+        assert!(
+            back.samples
+                .iter()
+                .zip(&audio.samples)
+                .all(|(a, b)| (a - b).abs() < 0.001)
+        );
+    }
+
+    #[test]
+    fn anything_else_is_an_input_error() {
+        assert!(decode_wav(b"not a wav file at all, definitely not one of ours....").is_err());
+        assert!(decode_wav(&[]).is_err());
     }
 }

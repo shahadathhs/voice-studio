@@ -25,8 +25,7 @@
     oninput={(event) => speech.seek(Number(event.currentTarget.value))}
   />
   <span class="mono time muted">{formatClock(speech.durationMs)}</span>
-  <button class="btn" onclick={() => speech.save()}><Icon name="down" />{t("speak.saveWav")}</button
-  >
+  <button class="btn" onclick={() => speech.save()}><Icon name="down" />{t("speak.save")}</button>
 </div>
 
 <style>

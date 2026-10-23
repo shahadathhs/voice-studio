@@ -51,7 +51,7 @@
   async function save(): Promise<void> {
     error = null;
     try {
-      const path = await chooseSavePath(title, format);
+      const path = await chooseSavePath(title, [format]);
       if (!path) return;
       await saveExport(itemId, format, { ...settings }, path);
       onclose();

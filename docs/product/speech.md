@@ -16,7 +16,7 @@ Everything runs on this computer.
    acronym, or guessed from its spelling.
 4. The phonemes become numbers (the model's own alphabet) and the model speaks them in the chosen voice. A sentence
    that is too long for the model is cut again at a comma or a space.
-5. The sentences are joined with pauses and written as a 16-bit mono WAV at 24 kHz.
+5. The sentences are joined with pauses and written as a 16-bit mono WAV at 24 kHz, or losslessly compressed to FLAC when asked.
 
 Pronunciation is done in plain Rust, so the app needs no extra speech tools. The model runs on ONNX Runtime through
 the `ort` crate, linked into the program. Speaker identification uses the same runtime, so the program carries one

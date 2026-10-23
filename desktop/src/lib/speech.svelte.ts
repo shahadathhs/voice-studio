@@ -103,7 +103,7 @@ class SpeechStore {
   async save(): Promise<void> {
     this.error = null;
     try {
-      const path = await chooseSavePath("speech", "wav");
+      const path = await chooseSavePath("speech", ["wav", "flac"]);
       if (path) await saveSpeech(path);
     } catch (failure) {
       this.error = messageOf(failure);

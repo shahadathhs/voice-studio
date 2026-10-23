@@ -19,6 +19,7 @@ workspace = true
 
 [dependencies]
 directories = "6.0.0"
+flacenc = { version = "0.5.1", default-features = false }
 num-traits = "0.2.19"
 ort = "2.0.0-rc.15"
 rubato = "5.0.1"

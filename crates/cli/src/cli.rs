@@ -172,10 +172,10 @@ pub struct Speak {
     /// Speaking speed, 0.5 to 2.0
     #[arg(long, default_value_t = 1.0, value_name = "0.5-2.0")]
     pub speed: f32,
-    /// Output format; only wav so far
-    #[arg(long, default_value = "wav")]
-    pub format: String,
-    /// Output file, '-' for stdout; default speech.wav
+    /// Output format: wav or flac (default: from the output file's extension, else wav)
+    #[arg(long)]
+    pub format: Option<String>,
+    /// Output file, '-' for stdout; default speech.wav (or speech.flac)
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
     /// Play the audio instead of saving it (not available yet)

@@ -4,7 +4,7 @@ use std::io::{IsTerminal, Read, Write};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
-use vtt_core::audio::encode_wav;
+use vtt_core::audio::AudioFormat;
 use vtt_core::engines::{Control, TtsOptions};
 use vtt_core::jobs::Event;
 use vtt_core::models::{Catalog, ModelStore, SPEECH_MODEL_ID};
@@ -17,7 +17,7 @@ use crate::models_cmd;
 use crate::output::Output;
 
 const DEFAULT_VOICE: &str = "af_heart";
-const DEFAULT_OUTPUT: &str = "speech.wav";
+const DEFAULT_OUTPUT_NAME: &str = "speech";
 
 pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
     if args.play {
@@ -25,7 +25,8 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
             "playing speech (--play); save it with -o",
         ));
     }
-    check_format(&args.format)?;
+    // Checked first so a bad format fails before any model is loaded.
+    output_format(args)?;
     if !(MIN_SPEED..=MAX_SPEED).contains(&args.speed) {
         return Err(Error::Input(format!(
             "speed must be between {MIN_SPEED} and {MAX_SPEED}"
@@ -85,7 +86,8 @@ fn speak(
     if show_bar {
         eprintln!();
     }
-    let written = write(&encode_wav(&audio?), args.output.as_deref())?;
+    let format = output_format(args)?;
+    let written = write(&format.encode(&audio?)?, format, args.output.as_deref())?;
     if out.json {
         let elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
         let event = Event::Done {
@@ -97,12 +99,12 @@ fn speak(
     Ok(())
 }
 
-/// Only WAV is written so far; other known formats say so, unknown ones are a usage mistake.
-fn check_format(format: &str) -> Result<()> {
-    match format.to_ascii_lowercase().as_str() {
-        "wav" => Ok(()),
-        "mp3" | "flac" => Err(Error::NotImplemented("speech output other than wav")),
-        other => Err(Error::Input(format!("unknown format: {other}"))),
+/// The format to write: `--format`, else what the output file's extension says, else WAV.
+fn output_format(args: &Speak) -> Result<AudioFormat> {
+    match (&args.format, &args.output) {
+        (Some(name), _) => name.parse(),
+        (None, Some(path)) => Ok(AudioFormat::from_path(path).unwrap_or_default()),
+        (None, None) => Ok(AudioFormat::default()),
     }
 }
 
@@ -146,18 +148,22 @@ fn resolve_voice(installed: &[String], wanted: Option<&str>) -> Result<String> {
     })
 }
 
-/// Writes the WAV where the user asked and returns the path, or `None` for standard output.
-fn write(wav: &[u8], output: Option<&Path>) -> Result<Option<String>> {
+fn default_name(format: AudioFormat) -> String {
+    format!("{DEFAULT_OUTPUT_NAME}.{}", format.extension())
+}
+
+/// Writes the audio where the user asked and returns the path, or `None` for standard output.
+fn write(audio: &[u8], format: AudioFormat, output: Option<&Path>) -> Result<Option<String>> {
     let path: PathBuf = match output {
         Some(p) if p == Path::new("-") => {
-            std::io::stdout().write_all(wav)?;
+            std::io::stdout().write_all(audio)?;
             return Ok(None);
         }
-        Some(p) if p.is_dir() => p.join(DEFAULT_OUTPUT),
+        Some(p) if p.is_dir() => p.join(default_name(format)),
         Some(p) => p.to_path_buf(),
-        None => PathBuf::from(DEFAULT_OUTPUT),
+        None => PathBuf::from(default_name(format)),
     };
-    std::fs::write(&path, wav)?;
+    std::fs::write(&path, audio)?;
     Ok(Some(path.display().to_string()))
 }
 
@@ -188,22 +194,21 @@ mod tests {
     }
 
     #[test]
-    fn formats_other_than_wav_are_not_available_yet() {
-        assert!(check_format("WAV").is_ok());
-        assert!(matches!(check_format("mp3"), Err(Error::NotImplemented(_))));
-        assert!(matches!(check_format("ogg"), Err(Error::Input(_))));
-    }
-
-    #[test]
     fn output_goes_to_a_file_a_folder_or_the_default_name() {
         let dir = tempfile::tempdir().unwrap();
         let file = dir.path().join("a.wav");
         assert_eq!(
-            write(b"x", Some(&file)).unwrap(),
+            write(b"x", AudioFormat::Wav, Some(&file)).unwrap(),
             Some(file.display().to_string())
         );
-        let in_folder = write(b"y", Some(dir.path())).unwrap().unwrap();
+        let in_folder = write(b"y", AudioFormat::Wav, Some(dir.path()))
+            .unwrap()
+            .unwrap();
         assert!(in_folder.ends_with("speech.wav"), "{in_folder}");
+        let flac = write(b"z", AudioFormat::Flac, Some(dir.path()))
+            .unwrap()
+            .unwrap();
+        assert!(flac.ends_with("speech.flac"), "{flac}");
         assert_eq!(std::fs::read(&file).unwrap(), b"x");
     }
 }
