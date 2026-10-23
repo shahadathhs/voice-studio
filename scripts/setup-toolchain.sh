@@ -50,9 +50,21 @@ if have cargo; then
 else
   echo "rust: not found, installing with rustup (official installer, per-user)"
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+  # A fresh install is only on PATH in new shells; load it so the steps below can find rustup.
+  if [ -f "$HOME/.cargo/env" ]; then . "$HOME/.cargo/env"; fi
 fi
 
-# rust-toolchain.toml pins the channel and components; this makes rustup fetch them now.
-rustup show active-toolchain >/dev/null 2>&1 || rustup toolchain install stable --profile minimal
-rustup component add rustfmt clippy >/dev/null
-echo "rust: ready. If cargo was just installed, open a new terminal so it is on your PATH."
+if have rustup; then
+  # rust-toolchain.toml pins the channel and components; this makes rustup fetch them now.
+  rustup show active-toolchain >/dev/null 2>&1 || rustup toolchain install stable --profile minimal
+  rustup component add rustfmt clippy >/dev/null
+  echo "rust: ready (managed by rustup). If cargo was just installed, open a new terminal."
+elif have rustfmt && have cargo-clippy; then
+  # Rust installed another way (for example `brew install rust`) has no rustup but includes both.
+  echo "rust: ready (not managed by rustup: found rustfmt and clippy; the version pin in"
+  echo "      rust-toolchain.toml is not applied, so use a recent stable Rust)"
+else
+  echo "rust: cargo is installed without rustup and rustfmt or clippy is missing." >&2
+  echo "      Install them (macOS: brew install rust) or switch to rustup: https://rustup.rs" >&2
+  exit 1
+fi
