@@ -1,0 +1,154 @@
+//! Shared by the `speech_*_e2e` tests: speak sentences with Kokoro, listen with Whisper, compare.
+#![allow(clippy::unwrap_used, dead_code)]
+
+use std::path::PathBuf;
+
+use vtt_core::audio::encode_wav;
+use vtt_core::engines::{Control, Device, SttOptions, TtsOptions, WhisperEngine};
+use vtt_core::transcribe::transcribe_file;
+use vtt_core::tts::KokoroEngine;
+
+/// A sentence to say and how well it has to be understood.
+pub struct Case {
+    pub voice: &'static str,
+    /// The language code Whisper is told to listen for.
+    pub language: &'static str,
+    pub text: &'static str,
+    /// The largest share of letters that may differ from the text.
+    pub allowed: f64,
+}
+
+fn env_path(name: &str) -> PathBuf {
+    PathBuf::from(std::env::var_os(name).unwrap_or_else(|| panic!("set {name} to run this test")))
+}
+
+/// Letters only, lower case, so punctuation and spacing do not count.
+fn letters(text: &str) -> Vec<char> {
+    text.to_lowercase()
+        .chars()
+        .map(simplified)
+        .filter(|c| c.is_alphanumeric())
+        .collect()
+}
+
+/// Whisper sometimes writes Chinese in traditional characters; these are the ones that matter
+/// for the test sentences.
+fn simplified(c: char) -> char {
+    const PAIRS: [(char, char); 22] = [
+        ('氣', '气'),
+        ('歡', '欢'),
+        ('學', '学'),
+        ('習', '习'),
+        ('這', '这'),
+        ('書', '书'),
+        ('讀', '读'),
+        ('們', '们'),
+        ('個', '个'),
+        ('點', '点'),
+        ('錢', '钱'),
+        ('銀', '银'),
+        ('開', '开'),
+        ('週', '周'),
+        ('塊', '块'),
+        ('請', '请'),
+        ('問', '问'),
+        ('車', '车'),
+        ('麼', '么'),
+        ('電', '电'),
+        ('愛', '爱'),
+        ('門', '门'),
+    ];
+    PAIRS.iter().find(|(t, _)| *t == c).map_or(c, |(_, s)| *s)
+}
+
+/// Share of the longer text that differs (edit distance over length).
+fn difference(a: &[char], b: &[char]) -> f64 {
+    let mut row: Vec<usize> = (0..=b.len()).collect();
+    for (i, x) in a.iter().enumerate() {
+        let mut previous = row[0];
+        row[0] = i + 1;
+        for (j, y) in b.iter().enumerate() {
+            let held = row[j + 1];
+            row[j + 1] = (previous + usize::from(x != y))
+                .min(row[j] + 1)
+                .min(held + 1);
+            previous = held;
+        }
+    }
+    let count = |n: usize| f64::from(u32::try_from(n).unwrap_or(u32::MAX));
+    count(row[b.len()]) / count(a.len().max(b.len()).max(1))
+}
+
+/// Speaks every case and fails if Whisper understood too little of any of them.
+pub fn check(cases: &[Case]) {
+    check_with_presets(cases, None);
+}
+
+/// Like [`check`], with the custom voices in `presets` available to the cases.
+pub fn check_with_presets(cases: &[Case], presets: Option<&std::path::Path>) {
+    let mut kokoro = KokoroEngine::load(&env_path("VTT_TEST_KOKORO"), "kokoro-82m").unwrap();
+    if let Some(dir) = presets {
+        kokoro = kokoro.with_presets(dir);
+    }
+    let mut whisper =
+        WhisperEngine::load(&env_path("VTT_TEST_WHISPER"), "whisper", Device::Auto).unwrap();
+    let dir = tempfile::tempdir().unwrap();
+    let mut failures = Vec::new();
+    for case in cases {
+        let options = TtsOptions {
+            voice: case.voice.into(),
+            speed: 1.0,
+        };
+        let audio = kokoro
+            .speak(case.text, &options, &mut |_, _| Control::Continue)
+            .unwrap();
+        let path = dir.path().join(format!("{}.wav", case.voice));
+        std::fs::write(&path, encode_wav(&audio)).unwrap();
+        let stt = SttOptions {
+            language: Some(case.language.into()),
+            ..SttOptions::default()
+        };
+        let heard = transcribe_file(&mut whisper, &path, &stt, None, &mut |_, _| {
+            Control::Continue
+        })
+        .unwrap();
+        let heard: String = heard
+            .segments
+            .iter()
+            .map(|s| s.text.as_str())
+            .collect::<Vec<_>>()
+            .join(" ");
+        let off = difference(&letters(case.text), &letters(&heard));
+        println!(
+            "{}: {off:.2} off\n  said:  {}\n  heard: {heard}",
+            case.voice, case.text
+        );
+        if off > case.allowed {
+            failures.push(format!(
+                "{}: {off:.2} > {}: {heard}",
+                case.voice, case.allowed
+            ));
+        }
+    }
+    assert!(failures.is_empty(), "{failures:#?}");
+}
+
+/// What Whisper hears in the WAV file at `path`, spoken in `language`.
+pub fn listen(whisper: &mut WhisperEngine, path: &std::path::Path, language: &str) -> String {
+    let stt = SttOptions {
+        language: Some(language.into()),
+        ..SttOptions::default()
+    };
+    let heard = transcribe_file(whisper, path, &stt, None, &mut |_, _| Control::Continue).unwrap();
+    heard
+        .segments
+        .iter()
+        .map(|s| s.text.as_str())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// The share of letters that differ between what was said and what was heard.
+pub fn off_by(said: &str, heard: &str) -> f64 {
+    difference(&letters(said), &letters(heard))
+}

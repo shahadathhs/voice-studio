@@ -1,0 +1,40 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<style>
+body{background:#CFCCC4}
+.mb{height:28px;background:rgba(244,243,240,.92);display:flex;align-items:center;padding:0 14px;gap:16px;font-size:13px;border-bottom:1px solid #BDB9B0}
+.menu{position:absolute;right:56px;top:30px;width:300px;background:var(--surface);border:1px solid var(--line-strong);border-radius:8px;padding:6px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.menu .it{display:flex;align-items:center;padding:6px 10px;border-radius:5px;gap:10px}.menu .it.h{background:var(--accent);color:var(--accent-fg)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:5px 4px}
+.doc{position:absolute;left:150px;top:90px;width:640px;height:520px;background:var(--surface);border:1px solid #BDB9B0;border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,.14);overflow:hidden}
+.doc .tb{height:36px;background:var(--sidebar);border-bottom:1px solid var(--line);display:flex;align-items:center;padding:0 14px;gap:8px}.doc .tb i{width:12px;height:12px;border-radius:50%;background:#CFCBC3;display:block}
+.pillw{position:absolute;left:150px;top:540px;width:640px;display:flex;justify-content:center}
+.dict{display:flex;align-items:center;gap:12px;background:#1C1C1A;color:#ECEBE7;border-radius:22px;padding:0 18px 0 14px;height:44px;box-shadow:0 8px 24px rgba(0,0,0,.28);max-width:600px}
+.dict .rec{width:9px;height:9px;border-radius:50%;background:#E0775F}
+.dict .wave i{background:#7A7771}
+</style>
+<body data-shell=none>
+<div class=mb><b style="font-weight:700">Notes</b><span>File</span><span>Edit</span><span>Format</span><span style="flex:1"></span>
+ <span style="display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;background:#1C1C1A;color:#fff"><i data-i=wave></i></span><span>Wi-Fi</span><span class=mono>Thu 14:07</span></div>
+
+<div class=menu>
+ <div class="it h"><i data-i=mic></i>Start dictation<span style="flex:1"></span><span style="opacity:.8">⌥ Space</span></div>
+ <div class=it><i data-i=speaker></i>Read selection aloud<span style="flex:1"></span><span class=faint>⌥ ⇧ S</span></div>
+ <div class=it><i data-i=doc></i>Transcribe a file…</div>
+ <hr>
+ <div style="padding:6px 10px"><div class=row><span class=muted>Transcribing</span><span style="flex:1"></span><span class=mono class=muted>62%</span></div><div style="margin-top:3px">Product planning — Oct 21</div><div class=bar style="margin-top:6px"><i style="width:62%"></i></div></div>
+ <hr>
+ <div class=it>Open Voice Studio<span style="flex:1"></span><span class=faint>⌥ ⇧ V</span></div>
+ <div class=it>Settings…</div>
+ <div class=it>Quit</div>
+</div>
+
+<div class=doc><div class=tb><i></i><i></i><i></i><span style="flex:1;text-align:center;font-weight:600;color:var(--text2)">Thursday follow-ups</span></div>
+ <div style="padding:26px 34px;font-size:15px;line-height:1.8"><b style="font-size:20px;font-weight:650">Thursday follow-ups</b>
+  <p style="margin-top:14px">— Importer flag goes in today; rollout checklist tomorrow morning.</p>
+  <p>— Pilot accounts: start with the three that asked for early access.</p>
+  <p>— Pricing page copy: Maria to share the draft.</p>
+  <p style="margin-top:12px">Email to Priya: Hi Priya, thanks for confirming the pilot list. <span style="background:var(--accent-bg);border-radius:3px;padding:0 2px">Please send the revised onboarding draft to Daniel by</span><span style="display:inline-block;width:2px;height:17px;background:var(--text);vertical-align:-3px;margin-left:1px"></span></p>
+ </div></div>
+
+<div class=pillw><div class=dict><span class=rec></span><span style="font-weight:600">Listening</span><div class=wave style="height:22px;gap:2px" data-wave="18,20,31"></div><span style="color:#A5A29B">end of day Friday</span><span style="margin-left:6px;color:#A5A29B">⌥ Space to finish · Esc to cancel</span></div></div>
+<script src=common.js></script>

@@ -1,28 +1,22 @@
-## 📝 Description
-Brief description of changes made in this PR.
+## What and why
 
-## 🔗 Related Issue
-Closes #[issue number]
+<!-- What does this change, and why? Link the issue: Closes #123 -->
 
-## 🎯 Changes
-- [ ] Bug fix (non-breaking change)
-- [ ] New feature (non-breaking change)
-- [ ] Breaking change (fix/add feature that would cause existing functionality to not work as expected)
-- [ ] Documentation update
+## Type
 
-## ✅ Checklist
-- [ ] Code follows project style guidelines (run `make fix-all`)
-- [ ] Self-review completed (run `make check-all`)
-- [ ] Comments added to complex code sections
-- [ ] Documentation updated (if needed)
-- [ ] No new warnings generated
-- [ ] Tests added/updated (if applicable)
-- [ ] All tests passing
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Breaking change
+- [ ] Docs / tooling only
 
-## 📸 Screenshots (if applicable)
-Add screenshots to help explain your changes.
+## Checklist
 
-## 🔧 Configuration
-- [ ] Environment variables documented (if needed)
-- [ ] CLI options documented (if needed)
-- [ ] API endpoints documented (if needed)
+- [ ] `make check` passes (format, lint, types, build, clippy, tests)
+- [ ] Follows [docs/guidelines.md](../docs/guidelines.md): small files and functions, no duplicated logic
+- [ ] Tests added or updated; bug fixes include a regression test
+- [ ] Docs updated (CLI flags in docs/product/cli.md, features in docs/product/features.md)
+- [ ] Commit messages follow Conventional Commits
+
+## Screenshots
+
+<!-- UI changes only -->

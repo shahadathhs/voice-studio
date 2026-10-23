@@ -1,391 +1,135 @@
-# Voice-to-Text
+# Voice Studio
 
-AI-powered voice transcription service using OpenAI's Whisper model. Provides both a command-line interface and REST API server with support for transcription, translation, and speaker diarization.
+**Turn speech into text, and text into speech, without sending anything anywhere.**
 
-## Features
+Voice Studio is a desktop app and a command-line tool that transcribes recordings, labels who said what,
+and reads text aloud, all on your own computer. No account, no cloud, no per-minute fees. Models download
+once; after that it works offline.
 
-- **CLI and API**: Use as a command-line tool or deploy as a REST API server
-- **Translation**: Translate non-English audio to English
-- **Speaker Diarization**: Identify and label different speakers in conversations
-- **Multiple Backends**: OpenAI Whisper or Hugging Face Transformers
-- **Fully Local**: Complete privacy - your audio never leaves your machine
-- **Python 3.14+ Support**: Modern Python with UV package manager
-- **Docker Ready**: One-command deployment with Docker Compose
+Windows, macOS and Linux. Open source (MIT).
 
-## Quick Start
+> **Status: early development, not released yet.** Transcription, speaker labels and text to speech work.
+> Recording, live captions, dictation and installers are still to come (see the [roadmap](docs/product/roadmap.md)).
+> "Voice Studio" is a working name.
 
-### Docker (Recommended)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcript-dark.png">
+  <img alt="A transcript with three speakers, timestamps and a speaker panel" src="docs/screenshots/transcript-light.png">
+</picture>
 
-```bash
-# Start the API server
-make server
+_Screenshots show the real interface with made-up sample data._
 
-# Access API documentation at http://localhost:8000/docs
-```
+## What you can do
 
-### Local Installation
+- **Transcribe audio and video.** Drop in WAV, MP3, M4A, FLAC, OGG, MP4, MOV or MKV files. A queue works
+  through them one at a time, skipping silence, with progress you can pause, reorder or cancel.
+- **Know who said what.** Turn on _Identify speakers_ to label each line, see who talked how much, and
+  rename or merge speakers afterwards.
+- **Search everything you have transcribed.** Every transcript goes into a library with full-text search.
+  Click a timestamp to hear that moment.
+- **Export anywhere.** TXT, SRT and VTT subtitles, Markdown, JSON and Word documents, with control over line width,
+  timestamps and speaker names.
+- **Read text aloud.** Paste text or open a file, pick one of six natural English voices, and play or save it.
+- **Choose your models.** A model manager shows what each model is for, how big it is, and its licence.
+- **Light, dark or system theme.**
 
-```bash
-# Install system dependencies (UV, FFmpeg) and Python packages
-./setup.sh
+## Private by design
 
-# Run CLI
-voice-to-text media/audio/sample.wav
+Audio and text never leave your computer. The only network use is downloading models, which you start
+yourself, and each download is checked against a published checksum. The app has no telemetry.
 
-# Or use the short alias
-vtt media/audio/sample.wav
+## Screens
 
-# Run API server
-make dev
-```
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcribe-dark.png">
+        <img alt="The transcription queue and recent transcripts" src="docs/screenshots/transcribe-light.png">
+      </picture>
+      <br><sub><b>Transcribe:</b> a queue for many files.</sub>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-dark.png">
+        <img alt="Models grouped by purpose, with sizes and licences" src="docs/screenshots/models-light.png">
+      </picture>
+      <br><sub><b>Models:</b> grouped by what they are for.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/speak-dark.png">
+        <img alt="Text to speech with a voice list and speed control" src="docs/screenshots/speak-light.png">
+      </picture>
+      <br><sub><b>Speak:</b> text to speech with six voices.</sub>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcript-light.png">
+        <img alt="A transcript in the light theme" src="docs/screenshots/transcript-light.png">
+      </picture>
+      <br><sub><b>Transcript:</b> speakers, timestamps, playback and export.</sub>
+    </td>
+  </tr>
+</table>
 
-## Usage
+## Command line
 
-### CLI Usage
-
-The command-line interface provides direct access to transcription features:
-
-```bash
-# Basic transcription
-voice-to-text media/audio/sample.wav
-
-# With translation to English
-voice-to-text media/audio/sample.wav --translate
-
-# With speaker diarization
-voice-to-text media/audio/meeting.mp3 --diarize
-
-# All features combined
-voice-to-text media/audio/conversation.wav --translate --diarize --max-speakers 2
-
-# Use different model
-voice-to-text media/audio/sample.wav --model tiny
-
-# Custom output location
-voice-to-text media/audio/sample.wav --output transcript.txt
-```
-
-#### CLI Commands via Makefile
-
-The Makefile provides convenient shortcuts for common tasks:
-
-```bash
-# Transcription commands
-make transcribe FILE=media/audio/sample.wav
-make transcribe-tiny FILE=media/audio/sample.mp3
-make transcribe-translate FILE=media/audio/meeting.wav
-make transcribe-diarize FILE=media/audio/conversation.mp3
-make transcribe-all FILE=media/audio/file.wav
-
-# File management
-make list-audio          # List available audio files
-make list-transcripts    # List transcript files
-make clean-transcripts   # Clean all transcripts
-
-# CLI management
-make cli-info            # Show configuration and status
-make cli-dirs            # Ensure all directories exist
-```
-
-### API Usage
-
-Start the server and upload audio files via the REST API:
+The same engine as the app, for scripts and servers.
 
 ```bash
-# Start server
-make server
-
-# Transcribe with curl
-curl -X POST "http://localhost:8000/transcribe" \
-  -F "file=@media/audio/sample.mp3"
-
-# With translation and diarization
-curl -X POST "http://localhost:8000/transcribe?translate=true&diarize=true" \
-  -F "file=@media/audio/meeting.mp3"
+vtt models pull whisper-small                  # download a model (resumable, checksum-verified)
+vtt transcribe talk.m4a                        # print the text
+vtt transcribe talk.m4a -f srt -o talk.srt     # subtitles; also txt, vtt, md, json
+vtt transcribe meeting.mp4 --diarize           # label the speakers
+vtt speak "Hello from my own computer" -o hello.wav
+vtt library search "roadmap"                   # search everything you have transcribed
+vtt --json transcribe talk.m4a                 # machine-readable events for scripts
 ```
 
-Access interactive API documentation at:
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+Run `vtt --help` or see the [CLI reference](docs/product/cli.md) for every command, option and exit code.
+Whisper uses the GPU on macOS (Metal) automatically; on Windows and Linux it uses the CPU unless you build
+with the optional Vulkan or CUDA feature (see below).
 
-### API Response Format
+## Get it
 
-The API returns full URLs for accessing uploaded audio and transcripts:
-
-```json
-{
-  "transcript": "SPEAKER_00: Hello world\nSPEAKER_01: Hi there",
-  "saved_to": "media/transcripts/file_20260427_123456.txt",
-  "metadata": {
-    "model": "base",
-    "backend": "openai",
-    "device": "cpu",
-    "translated": false,
-    "diarized": true,
-    "audio_file": "/uploads/filename.mp3",
-    "audio_url": "http://localhost:8000/uploads/filename.mp3",
-    "transcript_file": "filename_20260427_123456.txt",
-    "transcript_url": "http://localhost:8000/transcripts/filename_20260427_123456.txt"
-  }
-}
-```
-
-## Project Structure
-
-```
-voice-to-text/
-├── app/                       # Application code
-│   ├── api/                   # REST API endpoints and routes
-│   ├── cli/                   # Command-line interface
-│   ├── core/                  # Configuration, errors, logging
-│   ├── schemas/               # Pydantic validation models
-│   ├── services/              # Business logic (transcription, diarization)
-│   ├── utils/                 # Utilities and helpers
-│   └── whisper/               # Whisper model implementations
-├── media/                     # Media files directory
-│   ├── audio/                 # Default audio files (CLI usage)
-│   ├── uploads/               # Uploaded audio files (API usage)
-│   └── transcripts/           # Transcription output
-├── compose.yaml               # Docker Compose configuration
-├── Dockerfile                 # Production container image
-├── Makefile                   # Development automation
-├── pyproject.toml            # Project configuration and dependencies
-└── setup.sh                   # System dependency installer
-```
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file from `.env.example` to configure the application:
+There are no installers yet. Until the first release, build from source.
 
 ```bash
-# Server Configuration
-HOST=0.0.0.0
-PORT=8000
-WORKERS=1
-
-# Whisper Configuration
-WHISPER_MODEL=base           # tiny, base, small, medium, large
-WHISPER_BACKEND=openai       # openai, transformers
-WHISPER_DEVICE=cpu           # cpu, cuda
-
-# Feature Flags
-ENABLE_TRANSLATION=false
-ENABLE_DIARIZATION=false
-
-# Diarization Settings
-DIARIZE_THRESHOLD=0.35       # Clustering threshold (0.0-1.0)
-MAX_SPEAKERS=2               # Maximum number of speakers (optional)
-USE_SILHOUETTE=false         # Use silhouette analysis
-
-# Media Directories
-AUDIO_DIR=media/audio         # Default audio files (CLI)
-UPLOADS_DIR=media/uploads     # Uploaded files (API)
-TRANSCRIPT_DIR=media/transcripts
-MODEL_CACHE_DIR=model-cache
-
-# API Configuration
-MAX_FILE_SIZE=524288000      # 500 MB
-ALLOWED_FORMATS=wav,mp3,ogg,m4a,flac,aac
-API_HOST=http://localhost:8000  # For constructing full URLs (optional)
+make setup     # Rust and CMake if missing, JS dependencies, git hooks, first UI build
+make dev       # run the desktop app with hot reload
+make check     # everything CI runs
 ```
 
-### CLI Options
+You need [Rust](https://rustup.rs), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
+from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
+[Tauri system packages](https://tauri.app/start/prerequisites/) and the ALSA headers (`libasound2-dev`) for microphone recording. On Windows use Git Bash or WSL.
+`make` lists every target.
 
-```bash
-voice-to-text audio.wav [OPTIONS]
+GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or
+`--features cuda` (needs the CUDA toolkit). The desktop crate forwards the same features.
 
-Positional Arguments:
-  input                   Path to audio file
+## Under the hood
 
-Options:
-  --model {tiny,base,small,medium,large}
-                          Whisper model size (default: base)
-  --backend {openai,transformers}
-                          Whisper backend (default: openai)
-  --translate             Translate non-English audio to English
-  --diarize               Enable speaker diarization
-  --diarize-threshold N   Clustering threshold (0.0-1.0, default: 0.35)
-  --max-speakers N        Fixed number of speakers
-  --use-silhouette        Estimate speakers from embeddings
-  --output, -o PATH       Output file path
-  --media-dir PATH        Custom media directory
-  --ensure-dirs           Create directories if needed (default: enabled)
-  --no-ensure-dirs        Disable directory creation
-  --verbose, -v           Enable verbose output
-  --debug                 Enable debug mode
-```
-
-## Development
-
-### Setup
-
-```bash
-# Install all dependencies (system and Python)
-make install-deps
-
-# Install pre-commit hooks
-make pre-commit-install
-```
-
-### Code Quality
-
-The project uses modern Python tooling for code quality:
-
-```bash
-# Run all checks
-make ci                    # Full CI pipeline
-
-# Individual checks
-make lint                 # Ruff linting
-make type-check           # MyPy type checking
-make security             # Bandit security scan
-make format               # Black code formatting
-make fix-all              # Auto-fix all issues
-```
-
-### Building
-
-```bash
-# Build distribution packages
-make build
-
-# Build Docker image
-make docker-build
-
-# Rebuild without cache
-make docker-rebuild
-```
-
-### Docker Commands
-
-```bash
-make server               # Start API server (Docker)
-make stop                 # Stop server
-make restart              # Restart server
-make logs                 # View logs
-make ps                   # Check container status
-```
-
-## Tooling and Stack
-
-### Core Technologies
-- **Python 3.14+**: Modern Python with latest features
-- **UV**: Ultra-fast Python package manager (10-100x faster than pip)
-- **FastAPI 0.115+**: Modern, fast web framework for building APIs
-- **Pydantic v2**: Data validation using Python type annotations
-- **OpenAI Whisper**: State-of-the-art speech recognition model
-
-### Audio Processing
-- **Librosa**: Audio loading and processing (Python 3.13+ compatible)
-- **SpeechBrain**: Speaker diarization and embeddings
-- **SoundFile**: Audio I/O operations
-
-### Code Quality Tools
-- **Ruff**: Extremely fast Python linter and formatter
-- **Black**: Code formatting (PEP 8 compliant)
-- **MyPy**: Static type checking
-- **Bandit**: Security linter
-- **Pre-commit**: Git hooks for automated quality checks
-
-### Deployment
-- **Docker**: Containerization
-- **Docker Compose**: Multi-container orchestration
-- **GitHub Actions**: CI/CD pipeline with semantic-release
-
-## Installation Options
-
-### Option 1: Docker (Recommended for Production)
-
-```bash
-git clone https://github.com/shahadathhs/voice-to-text.git
-cd voice-to-text
-make server
-```
-
-### Option 2: Local Development
-
-```bash
-# Prerequisites: Python 3.14+, FFmpeg
-
-git clone https://github.com/shahadathhs/voice-to-text.git
-cd voice-to-text
-./setup.sh
-make dev
-```
-
-### Option 3: CLI Only (No Server)
-
-```bash
-git clone https://github.com/shahadathhs/voice-to-text.git
-cd voice-to-text
-./setup.sh
-voice-to-text path/to/audio.wav
-```
-
-## API Endpoints
-
-### Core Endpoints
-
-- `GET /` - API information and endpoints
-- `GET /health` - Health check and service status
-- `POST /transcribe` - Transcribe audio file
-
-### File Serving
-
-- `GET /uploads/{filename}` - Retrieve uploaded audio file
-- `GET /transcripts/{filename}` - Retrieve transcript file
-
-### Documentation
-
-- `GET /docs` - Swagger UI (interactive API documentation)
-- `GET /redoc` - ReDoc (alternative documentation)
-- `GET /openapi.json` - OpenAPI specification
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes
-4. Run quality checks: `make ci`
-5. Commit with conventional commit format: `git commit -m "feat: add amazing feature"`
-6. Push to branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### Commit Convention
-
-Follow conventional commits:
-- `feat:` - New features
-- `fix:` - Bug fixes
-- `docs:` - Documentation changes
-- `refactor:` - Code refactoring
-- `test:` - Adding tests
-- `chore:` - Maintenance tasks
+A Rust core (`vtt-core`) does the work: whisper.cpp for transcription, pyannote and WeSpeaker models for speaker
+labels, Kokoro for speech, SQLite for the library. The desktop app is a [Tauri 2](https://tauri.app)
+shell with a Svelte interface calling the core in-process, so there is no server and no sidecar. The CLI
+is a thin front end on the same core. See [architecture](docs/architecture.md).
 
 ## Documentation
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [SECURITY.md](SECURITY.md) - Security policy
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) - Community guidelines
-- [.claude/CLAUDE.md](.claude/CLAUDE.md) - Development guide
+[Features](docs/product/features.md) · [CLI](docs/product/cli.md) · [Roadmap](docs/product/roadmap.md) ·
+[Architecture](docs/architecture.md) · [Design](docs/design/README.md) · [Releasing](docs/releasing.md) ·
+[Index](docs/README.md)
 
-## License
+## Contributing
 
-MIT License - see [LICENSE](LICENSE) for details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code guidelines](docs/guidelines.md). Please read the
+[Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md). The earlier Python
+prototype is preserved at the git tag `python-final`.
 
-## Requirements
+## Licence
 
-- Python 3.14 or higher
-- FFmpeg (for audio processing)
-- 4GB RAM minimum (8GB recommended for larger models)
-- 1GB disk space for models
-
-## Support
-
-- GitHub Issues: https://github.com/shahadathhs/voice-to-text/issues
-- Documentation: http://localhost:8000/docs (when server is running)
+[MIT](LICENSE)

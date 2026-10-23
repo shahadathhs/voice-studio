@@ -1,101 +1,38 @@
 # Security Policy
 
-## Supported Versions
+## Supported versions
 
-Currently, only the latest version of Voice-to-Text is supported with security updates.
+Only the latest release receives security fixes. Nothing has been released yet.
 
-| Version | Supported          |
-|---------|--------------------|
-| latest  | :white_check_mark: |
+## Reporting a vulnerability
 
-## Reporting a Vulnerability
+Please **do not open a public issue** for security problems. Use GitHub's private vulnerability
+reporting for this repository (Security tab → Report a vulnerability), or contact the maintainer
+directly. Include:
 
-If you discover a security vulnerability, please **do not open a public issue**.
+- a description of the problem and its impact
+- steps to reproduce
+- a suggested fix, if you have one
 
-### How to Report
+What to expect: acknowledgement within 48 hours, an initial assessment within a week, and public
+disclosure after a fix is released. Severity guides the timeline.
 
-1. **Email**: Send a detailed report to the project maintainer
-2. **Include**:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if known)
+## Design principles
 
-### What to Expect
+- **Offline and private.** Audio, text and transcripts stay on the user's computer. There is no
+  telemetry and no account.
+- **Network use is limited and visible.** The only network access is downloading models and checking
+  for updates. Model downloads are planned to be verified against SHA-256 checksums from the catalog.
+- **Memory safety.** The code is Rust, and `unsafe` is forbidden in this repository's crates.
+- **No panics on bad input.** Malformed files return errors with documented exit codes; `unwrap` and
+  `expect` are denied by lint outside tests.
+- **Least surprise for files.** Inputs are read in place; outputs are written only where the user asks.
 
-- **Response time**: Within 48 hours
-- **Initial assessment**: Within 1 week
-- **Fix timeline**: Depends on severity
-- **Public disclosure**: After fix is released
+## Dependencies
 
-### Security Best Practices
+Dependabot proposes updates weekly. Adding `cargo audit` and `cargo deny` (advisories and license
+checks) to CI is planned.
 
-This project follows these security practices:
+## Questions
 
-- ✅ **Fully Local**: Audio files never leave your machine
-- ✅ **No API Keys**: No cloud services or external APIs
-- ✅ **File Validation**: All uploads are validated for type and size
-- ✅ **Input Sanitization**: File paths and user inputs are sanitized
-- ✅ **Dependency Scanning**: Automated security scanning with Bandit
-- ✅ **Regular Updates**: Dependencies are kept up to date
-
-### Severity Levels
-
-- **Critical**: Remote code execution, data exposure
-- **High**: Local privilege escalation, data loss
-- **Medium**: DoS, minor data exposure
-- **Low**: Information disclosure, minor issues
-
-## Security Features
-
-### File Upload Security
-
-- File type validation (WAV, MP3, OGG, M4A, FLAC, AAC only)
-- File size limits (configurable, default 500MB)
-- Safe filename sanitization
-- Temporary file isolation
-
-### API Security
-
-- CORS configuration
-- Request validation with Pydantic
-- Error message sanitization
-- No sensitive data in logs
-
-### Deployment Security
-
-- No hardcoded secrets
-- Environment-based configuration
-- Docker container isolation
-- Health check endpoints
-
-## Dependency Security
-
-We use automated tools to scan for vulnerabilities:
-
-```bash
-make security  # Run Bandit security scanner
-```
-
-Security-focused dependencies:
-- **FastAPI**: Built-in security features
-- **Pydantic**: Input validation
-- **Bandit**: Security linting
-
-## Private Deployment
-
-For maximum security, deploy entirely offline:
-
-```bash
-# Run locally without internet
-make dev
-
-# Deploy offline Docker image
-docker compose -f compose.yaml up -d
-```
-
-No internet connection required after initial setup.
-
-## Questions?
-
-For security questions or concerns, please open an issue with the `security` tag.
+For general security questions, open an issue with the `security` label (without vulnerability details).

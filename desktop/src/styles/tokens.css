@@ -1,0 +1,44 @@
+/* Colour tokens. Same values as docs/design/mockups/src/common.css.
+   The theme is always resolved to light or dark in JS and set as data-theme on <html>. */
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --sidebar: #eceae6;
+  --line: #e2dfd9;
+  --line-strong: #cfcbc3;
+  --text: #1c1c1a;
+  --text2: #5e5c57;
+  --text3: #8d8a83;
+  --accent: #1f6f5c;
+  --accent-bg: #e1efea;
+  --accent-fg: #ffffff;
+  --danger: #b3402a;
+  --highlight: #fff4c9;
+  --sp0: #b4472f;
+  --sp1: #2f6db4;
+  --sp2: #8a6a10;
+  --sp3: #5b7f3a;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #171716;
+  --surface: #1f1f1d;
+  --sidebar: #121211;
+  --line: #2d2d2a;
+  --line-strong: #43433e;
+  --text: #ecebe7;
+  --text2: #a5a29b;
+  --text3: #76736c;
+  --accent: #4db89b;
+  --accent-bg: #1c3a32;
+  --accent-fg: #0c1f1a;
+  --danger: #e0775f;
+  --highlight: #3d3515;
+  --sp0: #e5896f;
+  --sp1: #7daee6;
+  --sp2: #d3b558;
+  --sp3: #92b96c;
+  color-scheme: dark;
+}

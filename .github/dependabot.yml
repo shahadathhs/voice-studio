@@ -1,64 +1,36 @@
 version: 2
 updates:
-  # Python dependencies
-  - package-ecosystem: "pip"
+  - package-ecosystem: "cargo"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
     open-pull-requests-limit: 10
-    assignees:
-      - "shahadathhs"
-    labels:
-      - "dependencies"
-      - "python"
+    labels: ["dependencies", "rust"]
     commit-message:
       prefix: "deps"
-      prefix-development: "deps-dev"
-      include: "scope"
-    allow:
-      - dependency-type: "direct"
-      - dependency-type: "indirect"
-    ignore:
-      # Ignore major version updates for stability
-      - dependency-name: "fastapi"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "pydantic"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "openai-whisper"
-        update-types: ["version-update:semver-major"]
+    groups:
+      rust-minor-and-patch:
+        update-types: ["minor", "patch"]
 
-  # Docker dependencies
-  - package-ecosystem: "docker"
+  - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-    assignees:
-      - "shahadathhs"
-    labels:
-      - "dependencies"
-      - "docker"
+    open-pull-requests-limit: 10
+    labels: ["dependencies", "javascript"]
     commit-message:
-      prefix: "docker"
-      include: "scope"
+      prefix: "deps"
+    groups:
+      npm-minor-and-patch:
+        update-types: ["minor", "patch"]
 
-  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 5
-    assignees:
-      - "shahadathhs"
-    labels:
-      - "dependencies"
-      - "github-actions"
+    labels: ["dependencies", "github-actions"]
     commit-message:
       prefix: "ci"
-      include: "scope"

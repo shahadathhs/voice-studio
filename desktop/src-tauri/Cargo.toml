@@ -1,0 +1,37 @@
+[package]
+name = "vtt-desktop"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Voice Studio desktop app"
+
+[lib]
+name = "vtt_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[features]
+# Forwarded to vtt-core; see its Cargo.toml.
+vulkan = ["vtt-core/vulkan"]
+cuda = ["vtt-core/cuda"]
+
+[lints]
+workspace = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+tauri = { version = "2", features = ["protocol-asset", "tray-icon"] }
+tauri-plugin-clipboard-manager = "2.5.0"
+tauri-plugin-dialog = "2.8.3"
+tauri-plugin-global-shortcut = "2.4.1"
+vtt-core = { path = "../../crates/core" }
+
+[dev-dependencies]
+serde_json = "1.0.154"
+tempfile = "3"
+tauri = { version = "2", features = ["test"] }
+vtt-core = { path = "../../crates/core", features = ["testing"] }

@@ -1,0 +1,52 @@
+[package]
+name = "vtt-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+# Local HTTP test server shared with the desktop tests.
+testing = []
+# Optional GPU backends for whisper.cpp on Windows and Linux (macOS always uses Metal). Each needs
+# its SDK installed to build: the Vulkan SDK, or the CUDA toolkit.
+vulkan = ["whisper-rs/vulkan"]
+cuda = ["whisper-rs/cuda"]
+
+[lints]
+workspace = true
+
+[dependencies]
+directories = "6.0.0"
+flacenc = { version = "0.5.1", default-features = false }
+num-traits = "0.2.19"
+ort = "2.0.0-rc.15"
+rubato = "5.0.1"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+toml = "1.1.8"
+sha2 = "0.11.1"
+symphonia = { version = "0.6.1", features = ["all"] }
+thiserror = "2.0.21"
+ureq = "3.5.0"
+# log_backend sends whisper.cpp output to the `log` facade, which is silent unless a logger is installed.
+whisper-rs = { version = "0.16.0", features = ["log_backend"] }
+candle-core = "0.11.0"
+candle-transformers = "0.11.0"
+candle-nn = "0.11.0"
+tokenizers = { version = "0.23.2", default-features = false, features = ["onig"] }
+cpal = "0.18.2"
+
+# GPU acceleration on Apple silicon and Intel Macs.
+[target.'cfg(target_os = "macos")'.dependencies]
+candle-core = { version = "0.11.0", features = ["metal"] }
+candle-nn = { version = "0.11.0", features = ["metal"] }
+candle-transformers = { version = "0.11.0", features = ["metal"] }
+whisper-rs = { version = "0.16.0", features = ["log_backend", "metal"] }
+
+[dev-dependencies]
+# Enables the `testing` feature for this crate's own tests.
+vtt-core = { path = ".", features = ["testing"] }
+tempfile = "3.27.0"

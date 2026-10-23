@@ -1,0 +1,31 @@
+<!doctype html><meta charset=utf-8><link rel=stylesheet href=common.css>
+<body data-active=transcribe data-title="Transcribe">
+<main><div class=page>
+ <h1>Transcribe</h1>
+ <p class=sub>Turn recordings into text. Audio never leaves this computer.</p>
+
+ <div style="margin-top:22px;border:1.5px dashed var(--line-strong);border-radius:10px;height:230px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--surface)">
+  <div style="color:var(--text3)" data-i=down></div>
+  <div style="font-size:15px;font-weight:600">Drop audio or video files here</div>
+  <div class=muted>WAV, MP3, M4A, FLAC, OGG, AAC, MP4, MOV, MKV · up to several hours</div>
+  <div class="row gap8"><span class="btn primary"><i data-i=folder></i>Choose files…</span><span class="btn"><i data-i=mic></i>Record</span></div>
+ </div>
+
+ <div class="row gap24" style="margin-top:24px;align-items:flex-end">
+  <div><div class=label>Model</div><div class=field style="min-width:210px"><span>Whisper base <span class=faint>· 142 MB</span></span><i class=chev data-i=chev></i></div></div>
+  <div><div class=label>Language</div><div class=field><span>Detect automatically</span><i class=chev data-i=chev></i></div></div>
+  <div class="check on" style="height:30px"><span class=box data-i=check></span>Identify speakers</div>
+  <div class=check style="height:30px"><span class=box></span>Translate to English</div>
+ </div>
+
+ <div style="margin-top:34px" class="row">
+  <h2>Recent</h2><span style="flex:1"></span><span class=muted>View all in Library</span>
+ </div>
+ <div class=panel style="margin-top:10px">
+ <table>
+  <tr><td style="width:28px;color:var(--text3)"><i data-i=doc></i></td><td><b style="font-weight:600">Product planning — Oct 21.m4a</b><div class=faint>3 speakers · English</div></td><td class="mono muted" style="width:90px">48:12</td><td class=muted style="width:130px">Today, 10:42</td><td style="width:30px;color:var(--text3)"><i data-i=dots></i></td></tr>
+  <tr><td style="color:var(--text3)"><i data-i=doc></i></td><td><b style="font-weight:600">Interview — Amina Yusuf.wav</b><div class=faint>2 speakers · English</div></td><td class="mono muted">1:12:40</td><td class=muted>Yesterday</td><td style="color:var(--text3)"><i data-i=dots></i></td></tr>
+  <tr><td style="color:var(--text3)"><i data-i=doc></i></td><td><b style="font-weight:600">Voice memo 0418.m4a</b><div class=faint>1 speaker · Bengali → English</div></td><td class="mono muted">02:31</td><td class=muted>Apr 18</td><td style="color:var(--text3)"><i data-i=dots></i></td></tr>
+ </table></div>
+</div></main>
+<script src=common.js></script>

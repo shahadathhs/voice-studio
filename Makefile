@@ -1,329 +1,97 @@
-# Voice-to-Text API - Makefile
-# Modern API-focused build system
+# Voice Studio — one entry point for development tasks. Run `make` to list them.
+# Windows: use Git Bash (or WSL); every target is a plain cargo/pnpm command you can run directly.
 
-# Variables
-COMPOSE_FILE := compose.yaml
-RUN_CMD := uv run
-
-# Phony targets
-.PHONY: help setup install-deps venv install reset-venv
-.PHONY: pre-commit-install pre-commit-run pre-commit-update
-.PHONY: build dev dev-verbose prod
-.PHONY: lint lint-fix format format-check type-check check-all fix-all
-.PHONY: docker-build docker-down docker-rebuild docker-ps
-.PHONY: clean shell logs update freeze list add add-dev remove ci security info
-.PHONY: server stop restart logs docs status release-publish release-version
-.PHONY: transcribe clean-transcripts list-audio list-transcripts cli-info cli-dirs
+PNPM  := pnpm --dir desktop
+CARGO := cargo
 
 .DEFAULT_GOAL := help
+.PHONY: notices help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
+        format format-check typecheck test test-e2e check clean mockups screenshots version release
 
-help: ## Show this help message
-	@echo "🎙️  Voice-to-Text API - Available Commands"
-	@echo ""
-	@echo "🚀 Setup Commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[0;32m%-25s\033[0m %s\n", $$1, $$2}'
-	@echo ""
-	@echo "📖 Quick Start:"
-	@echo "  ./setup.sh              - Complete setup (recommended)"
-	@echo "  make server             - Start API server"
-	@echo "  make docs               - Open API documentation"
-	@echo ""
-	@echo "💡 Tip: Run ./setup.sh to install UV, FFmpeg, and all dependencies"
+help: ## Show this help
+	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-# =============================================================================
-# SETUP
-# =============================================================================
-install-deps: ## Install all system dependencies (UV, FFmpeg, Python packages)
-	@echo "🚀 Running complete setup..."
-	@./setup.sh
+# ---- Setup -------------------------------------------------------------------
 
-venv: ## Create virtual environment
-	@echo "Creating virtual environment with UV..."
-	@uv venv
-	@echo "✓ Virtual environment created at .venv"
+setup: ## Install Rust and CMake if missing, JS dependencies and git hooks, then build the UI once
+	scripts/setup-toolchain.sh
+	pnpm install
+	$(PNPM) build
 
-reset-venv: ## Force reset virtual environment (fix permission issues)
-	@echo "Resetting virtual environment..."
-	@rm -rf .venv .uv uv.lock 2>/dev/null || true
-	@uv venv
-	@uv sync
-	@echo "✓ Virtual environment reset complete"
+# ---- Run ---------------------------------------------------------------------
 
-install: ## Install Python dependencies only
-	@echo "Installing Python dependencies with UV..."
-	@uv sync
-	@echo "✓ Dependencies installed"
+dev: ## Run the desktop app with hot reload
+	$(PNPM) tauri dev
 
-setup: install pre-commit-install ## Full setup (venv + install + hooks)
-	@echo "✓ Setup complete!"
-	@echo "Python: uv run python"
-	@echo "Virtual Environment: .venv"
-	@echo ""
-	@echo "🎉 Ready to use!"
-	@echo ""
-	@echo "Next steps:"
-	@echo "  make server             - Start API server"
-	@echo "  make dev                - Run in development mode"
-	@echo "  make docs               - Open API documentation"
+ui: ## Run only the UI in a browser (Tauri commands return stand-in data)
+	$(PNPM) dev
 
-pre-commit-install: ## Install pre-commit hooks
-	@echo "Installing pre-commit hooks..."
-	@$(RUN_CMD) pre-commit install
-	@echo "✓ Pre-commit hooks installed"
+cli: ## Run the CLI, e.g. make cli ARGS="export transcript.json -f srt"
+	$(CARGO) run -p vtt-cli -- $(ARGS)
 
-pre-commit-run: ## Run all pre-commit hooks manually
-	@echo "Running pre-commit hooks..."
-	@$(RUN_CMD) pre-commit run --all-files
+# ---- Build -------------------------------------------------------------------
 
-pre-commit-update: ## Update pre-commit hooks
-	@echo "Updating pre-commit hooks..."
-	@$(RUN_CMD) pre-commit autoupdate
-	@echo "✓ Pre-commit hooks updated"
+build: build-cli build-desktop ## Build the CLI and the desktop installers (release)
 
-# =============================================================================
-# RUNNING
-# =============================================================================
-build: ## Build distribution packages
-	@echo "Building distribution packages..."
-	@uv run python -m build
-	@echo "✓ Built packages in dist/"
+build-cli: ## Build the release CLI binary (target/release/vtt)
+	$(CARGO) build --release -p vtt-cli
 
-dev: ## Run in development mode with hot reload
-	@echo "Starting development server..."
-	@$(RUN_CMD) uvicorn server:app --reload --host 0.0.0.0 --port 8000
+build-desktop: ## Build the desktop app installers for this platform
+	$(PNPM) tauri build
 
-dev-verbose: ## Run in development mode with verbose logging
-	@echo "Starting development server (verbose)..."
-	@$(RUN_CMD) uvicorn server:app --reload --log-level debug
+# ---- Quality -----------------------------------------------------------------
 
-prod: ## Run in production mode
-	@echo "Starting production server..."
-	@$(RUN_CMD) uvicorn server:app --host 0.0.0.0 --port $${PORT:-8000} --workers 4
+format: ## Format all code (rustfmt + Prettier)
+	$(CARGO) fmt --all
+	pnpm format
 
-# =============================================================================
-# CODE QUALITY
-# =============================================================================
-lint: ## Run linter (ruff)
-	@echo "Running linter..."
-	@$(RUN_CMD) ruff check app/
-	@echo "✓ Linting complete"
+format-check: ## Check formatting without changing files
+	$(CARGO) fmt --all --check
+	pnpm exec prettier --check .
 
-lint-fix: ## Fix linting issues automatically
-	@echo "Fixing linting issues..."
-	@$(RUN_CMD) ruff check --fix app/
-	@echo "✓ Linting issues fixed"
+test-e2e: ## Transcribe real speech with a real model (set VTT_TEST_MODEL and VTT_TEST_SPEECH)
+	$(CARGO) test -p vtt-core --release --test whisper_e2e -- --ignored
 
-format: ## Format code with black
-	@echo "Formatting code..."
-	@$(RUN_CMD) black app/
-	@echo "✓ Code formatted"
+lint-rust: ## Clippy with warnings denied
+	$(CARGO) lint
 
-format-check: ## Check if code needs formatting
-	@echo "Checking code formatting..."
-	@$(RUN_CMD) black --check app/
+lint-ui: ## oxlint (type-aware, includes the file/function size limits)
+	pnpm exec oxlint --type-aware .
 
-type-check: ## Run type checker (mypy)
-	@echo "Running type checks..."
-	@$(RUN_CMD) mypy app/
+lint: lint-rust lint-ui ## Run all linters
 
-check-all: lint type-check ## Run all quality checks
-	@echo "Running all quality checks..."
+typecheck: ## svelte-check (TypeScript 7) + tsc
+	pnpm typecheck
 
-fix-all: lint-fix format ## Fix all auto-fixable issues
-	@echo "Fixing all auto-fixable issues..."
+test: ## Run all Rust tests (includes the 300-line file limit)
+	$(CARGO) test --workspace
 
-# =============================================================================
-# DOCKER
-# =============================================================================
-docker-build: ## Build Docker image
-	@echo "Building Docker image..."
-	docker compose -f $(COMPOSE_FILE) build
+# The Rust desktop shell embeds the built UI, so the UI is built before cargo runs.
+check: format-check lint-ui typecheck ## Everything CI runs: format, lint, types, tests
+	$(PNPM) build
+	$(CARGO) lint
+	$(CARGO) test --workspace
 
-docker-down: ## Stop Docker services
-	@echo "Stopping Docker services..."
-	docker compose -f $(COMPOSE_FILE) down
+# ---- Versions and releases ---------------------------------------------------
 
-docker-rebuild: ## Rebuild Docker image without cache
-	@echo "Rebuilding Docker image (no cache)..."
-	docker compose -f $(COMPOSE_FILE) build --no-cache
+version: ## Write a new version into every file that carries it (no git): make version v=0.2.0
+	@v=$(v) scripts/bump-version.sh version
 
-docker-ps: ## Show Docker containers
-	@echo "Docker containers:"
-	docker compose -f $(COMPOSE_FILE) ps
+release: ## Bump, commit and push a release: make release v=0.2.0 (run by you, never automatic)
+	@v=$(v) scripts/bump-version.sh release
 
-# =============================================================================
-# SERVER (Primary Workflow)
-# =============================================================================
-server: ## Start the API server (recommended)
-	@echo "🚀 Starting FastAPI server..."
-	@echo "📖 Swagger UI: http://localhost:8000/docs"
-	@echo "🎙️  Voice-to-Text API is ready!"
-	docker compose -f $(COMPOSE_FILE) up
+# ---- Housekeeping ------------------------------------------------------------
 
-stop: ## Stop the running server
-	@echo "Stopping server..."
-	docker compose -f $(COMPOSE_FILE) down
+mockups: ## Re-render the design mockups to PNG (needs Google Chrome)
+	docs/design/render.sh
 
-restart: ## Restart the server
-	@echo "Restarting server..."
-	docker compose -f $(COMPOSE_FILE) down
-	docker compose -f $(COMPOSE_FILE) up
+screenshots: ## Re-render the README screenshots from the real UI with sample data (needs Google Chrome)
+	$(PNPM) build
+	node scripts/screenshots.mjs
 
-logs: ## Show server logs
-	docker compose -f $(COMPOSE_FILE) logs -f
+notices: ## Regenerate THIRD_PARTY_NOTICES.md from the crates and the model catalog
+	node scripts/notices.mjs
 
-docs: ## Open API documentation in browser
-	@echo "📖 Opening Swagger UI..."
-	@echo "API Documentation: http://localhost:8000/docs"
-	@echo "Alternative docs: http://localhost:8000/redoc"
-	@xdg-open http://localhost:8000/docs 2>/dev/null || echo "Please open http://localhost:8000/docs in your browser"
-
-status: ## Check server status
-	@echo "🔍 Checking server status..."
-	docker compose -f $(COMPOSE_FILE) ps
-
-# =============================================================================
-# UTILITIES
-# =============================================================================
-clean: ## Clean up generated files
-	@echo "Cleaning up generated files..."
-	find . -type d \( -name "__pycache__" -o -name ".pytest_cache" -o -name ".ruff_cache" -o -name ".mypy_cache" \) -exec rm -rf {} + 2>/dev/null || true
-	find . -type f \( -name "*.pyc" -o -name "*.pyo" -o -name "*.pyd" -o -name ".coverage" \) -delete 2>/dev/null || true
-	rm -rf build/ dist/ *.egg-info/ htmlcov/ logs/ .venv/ .uv/ uv.lock media/transcripts/* 2>/dev/null || true
-	@echo "✓ Cleanup complete"
-
-clean-transcripts: ## Clean transcripts folder only
-	@echo "Cleaning transcripts..."
-	rm -rf media/transcripts/*
-	@echo "✓ Transcripts cleaned"
-
-shell: ## Open Python shell with app context
-	@echo "Loading Python shell..."
-	@uv run python -i -c "from app import transcribe; print('Voice-to-Text loaded!')"
-
-update: ## Update dependencies
-	@echo "Updating dependencies..."
-	@uv sync --upgrade
-
-freeze: ## Update lock file
-	@echo "Updating lock file..."
-	@uv lock
-
-list: ## List installed dependencies
-	@uv pip list
-
-add: ## Add a new package (use PKG=name)
-	@echo "Adding package: $(PKG)..."
-	@uv add $(PKG)
-
-add-dev: ## Add a new dev package (use PKG=name)
-	@echo "Adding dev package: $(PKG)..."
-	@uv add --dev $(PKG)
-
-remove: ## Remove a package (use PKG=name)
-	@echo "Removing package: $(PKG)..."
-	@uv remove $(PKG)
-
-# =============================================================================
-# CLI COMMANDS
-# =============================================================================
-transcribe: ## Transcribe audio file (use FILE=path/to/audio.mp3)
-	@echo "🎙️  Transcribing audio file..."
-	@if [ -z "$(FILE)" ]; then \
-		echo "Error: Please specify FILE=path/to/audio.mp3"; \
-		exit 1; \
-	fi
-	@$(RUN_CMD) python -m app.cli.main $(FILE) --model $(MODEL) --translate=$(TRANSLATE) --diarize=$(DIARIZE)
-
-transcribe-tiny: ## Transcribe with tiny model (use FILE=path/to/audio.mp3)
-	@$(MAKE) transcribe FILE=$(FILE) MODEL=tiny
-
-transcribe-translate: ## Transcribe with translation (use FILE=path/to/audio.mp3)
-	@$(MAKE) transcribe FILE=$(FILE) TRANSLATE=true
-
-transcribe-diarize: ## Transcribe with speaker diarization (use FILE=path/to/audio.mp3)
-	@$(MAKE) transcribe FILE=$(FILE) DIARIZE=true
-
-transcribe-all: ## Transcribe with all features (use FILE=path/to/audio.mp3)
-	@$(MAKE) transcribe FILE=$(FILE) MODEL=$(MODEL) TRANSLATE=true DIARIZE=true
-
-list-audio: ## List available audio files in media/audio/
-	@echo "📁 Audio files in media/audio/:"
-	@ls -lh media/audio/ 2>/dev/null || echo "No audio directory found"
-
-list-transcripts: ## List transcript files in media/transcripts/
-	@echo "📁 Transcript files in media/transcripts/:"
-	@ls -lh media/transcripts/ 2>/dev/null || echo "No transcripts directory found"
-
-cli-info: ## Show CLI configuration and status
-	@echo "📊 CLI Configuration:"
-	@echo "====================="
-	@$(RUN_CMD) python -c "from app.core.config import settings; print(f'Audio Dir: {settings.audio_dir}'); print(f'Uploads Dir: {settings.uploads_dir}'); print(f'Transcript Dir: {settings.transcript_dir}'); print(f'Model Cache: {settings.model_cache_dir}')"
-	@echo ""
-	@echo "📁 Directory Status:"
-	@echo "====================="
-	@for dir in media/audio media/uploads media/transcripts model-cache; do \
-		if [ -d "$$dir" ]; then \
-			count=$$(ls -1 "$$dir" 2>/dev/null | wc -l); \
-			echo "✓ $$dir ($$count files)"; \
-		else \
-			echo "✗ $$dir (missing)"; \
-		fi; \
-	done
-
-cli-dirs: ## Ensure all CLI directories exist
-	@echo "📁 Creating CLI directories..."
-	@mkdir -p media/audio media/uploads media/transcripts model-cache
-	@echo "✓ All directories created"
-
-# Default values for CLI commands
-MODEL := base
-TRANSLATE := false
-DIARIZE := false
-FILE :=
-
-# =============================================================================
-# CI/CD
-# =============================================================================
-security: ## Run security scan with bandit
-	@echo "Running security scan..."
-	@$(RUN_CMD) bandit -r app/ -f screen -v
-	@echo "✓ Security scan complete"
-
-ci: pre-commit-run security build ## Run CI pipeline checks
-	@echo "Running CI pipeline..."
-
-release-publish: ## Publish release (semantic-release - used by CI)
-	@echo "Publishing release..."
-	@$(RUN_CMD) semantic-release version --vcs-release
-
-release-dry-run: ## Test release without actual publishing
-	@echo "Testing release..."
-	@$(RUN_CMD) semantic-release version --no-commit
-
-# =============================================================================
-# INFO
-# =============================================================================
-info: ## Show project information
-	@echo "🎙️  Voice-to-Text API"
-	@echo "Version: $$(grep __version__ app/__init__.py | cut -d'"' -f2)"
-	@echo "Python: $$(python3 --version)"
-	@echo "Environment: $${ENVIRONMENT:-development}"
-	@echo ""
-	@echo "Package Manager: UV"
-	@echo "  Virtual Env: .venv"
-	@echo ""
-	@echo "Quick Start:"
-	@echo "  ./setup.sh              - Complete setup (recommended)"
-	@echo "  make install-deps       - Install FFmpeg and Python dependencies"
-	@echo "  make setup              - Quick setup (Python only)"
-	@echo "  make server             - Start API server"
-	@echo "  make dev                - Development mode"
-	@echo ""
-	@echo "📚 Documentation:"
-	@echo "  make docs               - Open documentation hub"
-	@echo "  /docs-hub              - Choose documentation viewer"
-	@echo "  /rapidoc              - RapiDoc (recommended)"
-	@echo "  /docs                 - Swagger UI"
-	@echo "  /redoc                - ReDoc"
-	@echo "  make docs               - Open API documentation"
+clean: ## Remove build output (keeps dependencies)
+	$(CARGO) clean
+	rm -rf desktop/dist
