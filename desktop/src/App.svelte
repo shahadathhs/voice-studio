@@ -13,6 +13,7 @@
   import { settings } from "./lib/settings.svelte";
   import { speech } from "./lib/speech.svelte";
   import RecordPage from "./pages/RecordPage.svelte";
+  import VoicesPage from "./pages/VoicesPage.svelte";
   import OnboardingPage from "./pages/OnboardingPage.svelte";
   import LibraryPage from "./pages/LibraryPage.svelte";
   import ModelsPage from "./pages/ModelsPage.svelte";
@@ -43,6 +44,8 @@
           <TranscribePage />
         {:else if nav.current === "record"}
           <RecordPage />
+        {:else if nav.current === "voices"}
+          <VoicesPage />
         {:else if nav.current === "speak"}
           <SpeakPage />
         {:else if nav.current === "library"}

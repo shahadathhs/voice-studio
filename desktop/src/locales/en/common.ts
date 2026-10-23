@@ -2,6 +2,7 @@
 export const common = {
   "nav.main": "Main",
   "nav.transcribe": "Transcribe",
+  "nav.voices": "Voices",
   "nav.speak": "Speak",
   "nav.library": "Library",
   "nav.models": "Models",

@@ -7,14 +7,12 @@
   import ProgressBar from "../components/ProgressBar.svelte";
   import SpeechPlayer from "../components/SpeechPlayer.svelte";
   import VoicePicker from "../components/VoicePicker.svelte";
-  import VoicesDialog from "../components/VoicesDialog.svelte";
   import { percent } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { models } from "../lib/models.svelte";
   import { nav } from "../lib/nav.svelte";
   import { speech } from "../lib/speech.svelte";
 
-  let managing = $state(false);
   const installed = $derived(models.installed.some((model) => model.kind === "tts"));
   const working = $derived(speech.status === "working");
   const translating = $derived(working && speech.progress?.total === 0);
@@ -86,7 +84,7 @@
               <span class="mono">{speech.speed.toFixed(1)}×</span>
             </span>
           </label>
-          <button class="btn" onclick={() => (managing = true)} disabled={working}>
+          <button class="btn" onclick={() => nav.go("voices")} disabled={working}>
             <Icon name="sparkle" />{t("voices.manage")}
           </button>
         </div>
@@ -125,9 +123,6 @@
     <Notice>{t("speak.privacy")}</Notice>
   {/if}
 </section>
-{#if managing}
-  <VoicesDialog onclose={() => (managing = false)} />
-{/if}
 
 <style>
   section {

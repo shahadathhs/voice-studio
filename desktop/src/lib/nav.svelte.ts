@@ -1,4 +1,5 @@
-export type PageId = "transcribe" | "record" | "speak" | "library" | "models" | "settings";
+export type PageId =
+  "transcribe" | "record" | "speak" | "voices" | "library" | "models" | "settings";
 
 class Navigation {
   current = $state<PageId>("transcribe");

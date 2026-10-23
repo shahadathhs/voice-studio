@@ -3,6 +3,7 @@ import type { common as english } from "../en/common";
 export const common: Record<keyof typeof english, string> = {
   "nav.main": "Principal",
   "nav.transcribe": "Transcribir",
+  "nav.voices": "Voces",
   "nav.speak": "Hablar",
   "nav.library": "Biblioteca",
   "nav.models": "Modelos",

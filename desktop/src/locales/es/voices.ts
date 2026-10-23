@@ -1,8 +1,11 @@
 import type { voices as english } from "../en/voices";
 
 export const voices: Record<keyof typeof english, string> = {
-  "voices.manage": "Crear o clonar una voz…",
-  "voices.manage.title": "Tus voces",
+  "voices.manage": "Gestionar voces…",
+  "voices.page.title": "Voces",
+  "voices.page.subtitle":
+    "Crea tus propias voces mezclando las integradas, o clona una desde una grabación.",
+  "voices.use": "Usar en Hablar",
   "voices.tab.blend": "Mezclar",
   "voices.tab.clone": "Clonar",
   "voices.tab.mine": "Mis voces",
