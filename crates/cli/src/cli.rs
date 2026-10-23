@@ -182,6 +182,10 @@ pub struct Speak {
     /// Output file, '-' for stdout; default speech.wav (or speech.flac)
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
+    /// Translate the text into this language first (e.g. es, zh) and speak it with a voice of
+    /// that language; needs a language model (`vtt models list --kind text`)
+    #[arg(long, value_name = "LANG")]
+    pub translate_to: Option<String>,
     /// Play the audio instead of saving it (not available yet)
     #[arg(long)]
     pub play: bool,

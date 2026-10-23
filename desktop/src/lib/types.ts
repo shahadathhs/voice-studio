@@ -117,6 +117,8 @@ export interface VoiceInfo {
   id: string;
   name: string;
   description: string;
+  /** The language code the voice speaks, e.g. `es`; empty if unknown. */
+  language: string;
 }
 
 /** Event `speech-progress`: sentences spoken so far. */
@@ -131,6 +133,8 @@ export interface SpeechFinished {
   path: string | null;
   duration_ms: number;
   message: string | null;
+  /** What was spoken, when the text was translated first. */
+  text: string | null;
 }
 
 /** Event `text-finished`, emitted once when a summary or translation ends. */

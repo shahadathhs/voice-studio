@@ -179,9 +179,9 @@ export const SAMPLE_BACKEND = {
   search_library: [],
   get_transcript: transcript,
   list_voices: [
-    { id: "af_heart", name: "Heart", description: "American, female, warm" },
-    { id: "af_bella", name: "Bella", description: "American, female, bright" },
-    { id: "am_michael", name: "Michael", description: "American, male, steady" },
-    { id: "am_fenrir", name: "Fenrir", description: "American, male, deep" },
+    { id: "af_heart", name: "Heart", description: "American, female, warm", language: "en" },
+    { id: "af_bella", name: "Bella", description: "American, female, bright", language: "en" },
+    { id: "am_michael", name: "Michael", description: "American, male, steady", language: "en" },
+    { id: "am_fenrir", name: "Fenrir", description: "American, male, deep", language: "en" },
   ],
 };

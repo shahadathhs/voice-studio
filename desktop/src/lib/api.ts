@@ -237,8 +237,13 @@ export async function listVoices(): Promise<VoiceInfo[]> {
 }
 
 /** Starts speaking in the background; follow it with `onSpeechProgress` / `onSpeechFinished`. */
-export async function startSpeech(text: string, voice: string, speed: number): Promise<void> {
-  if (insideTauri()) await invoke("start_speech", { text, voice, speed });
+export async function startSpeech(
+  text: string,
+  voice: string,
+  speed: number,
+  translate: boolean,
+): Promise<void> {
+  if (insideTauri()) await invoke("start_speech", { text, voice, speed, translate });
 }
 
 export async function cancelSpeech(): Promise<void> {

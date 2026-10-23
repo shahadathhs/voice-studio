@@ -157,17 +157,22 @@ fn load(source: &str, paths: &Paths) -> Result<Transcript> {
 }
 
 fn engine(source: &Input, paths: &Paths, out: Output) -> Result<QwenEngine> {
+    load_engine(&source.model, source.yes, paths, out)
+}
+
+/// Loads the language model `model`, offering to download it when it is missing.
+pub fn load_engine(model: &str, yes: bool, paths: &Paths, out: Output) -> Result<QwenEngine> {
     let catalog = Catalog::bundled()?;
     let entry = catalog
-        .find(&source.model)
+        .find(model)
         .filter(|entry| entry.kind == ModelKind::Text)
-        .ok_or_else(|| Error::Input(format!("not a language model: {}", source.model)))?;
+        .ok_or_else(|| Error::Input(format!("not a language model: {model}")))?;
     let store = ModelStore::new(paths);
-    models_cmd::ensure_installed(entry, &store, source.yes, out)?;
+    models_cmd::ensure_installed(entry, &store, yes, out)?;
     QwenEngine::load(&store.model_dir(entry), &entry.id)
 }
 
-fn progress(out: Output) -> impl FnMut(f32) -> Control {
+pub fn progress(out: Output) -> impl FnMut(f32) -> Control {
     let show = out.show_messages() && std::io::stderr().is_terminal();
     move |fraction| {
         if show {

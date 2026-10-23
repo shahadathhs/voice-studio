@@ -42,6 +42,8 @@ struct FinishedEvent {
     path: Option<String>,
     duration_ms: u64,
     message: Option<String>,
+    /// What was spoken, when it was translated first.
+    text: Option<String>,
 }
 
 /// What to say and how.
@@ -49,6 +51,8 @@ pub struct Request {
     pub text: String,
     pub voice: String,
     pub speed: f32,
+    /// Translate the text into the voice's language before speaking it.
+    pub translate: bool,
 }
 
 fn lock<T>(mutex: &'static Mutex<T>) -> MutexGuard<'static, T> {
@@ -133,18 +137,21 @@ fn finished(result: &Result<(PathBuf, u64)>) -> FinishedEvent {
             path: Some(path.display().to_string()),
             duration_ms: *duration_ms,
             message: None,
+            text: None,
         },
         Err(Error::Cancelled) => FinishedEvent {
             outcome: "cancelled",
             path: None,
             duration_ms: 0,
             message: None,
+            text: None,
         },
         Err(error) => FinishedEvent {
             outcome: "failed",
             path: None,
             duration_ms: 0,
             message: Some(error.to_string()),
+            text: None,
         },
     }
 }
@@ -161,18 +168,31 @@ pub fn start<R: Runtime>(app: AppHandle<R>, paths: Paths, request: Request) -> R
     }
     CANCEL.store(false, Ordering::SeqCst);
     std::thread::spawn(move || {
-        let result = synthesize(&paths, &request, &mut |done, total| {
+        let progress = |done, total| {
             let _ = app.emit(PROGRESS_EVENT, ProgressEvent { done, total });
             if CANCEL.load(Ordering::SeqCst) {
                 Control::Cancel
             } else {
                 Control::Continue
             }
-        });
-        let event = match result.as_ref().map(|(path, _)| allow(&app, path)) {
+        };
+        let translated = translate::translated(&paths, &request, &progress);
+        let result = match &translated {
+            Ok(Some(text)) => {
+                let request = Request {
+                    text: text.clone(),
+                    ..request
+                };
+                synthesize(&paths, &request, &mut |d, t| progress(d, t))
+            }
+            Ok(None) => synthesize(&paths, &request, &mut |d, t| progress(d, t)),
+            Err(error) => Err(Error::Engine(error.to_string())),
+        };
+        let mut event = match result.as_ref().map(|(path, _)| allow(&app, path)) {
             Ok(Err(error)) => finished(&Err(error)),
             _ => finished(&result),
         };
+        event.text = translated.ok().flatten();
         *lock(&LATEST) = result.ok().map(|(path, _)| path);
         BUSY.store(false, Ordering::SeqCst);
         let _ = app.emit(FINISHED_EVENT, event);
@@ -213,11 +233,13 @@ pub fn start_speech(
     text: String,
     voice: &str,
     speed: f32,
+    translate: bool,
 ) -> std::result::Result<(), CommandError> {
     let request = Request {
         text,
         voice: voice.to_string(),
         speed,
+        translate,
     };
     Ok(start(app, Paths::resolve(None), request)?)
 }
@@ -258,3 +280,4 @@ pub fn save_speech(path: &str) -> std::result::Result<(), CommandError> {
 
 #[cfg(test)]
 mod tests;
+mod translate;

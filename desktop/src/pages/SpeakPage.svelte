@@ -8,12 +8,15 @@
   import SpeechPlayer from "../components/SpeechPlayer.svelte";
   import VoiceList from "../components/VoiceList.svelte";
   import { percent } from "../lib/format";
+  import { languageName } from "../lib/languages";
   import { models } from "../lib/models.svelte";
   import { nav } from "../lib/nav.svelte";
   import { speech } from "../lib/speech.svelte";
 
   const installed = $derived(models.installed.some((model) => model.kind === "tts"));
   const working = $derived(speech.status === "working");
+  const translating = $derived(working && speech.progress?.total === 0);
+  const hasTextModel = $derived(models.installed.some((model) => model.kind === "text"));
   const done = $derived(speech.progress ? percent(speech.progress.done, speech.progress.total) : 0);
 
   // Voices appear once the voice model has finished installing.
@@ -48,7 +51,9 @@
             disabled={working}></textarea>
           <div class="stats muted">
             <span>{t("speak.count", { characters: speech.text.length, words: speech.words })}</span>
-            {#if speech.progress && working}
+            {#if translating}
+              <span>{t("speak.translating")}</span>
+            {:else if speech.progress && working}
               <span
                 >{t("speak.sentence", {
                   done: speech.progress.done,
@@ -63,6 +68,12 @@
         {/if}
         {#if speech.error}<p class="error" role="alert">{speech.error}</p>{/if}
         {#if speech.status === "ready"}<SpeechPlayer />{/if}
+        {#if speech.spoken}
+          <div class="spoken">
+            <div class="label">{t("speak.spoken")}</div>
+            <p>{speech.spoken}</p>
+          </div>
+        {/if}
       </div>
 
       <aside>
@@ -71,6 +82,13 @@
           <p class="muted">{t("speak.loadingVoices")}</p>
         {:else}
           <VoiceList />
+        {/if}
+
+        {#if hasTextModel && speech.voice}
+          <label class="check">
+            <input type="checkbox" bind:checked={speech.translate} disabled={working} />
+            {t("speak.translateFirst", { language: languageName(speech.voice.language || null) })}
+          </label>
         {/if}
 
         <h2>{t("speak.speed")}</h2>
@@ -191,6 +209,31 @@
 
   .error {
     color: var(--danger);
+    user-select: text;
+  }
+
+  .check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: var(--text2);
+  }
+
+  input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--accent);
+  }
+
+  .spoken {
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .spoken p {
+    margin-top: 4px;
+    white-space: pre-wrap;
     user-select: text;
   }
 </style>

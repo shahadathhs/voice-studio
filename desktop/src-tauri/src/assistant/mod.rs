@@ -13,6 +13,7 @@ use vtt_core::models::{Catalog, ModelEntry, ModelKind, ModelStore};
 use vtt_core::paths::Paths;
 use vtt_core::text::{
     QwenEngine, action_items, chapters, chapters_to_json, languages, summarize, translate,
+    translate_text,
 };
 use vtt_core::{Error, Result};
 
@@ -89,6 +90,42 @@ fn check(paths: &Paths, request: &Request) -> Result<ModelEntry> {
     model_entry(paths, &request.model)
 }
 
+/// The loaded engine for `entry`, loading it first if another model was loaded before.
+fn engine_for<'a>(
+    loaded: &'a mut Option<(String, QwenEngine)>,
+    paths: &Paths,
+    entry: &ModelEntry,
+) -> Result<&'a mut QwenEngine> {
+    if loaded.as_ref().is_none_or(|(id, _)| *id != entry.id) {
+        let dir = ModelStore::new(paths).model_dir(entry);
+        *loaded = Some((entry.id.clone(), QwenEngine::load(&dir, &entry.id)?));
+    }
+    loaded
+        .as_mut()
+        .map(|(_, engine)| engine)
+        .ok_or_else(|| Error::Engine("no language model loaded".into()))
+}
+
+/// Translates text for the Speak screen with the largest installed language model.
+pub fn translate_for_speech(
+    paths: &Paths,
+    text: &str,
+    code: &str,
+    on_progress: &mut dyn FnMut(f32) -> Control,
+) -> Result<String> {
+    let catalog = Catalog::bundled()?;
+    let store = ModelStore::new(paths);
+    let entry = catalog
+        .models
+        .iter()
+        .filter(|m| m.kind == ModelKind::Text && store.is_installed(m))
+        .max_by_key(|m| m.size_bytes())
+        .ok_or_else(|| Error::ModelMissing("a language model".into()))?;
+    let mut loaded = lock(&ENGINE);
+    let engine = engine_for(&mut loaded, paths, entry)?;
+    translate_text(engine, text, code, on_progress)
+}
+
 fn work(
     paths: &Paths,
     entry: &ModelEntry,
@@ -98,13 +135,7 @@ fn work(
     let mut library = Library::open(paths)?;
     let (item, transcript) = library.get(request.item_id)?;
     let mut loaded = lock(&ENGINE);
-    if loaded.as_ref().is_none_or(|(id, _)| *id != entry.id) {
-        let dir = ModelStore::new(paths).model_dir(entry);
-        *loaded = Some((entry.id.clone(), QwenEngine::load(&dir, &entry.id)?));
-    }
-    let (_, engine) = loaded
-        .as_mut()
-        .ok_or_else(|| Error::Engine("no language model loaded".into()))?;
+    let engine = engine_for(&mut loaded, paths, entry)?;
     let language = request.language.as_deref();
     let kind = match request.task {
         Task::Summary => NoteKind::Summary,

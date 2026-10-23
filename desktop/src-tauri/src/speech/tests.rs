@@ -16,6 +16,7 @@ fn request(text: &str) -> Request {
         text: text.into(),
         voice: "af_heart".into(),
         speed: 1.0,
+        translate: false,
     }
 }
 

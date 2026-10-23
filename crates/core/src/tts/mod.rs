@@ -2,6 +2,7 @@
 //! Pronunciation comes from a dictionary and a few rules, in pure Rust, so the app needs no
 //! GPL speech-synthesis tools.
 
+mod chinese;
 mod digits;
 mod flow;
 mod french;
@@ -21,6 +22,7 @@ mod tokens;
 mod vocab;
 mod voices;
 
+pub use chinese::{Chinese, Dictionary as ChineseDictionary};
 pub use french::French;
 pub use hindi::Hindi;
 pub use italian::Italian;

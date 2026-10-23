@@ -12,9 +12,7 @@ use ort::session::Session;
 use ort::value::Tensor;
 
 use super::language::Language;
-use super::lexicon::Lexicon;
-use super::phonemes::Phonemizer;
-use super::pronounce::Pronouncer;
+use super::pronounce::{GOLD_FILE, Pronouncer, SILVER_FILE};
 use super::sentences::{self, Piece};
 use super::vocab::Vocab;
 use crate::engines::{AudioBuffer, Control, TtsEngine, TtsOptions};
@@ -23,11 +21,6 @@ use crate::{Error, Result};
 /// File names inside the model's folder; `catalog/models.json` lists the same names.
 pub const MODEL_FILE: &str = "model_quantized.onnx";
 pub const TOKENIZER_FILE: &str = "tokenizer.json";
-pub const GOLD_FILE: &str = "us_gold.json";
-pub const SILVER_FILE: &str = "us_silver.json";
-/// The British English dictionaries; voices of other languages need no dictionary file.
-pub const BRITISH_GOLD_FILE: &str = "gb_gold.json";
-pub const BRITISH_SILVER_FILE: &str = "gb_silver.json";
 /// Extension of a voice file, named after the voice (`af_heart.bin`).
 const VOICE_EXTENSION: &str = "bin";
 
@@ -65,24 +58,11 @@ impl KokoroEngine {
                 return Err(Error::ModelMissing(model_id.to_string()));
             }
         }
-        let read = |name: &str| std::fs::read_to_string(dir.join(name));
-        let dictionary = |gold: &str, silver: &str| -> Result<Phonemizer> {
-            Ok(Phonemizer::new(Lexicon::from_json(
-                &read(gold)?,
-                &read(silver)?,
-            )?))
-        };
-        let has = |name: &str| dir.join(name).is_file();
-        let british = if has(BRITISH_GOLD_FILE) && has(BRITISH_SILVER_FILE) {
-            Some(dictionary(BRITISH_GOLD_FILE, BRITISH_SILVER_FILE)?)
-        } else {
-            None
-        };
         let session = crate::onnx::load_session(&dir.join(MODEL_FILE)).map_err(engine_error)?;
         Ok(KokoroEngine {
             session,
-            vocab: Vocab::from_tokenizer_json(&read(TOKENIZER_FILE)?)?,
-            pronouncer: Pronouncer::new(dictionary(GOLD_FILE, SILVER_FILE)?, british),
+            vocab: Vocab::from_tokenizer_json(&std::fs::read_to_string(dir.join(TOKENIZER_FILE))?)?,
+            pronouncer: Pronouncer::load(dir)?,
             dir: dir.to_path_buf(),
             voices: HashMap::new(),
         })

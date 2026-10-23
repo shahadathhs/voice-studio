@@ -15,7 +15,7 @@ Voice Studio is built from the software and models below. This file is generated
 | Whisper large-v3 turbo (compact)                        | MIT             |
 | Whisper large-v3                                        | MIT             |
 | Speaker identification (pyannote + WeSpeaker ResNet34)  | Apache-2.0, MIT |
-| Kokoro 82M (English voices)                             | Apache-2.0      |
+| Kokoro 82M (voices)                                     | Apache-2.0      |
 | Qwen 2.5 1.5B (summaries and translation)               | Apache-2.0      |
 | Qwen 2.5 7B (summaries and translation, better quality) | Apache-2.0      |
 

@@ -26,8 +26,39 @@ fn env_path(name: &str) -> PathBuf {
 fn letters(text: &str) -> Vec<char> {
     text.to_lowercase()
         .chars()
+        .map(simplified)
         .filter(|c| c.is_alphanumeric())
         .collect()
+}
+
+/// Whisper sometimes writes Chinese in traditional characters; these are the ones that matter
+/// for the test sentences.
+fn simplified(c: char) -> char {
+    const PAIRS: [(char, char); 22] = [
+        ('氣', '气'),
+        ('歡', '欢'),
+        ('學', '学'),
+        ('習', '习'),
+        ('這', '这'),
+        ('書', '书'),
+        ('讀', '读'),
+        ('們', '们'),
+        ('個', '个'),
+        ('點', '点'),
+        ('錢', '钱'),
+        ('銀', '银'),
+        ('開', '开'),
+        ('週', '周'),
+        ('塊', '块'),
+        ('請', '请'),
+        ('問', '问'),
+        ('車', '车'),
+        ('麼', '么'),
+        ('電', '电'),
+        ('愛', '爱'),
+        ('門', '门'),
+    ];
+    PAIRS.iter().find(|(t, _)| *t == c).map_or(c, |(_, s)| *s)
 }
 
 /// Share of the longer text that differs (edit distance over length).

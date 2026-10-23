@@ -49,14 +49,16 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    the transcript (`vtt summarize --chapters --actions`, the app's dialog). Key points of a summary do not link to
    timestamps: a small model cannot cite lines reliably, so only chapters do. Still to do: a native speaker's judgement
    of Chinese and Bengali (exit criterion) and a decision on a stronger Bengali model.
-7. **Speech in more languages.** Translate, then speak. Pronunciation written in Rust per language (no espeak-ng:
-   GPL), in this order: Spanish, Italian, Portuguese, French, Chinese (pinyin dictionary), Hindi, Japanese. Kokoro
-   v1.0 reportedly has voices for these; verify against the official release first. Each language ships only after
-   a native speaker has listened to a fixed test set. **Bengali is a research gate, not a build task:** find a
-   Bengali voice that is permissively licensed (candidates: Indic Parler-TTS, AI4Bharat Indic-TTS, Thiva-indic;
-   licences conflict between sources, read the licence files) and exportable to ONNX; Meta MMS is
-   non-commercial and excluded. If none qualifies, Bengali stays text-only (translation and summaries) and we say so.
-   `vtt speak --lang`, `--translate-to`, language-aware voice list in the app.
+7. **Speech in more languages (built for seven; Japanese and Bengali open).** Pronunciation is written in Rust per
+   language (no espeak-ng: GPL), and Kokoro's own voices are used: British English, Spanish, Italian, Brazilian
+   Portuguese, French, Hindi and Mandarin Chinese (pinyin word lists under MIT), 35 voices in all. "Translate, then
+   speak" works with `vtt speak --translate-to` and a checkbox on the Speak screen; the voice list is grouped by
+   language. Each language was checked by having Whisper listen (see [speech.md](speech.md)), **not by a native
+   speaker, which remains the exit test for each language**. Still open: Japanese (needs a kanji dictionary
+   decision), and **Bengali, a research gate, not a build task:** find a Bengali voice that is permissively licensed
+   (candidates: Indic Parler-TTS, AI4Bharat Indic-TTS, Thiva-indic; licences conflict between sources, read the
+   licence files) and exportable to ONNX; Meta MMS is non-commercial and excluded. If none qualifies, Bengali stays
+   text-only (translation and summaries) and we say so.
 8. **Custom voices and voice cloning (must have).** Two steps. First, voice presets: saved blends of the shipped
    voices, with a name and a preview. Second, cloning from a short sample: model chosen by a spike that compares
    OpenVoice v2 and Chatterbox (MIT as far as known: verify), checks ONNX export, speed and quality; a decision gate

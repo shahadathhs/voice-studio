@@ -1,6 +1,6 @@
 # Text to speech
 
-`vtt speak` and the **Speak** screen read English text aloud with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M).
+`vtt speak` and the **Speak** screen read text aloud, in eight languages, with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M).
 Everything runs on this computer.
 
 ## How it works
@@ -23,13 +23,46 @@ the `ort` crate, linked into the program. Speaker identification uses the same r
 inference engine. (An earlier version ran speaker identification on the pure-Rust `tract`, which cannot run this
 model: the length of its output depends on durations the model predicts while running.)
 
+## Languages
+
+| Language                   | Voices | How the pronunciation is made                      | Checked by Whisper              |
+| -------------------------- | ------ | -------------------------------------------------- | ------------------------------- |
+| American English           | 6      | misaki dictionaries plus spelling rules            | exact                           |
+| British English            | 8      | misaki British dictionaries                        | exact                           |
+| Spanish (Castilian sounds) | 3      | rules; stress from accents and endings             | exact                           |
+| Italian                    | 2      | rules plus a small list of respelled words         | within 0.05 to 0.20 (digits)    |
+| Brazilian Portuguese       | 3      | rules (nasals, palatalised t/d, reduced vowels)    | within 0.10                     |
+| French                     | 1      | rules plus about 90 irregular words                | within 0.15                     |
+| Hindi                      | 4      | Devanagari rules with schwa deletion               | within 0.3 (aspirates are weak) |
+| Mandarin Chinese           | 8      | pinyin word lists (MIT), tone changes, tone arrows | within 0.4 to 0.75              |
+
+Each language is written in plain Rust (`crates/core/src/tts/<language>/`): spelling to sounds, stress, and numbers
+read as words (decimal marks, thousands, "ventitré", "quatre-vingt-dix", Hindi's 0 to 99, Chinese 万/亿). **Chinese**
+uses `pinyin-data` and `phrase-pinyin-data` (both MIT, 2.2 MB, downloaded with the voices): a character has its
+most common reading, known words override it, 不 and 一 change tone, and a run of third tones rises. A model of
+what a native speaker would find natural is missing: **no native speaker has listened to any of these**. The
+check is `crates/core/tests/speech_*_e2e.rs`: each sentence is spoken, Whisper listens in that language, and the
+share of differing letters must stay under a limit; it proves a recogniser understands the speech, not that it
+sounds good. Known weaknesses are in each language's notes in the code: Italian has no open/closed vowels,
+French has no liaison, Portuguese guesses open and closed e/o, Hindi cannot show voiced aspirates (Kokoro has no
+sign for them), Chinese has no word segmentation beyond the lists.
+
+**Japanese is not included.** Kokoro has Japanese voices, but reading kanji needs a large dictionary and a
+morphological analyser. Kana alone would make real Japanese text unusable, so it waits for a dictionary decision.
+**Bengali has no voice**: Kokoro has none and no permissively licensed alternative has been confirmed (see the
+roadmap).
+
+Text can be translated into the voice's language first with the language model (`vtt speak --translate-to es`, or the
+checkbox on the Speak screen), so English text can be spoken in Spanish; quality follows the translation quality
+(see [cli.md](cli.md)).
+
 ## The files
 
-The catalog entry `kokoro-82m` (about 102 MB, all pinned to a commit with a SHA-256) installs the model
+The catalog entry `kokoro-82m` (about 120 MB, all pinned to a commit with a SHA-256) installs the model
 (`model_quantized.onnx` from [onnx-community/Kokoro-82M-v1.0-ONNX](https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX),
 8-bit quantized: a quarter of the size and faster, still clearly understood), its `tokenizer.json`, the two misaki
-dictionaries, and six voices: `af_heart`, `af_bella`, `af_nicole`, `af_sarah` (American women) and `am_adam`,
-`am_michael` (American men). More voices are one file each (about 0.5 MB) and can be added to the catalog.
+dictionaries (American and British), the Chinese word lists, and 35 voices (one 0.5 MB file each; the voice
+names start with a letter for the language and one for the gender, `ef_dora` is a Spanish woman).
 
 **Licences.** The Kokoro model and the ONNX export are Apache-2.0, as are the misaki dictionaries; ONNX Runtime and
 `ort` are MIT and Apache-2.0. The voices are part of the Kokoro release under the same licence. The licence of the
@@ -64,7 +97,8 @@ the English case now; other languages are the reason to revisit this.
 
 ## Limits
 
-- English only, American pronunciation (the British voices need the British dictionaries and are not shipped).
+- English, Spanish, French, Italian, Portuguese, Hindi and Chinese only; no Japanese or Bengali (see above).
+- One voice speaks one language: a sentence in another language is read with that language's rules and sounds wrong.
 - No part-of-speech tagging, so words spelled alike but said differently ("read", "live") use their default sound.
 - Names and rare words are guessed from their spelling.
 - No SSML, no emphasis control, no pitch.

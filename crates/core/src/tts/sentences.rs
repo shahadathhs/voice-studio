@@ -15,6 +15,10 @@ pub struct Piece {
 
 fn ends_sentence(text: &str, at: usize, next: Option<char>) -> bool {
     let c = text[at..].chars().next().unwrap_or(' ');
+    // Chinese, Japanese and Hindi marks end a sentence even without a space after them.
+    if matches!(c, '。' | '！' | '？' | '।' | '॥') {
+        return true;
+    }
     if !matches!(c, '.' | '!' | '?' | '…')
         || next.is_some_and(|n| !n.is_whitespace() && !"\"”')".contains(n))
     {
@@ -86,7 +90,7 @@ pub fn halve(text: &str) -> Option<(String, String)> {
             .map(|(at, c)| at + c.len_utf8())
             .min_by_key(|at| at.abs_diff(middle))
     };
-    let at = candidates(&[',', ';', ':']).or_else(|| candidates(&[' ']))?;
+    let at = candidates(&[',', ';', ':', '，', '；', '：', '、']).or_else(|| candidates(&[' ']))?;
     let (head, tail) = text.split_at(at);
     let (head, tail) = (head.trim(), tail.trim());
     (!head.is_empty() && !tail.is_empty()).then(|| (head.to_string(), tail.to_string()))
@@ -137,6 +141,12 @@ mod tests {
             found.iter().map(|p| p.paragraph_end).collect::<Vec<_>>(),
             [false, true, true]
         );
+    }
+
+    #[test]
+    fn full_width_and_hindi_marks_end_sentences_without_a_space() {
+        assert_eq!(texts("你好。今天很好！"), ["你好。", "今天很好！"]);
+        assert_eq!(texts("यह घर है। वह स्कूल है।"), ["यह घर है।", "वह स्कूल है।"]);
     }
 
     #[test]

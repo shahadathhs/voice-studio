@@ -82,8 +82,10 @@ echo "Build finished" | vtt speak -o done.wav
 vtt speak --list-voices
 ```
 
-Speaks English text with Kokoro-82M (model id `kokoro-82m`, about 100 MB, six American voices; `vtt models pull
-kokoro-82m`, or accept the offer to download it). Everything runs on the CPU; a sentence takes well under a second
+Speaks text with Kokoro-82M (model id `kokoro-82m`, about 120 MB, 35 voices in English, Spanish, French, Italian,
+Brazilian Portuguese, Hindi and Chinese; `vtt models pull kokoro-82m`, or accept the offer to download it). The voice
+decides the language (`vtt speak --list-voices`). `--translate-to LANG` first translates the text with the language
+model and uses that language's default voice unless `--voice` is given. Everything runs on the CPU; a sentence takes well under a second
 once the model is loaded.
 
 Options: `-f/--file <path>` (read the text from a file), `--voice <name>` (default `af_heart`; the part after the

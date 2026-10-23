@@ -7,14 +7,16 @@ use std::time::Instant;
 use vtt_core::audio::AudioFormat;
 use vtt_core::engines::{Control, TtsOptions};
 use vtt_core::jobs::Event;
-use vtt_core::models::{Catalog, ModelStore, SPEECH_MODEL_ID};
+use vtt_core::models::{Catalog, ModelStore, SPEECH_MODEL_ID, TEXT_MODEL_ID};
 use vtt_core::paths::Paths;
-use vtt_core::tts::{KokoroEngine, MAX_SPEED, MIN_SPEED, describe};
+use vtt_core::text::translate_text;
+use vtt_core::tts::{KokoroEngine, Language, MAX_SPEED, MIN_SPEED, describe};
 use vtt_core::{Error, Result};
 
 use crate::cli::Speak;
 use crate::models_cmd;
 use crate::output::Output;
+use crate::text_cmd;
 
 const DEFAULT_VOICE: &str = "af_heart";
 const DEFAULT_OUTPUT_NAME: &str = "speech";
@@ -32,10 +34,10 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
             "speed must be between {MIN_SPEED} and {MAX_SPEED}"
         )));
     }
-    let text = if args.list_voices {
-        String::new()
+    let (text, language) = if args.list_voices {
+        (String::new(), None)
     } else {
-        read_text(args)?
+        translated(read_text(args)?, args, paths, out)?
     };
 
     let catalog = Catalog::bundled()?;
@@ -53,7 +55,11 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
         }
         return Ok(());
     }
-    let voice = resolve_voice(&voices, args.voice.as_deref())?;
+    let wanted = args
+        .voice
+        .as_deref()
+        .or(language.map(Language::default_voice));
+    let voice = resolve_voice(&voices, wanted)?;
     let mut engine = KokoroEngine::load(&dir, &entry.id)?;
     speak(
         &mut engine,
@@ -65,6 +71,25 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
         args,
         out,
     )
+}
+
+/// The text translated into `--translate-to`, if asked, with the language it is now in.
+fn translated(
+    text: String,
+    args: &Speak,
+    paths: &Paths,
+    out: Output,
+) -> Result<(String, Option<Language>)> {
+    let Some(code) = args.translate_to.as_deref() else {
+        return Ok((text, None));
+    };
+    let language = Language::of_code(code)
+        .filter(|l| l.is_supported())
+        .ok_or_else(|| Error::Input(format!("cannot speak {code}; see vtt speak --list-voices")))?;
+    let mut engine = text_cmd::load_engine(TEXT_MODEL_ID, args.yes, paths, out)?;
+    let mut go = text_cmd::progress(out);
+    let text = translate_text(&mut engine, &text, language.code(), &mut go)?;
+    Ok((text, Some(language)))
 }
 
 /// Speaks `text` and writes the result.

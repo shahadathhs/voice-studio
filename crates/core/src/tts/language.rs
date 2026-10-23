@@ -35,6 +35,28 @@ impl Language {
             .find(|l| l.voice_letter() == letter)
     }
 
+    /// The language for a code such as `es` or `zh-CN`; `en` means American English.
+    pub fn of_code(code: &str) -> Option<Language> {
+        let main = code.split(['-', '_']).next().unwrap_or(code);
+        Language::ALL
+            .into_iter()
+            .find(|l| l.code().eq_ignore_ascii_case(main))
+    }
+
+    /// The voice used when someone asks for the language without choosing one.
+    pub fn default_voice(self) -> &'static str {
+        match self {
+            Language::AmericanEnglish => "af_heart",
+            Language::BritishEnglish => "bf_emma",
+            Language::Spanish => "ef_dora",
+            Language::French => "ff_siwis",
+            Language::Hindi => "hf_alpha",
+            Language::Italian => "if_sara",
+            Language::Portuguese => "pf_dora",
+            Language::Chinese => "zf_xiaoxiao",
+        }
+    }
+
     fn voice_letter(self) -> char {
         match self {
             Language::AmericanEnglish => 'a',
@@ -77,10 +99,7 @@ impl Language {
 
     /// Whether this program can turn text of the language into phonemes.
     pub fn is_supported(self) -> bool {
-        matches!(
-            self,
-            Language::AmericanEnglish | Language::BritishEnglish | Language::Spanish
-        )
+        Language::ALL.contains(&self)
     }
 }
 
@@ -98,6 +117,16 @@ mod tests {
         assert_eq!(Language::of_voice("zf_xiaoxiao"), Some(Language::Chinese));
         assert_eq!(Language::of_voice("jf_alpha"), None);
         assert_eq!(Language::of_voice(""), None);
+    }
+
+    #[test]
+    fn a_language_code_finds_the_language_and_its_default_voice() {
+        assert_eq!(Language::of_code("zh-CN"), Some(Language::Chinese));
+        assert_eq!(Language::of_code("en"), Some(Language::AmericanEnglish));
+        assert_eq!(Language::of_code("bn"), None);
+        for language in Language::ALL {
+            assert_eq!(Language::of_voice(language.default_voice()), Some(language));
+        }
     }
 
     #[test]

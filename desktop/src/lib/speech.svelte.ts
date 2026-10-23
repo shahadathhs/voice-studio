@@ -23,6 +23,10 @@ const messageOf = (error: unknown): string =>
 class SpeechStore {
   text = $state("");
   speed = $state(1);
+  /** Translate the text into the voice's language before speaking it. */
+  translate = $state(false);
+  /** What was spoken, when it was translated first. */
+  spoken = $state<string | null>(null);
   voices = $state<VoiceInfo[]>([]);
   status = $state<"idle" | "working" | "ready">("idle");
   progress = $state<SpeechProgress | null>(null);
@@ -71,10 +75,11 @@ class SpeechStore {
     if (!this.voice || this.status === "working") return;
     this.error = null;
     this.#discardAudio();
+    this.spoken = null;
     this.status = "working";
     this.progress = null;
     try {
-      await startSpeech(this.text, this.voice.id, this.speed);
+      await startSpeech(this.text, this.voice.id, this.speed, this.translate);
     } catch (failure) {
       this.status = "idle";
       this.error = messageOf(failure);
@@ -119,6 +124,7 @@ class SpeechStore {
 
   #finished(event: SpeechFinished): void {
     if (event.outcome === "failed") this.error = event.message ?? t("speak.failed");
+    this.spoken = event.text;
     if (event.outcome !== "done" || !event.path) {
       this.status = "idle";
       return;

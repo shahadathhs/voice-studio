@@ -96,6 +96,35 @@ pub fn translate(
     })
 }
 
+/// Plain text translated line by line into `language`; blank lines stay where they are.
+pub fn translate_text(
+    engine: &mut dyn TextEngine,
+    text: &str,
+    language: &str,
+    on_progress: &mut dyn FnMut(f32) -> Control,
+) -> Result<String> {
+    let instruction = translation_instruction(language)?;
+    let lines: Vec<&str> = text.lines().collect();
+    let mut steps = Steps {
+        done: 0,
+        total: lines.len(),
+        on_progress,
+    };
+    let mut out = Vec::with_capacity(lines.len());
+    for line in lines {
+        let translated = if line.trim().is_empty() {
+            String::new()
+        } else {
+            let budget =
+                (line.chars().count() * 3).clamp(MIN_TRANSLATION_TOKENS, MAX_TRANSLATION_TOKENS);
+            engine.generate(&instruction, line.trim(), budget, &mut never_cancel)?
+        };
+        out.push(translated);
+        steps.finish_one()?;
+    }
+    Ok(out.join("\n"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::fake::{Echo, transcript};
@@ -142,6 +171,17 @@ mod tests {
         assert_eq!(engine.calls.len(), 3, "two parts and the merge");
         assert!(engine.calls[2].0.contains("Merge them"));
         assert_eq!(reported.last(), Some(&1.0));
+    }
+
+    #[test]
+    fn plain_text_is_translated_line_by_line() {
+        let mut engine = Echo::default();
+        let out = translate_text(&mut engine, "hello you\n\nbye now", "es", &mut |_| {
+            Control::Continue
+        })
+        .unwrap();
+        assert_eq!(out, "<hello>\n\n<bye>");
+        assert!(translate_text(&mut engine, "x", "xx", &mut |_| Control::Continue).is_err());
     }
 
     #[test]

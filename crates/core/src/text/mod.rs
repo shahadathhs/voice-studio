@@ -13,4 +13,4 @@ mod tasks;
 
 pub use outline::{Chapter, action_items, chapters, chapters_from_json, chapters_to_json};
 pub use qwen::QwenEngine;
-pub use tasks::{summarize, translate};
+pub use tasks::{summarize, translate, translate_text};
