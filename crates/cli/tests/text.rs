@@ -55,3 +55,13 @@ fn the_language_models_are_listed_as_text_models() {
         .stdout(predicate::str::contains("qwen2.5-1.5b"))
         .stdout(predicate::str::contains("qwen2.5-7b"));
 }
+
+#[test]
+fn chapters_and_actions_cannot_be_asked_together() {
+    let data = tempfile::tempdir().unwrap();
+    vtt(&data)
+        .args(["summarize", "-", "--chapters", "--actions"])
+        .write_stdin(TRANSCRIPT)
+        .assert()
+        .code(2);
+}

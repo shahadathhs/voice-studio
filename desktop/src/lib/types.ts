@@ -137,14 +137,29 @@ export interface SpeechFinished {
 export interface TextFinished {
   outcome: "done" | "cancelled" | "failed";
   task: TextTask;
-  /** The summary. */
-  text: string | null;
   /** The library item a translation was stored as. */
   item_id: number | null;
   message: string | null;
 }
 
-export type TextTask = "summary" | "translation";
+export type TextTask = "summary" | "chapters" | "actions" | "translation";
+
+/** What a language model wrote about a transcript. Same fields as `Note` in vtt-core. */
+export interface Note {
+  id: number;
+  item_id: number;
+  kind: "summary" | "chapters" | "actions";
+  language: string | null;
+  model: string;
+  /** For chapters, a JSON list of `Chapter`. */
+  text: string;
+  created_at: number;
+}
+
+export interface Chapter {
+  start_ms: number;
+  title: string;
+}
 
 export type Device = "auto" | "cpu" | "gpu";
 

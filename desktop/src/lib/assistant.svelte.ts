@@ -1,15 +1,17 @@
 import { t } from "./i18n.svelte";
 import {
   cancelTextTask,
+  deleteNote,
+  listNotes,
   onTextFinished,
   onTextProgress,
   startTextTask,
   textLanguages,
-} from "./api";
+} from "./api-text";
 import { languageName } from "./languages";
 import { library } from "./library.svelte";
 import { models } from "./models.svelte";
-import type { TextFinished, TextTask } from "./types";
+import type { Note, TextFinished, TextTask } from "./types";
 
 const messageOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
@@ -22,11 +24,13 @@ class Assistant {
   status = $state<"idle" | "working">("idle");
   task = $state<TextTask | null>(null);
   fraction = $state(0);
-  summary = $state<string | null>(null);
+  /** What was written about the open transcript, newest first. */
+  notes = $state<Note[]>([]);
   /** The library item of the last finished translation. */
   translated = $state<number | null>(null);
   error = $state<string | null>(null);
   #started = false;
+  #itemId: number | null = null;
   #chosenModel = $state<string | null>(null);
   /** The installed language models, largest first. */
   readonly installed = $derived(
@@ -60,9 +64,9 @@ class Assistant {
   async run(itemId: number, task: TextTask): Promise<void> {
     if (!this.model || this.status === "working") return;
     this.error = null;
-    this.summary = null;
     this.translated = null;
     this.fraction = 0;
+    this.#itemId = itemId;
     this.task = task;
     this.status = "working";
     try {
@@ -77,21 +81,28 @@ class Assistant {
     await cancelTextTask();
   }
 
-  /** Forget the last result, e.g. when another transcript is opened. */
-  clear(): void {
-    if (this.status === "working") return;
-    this.summary = null;
-    this.translated = null;
-    this.error = null;
+  /** Shows the notes of a transcript; forgets the last result of another one. */
+  async open(itemId: number): Promise<void> {
+    if (this.status !== "working" && this.#itemId !== itemId) {
+      this.translated = null;
+      this.error = null;
+    }
+    this.#itemId = itemId;
+    this.notes = await listNotes(itemId);
+  }
+
+  async remove(note: Note): Promise<void> {
+    await deleteNote(note.id);
+    this.notes = this.notes.filter((n) => n.id !== note.id);
   }
 
   #finished(event: TextFinished): void {
     this.status = "idle";
     if (event.outcome === "failed") this.error = event.message ?? t("assist.failed");
     if (event.outcome !== "done") return;
-    this.summary = event.text;
     this.translated = event.item_id;
     if (event.item_id !== null) void library.load();
+    if (this.#itemId !== null) void listNotes(this.#itemId).then((notes) => (this.notes = notes));
   }
 }
 

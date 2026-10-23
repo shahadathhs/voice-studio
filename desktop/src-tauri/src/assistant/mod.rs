@@ -8,10 +8,12 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, Runtime};
 use vtt_core::engines::Control;
-use vtt_core::library::{Library, NewItem};
+use vtt_core::library::{Library, NewItem, NewNote, Note, NoteKind};
 use vtt_core::models::{Catalog, ModelEntry, ModelKind, ModelStore};
 use vtt_core::paths::Paths;
-use vtt_core::text::{QwenEngine, languages, summarize, translate};
+use vtt_core::text::{
+    QwenEngine, action_items, chapters, chapters_to_json, languages, summarize, translate,
+};
 use vtt_core::{Error, Result};
 
 use crate::commands::CommandError;
@@ -28,6 +30,8 @@ static ENGINE: Mutex<Option<(String, QwenEngine)>> = Mutex::new(None);
 #[serde(rename_all = "snake_case")]
 pub enum Task {
     Summary,
+    Chapters,
+    Actions,
     Translation,
 }
 
@@ -46,15 +50,12 @@ pub struct Request {
 struct FinishedEvent {
     outcome: &'static str,
     task: Task,
-    /// The summary.
-    text: Option<String>,
     /// The library item a translation was stored as.
     item_id: Option<i64>,
     message: Option<String>,
 }
 
 struct Done {
-    text: Option<String>,
     item_id: Option<i64>,
 }
 
@@ -105,28 +106,55 @@ fn work(
         .as_mut()
         .ok_or_else(|| Error::Engine("no language model loaded".into()))?;
     let language = request.language.as_deref();
-    if request.task == Task::Summary {
-        let text = summarize(engine, &transcript, language, on_progress)?;
-        return Ok(Done {
-            text: Some(text),
-            item_id: None,
-        });
-    }
-    let code = language.ok_or_else(|| Error::Input("choose a language".into()))?;
-    let translated = translate(engine, &transcript, code, on_progress)?;
+    let kind = match request.task {
+        Task::Summary => NoteKind::Summary,
+        Task::Chapters => NoteKind::Chapters,
+        Task::Actions => NoteKind::Actions,
+        Task::Translation => return translated(&mut library, &item, engine, request, on_progress),
+    };
+    let text = match kind {
+        NoteKind::Summary => summarize(engine, &transcript, language, on_progress)?,
+        NoteKind::Actions => action_items(engine, &transcript, language, on_progress)?,
+        NoteKind::Chapters => chapters_to_json(&chapters(engine, &transcript, on_progress)?)?,
+    };
+    let note = NewNote {
+        kind,
+        language: if kind == NoteKind::Chapters {
+            None
+        } else {
+            language
+        },
+        model: &entry.id,
+        text: &text,
+    };
+    library.add_note(request.item_id, &note)?;
+    Ok(Done { item_id: None })
+}
+
+/// Translates the transcript and stores it as a new library item.
+fn translated(
+    library: &mut Library,
+    item: &vtt_core::library::Item,
+    engine: &mut QwenEngine,
+    request: &Request,
+    on_progress: &mut dyn FnMut(f32) -> Control,
+) -> Result<Done> {
+    let code = request
+        .language
+        .as_deref()
+        .ok_or_else(|| Error::Input("choose a language".into()))?;
+    let (_, transcript) = library.get(request.item_id)?;
+    let result = translate(engine, &transcript, code, on_progress)?;
     let name = languages::name(code).unwrap_or(code);
     let title = format!("{} ({name})", item.title);
     let id = library.add(
-        &translated,
+        &result,
         &NewItem {
             title: &title,
             source_path: item.source_path.as_deref(),
         },
     )?;
-    Ok(Done {
-        text: None,
-        item_id: Some(id),
-    })
+    Ok(Done { item_id: Some(id) })
 }
 
 fn finished(task: Task, result: Result<Done>) -> FinishedEvent {
@@ -138,7 +166,6 @@ fn finished(task: Task, result: Result<Done>) -> FinishedEvent {
     FinishedEvent {
         outcome,
         task,
-        text: done.as_ref().and_then(|d| d.text.clone()),
         item_id: done.and_then(|d| d.item_id),
         message,
     }
@@ -185,6 +212,18 @@ pub fn start_text_task(
         model,
     };
     Ok(start(app, Paths::resolve(None), request)?)
+}
+
+/// What was written about a transcript earlier, newest first.
+#[tauri::command]
+pub fn list_notes(item_id: i64) -> std::result::Result<Vec<Note>, CommandError> {
+    Ok(Library::open(&Paths::resolve(None))?.notes(item_id)?)
+}
+
+#[tauri::command]
+pub fn delete_note(note_id: i64) -> std::result::Result<(), CommandError> {
+    Library::open(&Paths::resolve(None))?.delete_note(note_id)?;
+    Ok(())
 }
 
 /// The language codes a summary or translation can be written in.

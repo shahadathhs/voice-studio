@@ -104,6 +104,8 @@ library and its system packages on Linux, so neither is planned for now. Pronunc
 
 ```
 vtt summarize 12                       # a library item; prints an overview and key points
+vtt summarize 12 --chapters            # titles with the time each part starts
+vtt summarize 12 --actions --to es     # tasks and commitments, in Spanish
 vtt summarize talk.json --to es        # a transcript file ('-' reads standard input)
 vtt translate 12 --to zh -f srt -o talk.zh.srt
 ```
@@ -113,7 +115,8 @@ A small language model (Qwen 2.5, Apache-2.0) runs on this computer: `qwen2.5-1.
 accepts the download. `--to` takes a language code: en, es, fr, de, it, pt, nl, ru, pl, tr, ar, hi, bn, ur, zh, ja, ko,
 vi, id, th. A summary is written in the spoken language and then translated if `--to` asks for another one. A long
 transcript is cut into parts, each summarised, and the summaries merged. `translate` keeps every line's times and
-speakers and takes the same `-f`/`-o` options as `export`. With `--json`, `summarize` prints `{"summary","model"}`.
+speakers and takes the same `-f`/`-o` options as `export`. When the source is a library id the result is kept with that item (the app shows it; `--no-save` skips this).
+With `--json`, `summarize` prints `{"kind","text","model"}`.
 An unknown language, a model that is not a language model, or a missing transcript is exit 3; a missing model is 4.
 
 Quality was measured on a short meeting (see `crates/core/tests/text_real_e2e.rs`): Spanish and Chinese are readable

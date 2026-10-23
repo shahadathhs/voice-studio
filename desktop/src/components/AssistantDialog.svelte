@@ -2,26 +2,26 @@
   import { t } from "../lib/i18n.svelte";
   import { assistant } from "../lib/assistant.svelte";
   import { nav } from "../lib/nav.svelte";
+  import { player } from "../lib/player.svelte";
   import Icon from "./Icon.svelte";
+  import NoteCard from "./NoteCard.svelte";
   import ProgressBar from "./ProgressBar.svelte";
 
   let { itemId, onclose }: { itemId: number; onclose: () => void } = $props();
 
   let dialog: HTMLDialogElement | undefined = $state();
-  let copied = $state(false);
 
   const working = $derived(assistant.status === "working");
 
   $effect(() => dialog?.showModal());
   $effect(() => {
     void assistant.start();
+    void assistant.open(itemId);
   });
 
-  async function copy(): Promise<void> {
-    if (!assistant.summary) return;
-    await navigator.clipboard.writeText(assistant.summary);
-    copied = true;
-    setTimeout(() => (copied = false), 1500);
+  function seek(ms: number): void {
+    onclose();
+    player.play(itemId, "all", ms, null);
   }
 
   function openModels(): void {
@@ -75,6 +75,12 @@
           disabled={working}
           onclick={() => assistant.run(itemId, "summary")}>{t("assist.summarize")}</button
         >
+        <button class="btn" disabled={working} onclick={() => assistant.run(itemId, "chapters")}
+          >{t("assist.chapters")}</button
+        >
+        <button class="btn" disabled={working} onclick={() => assistant.run(itemId, "actions")}
+          >{t("assist.actions")}</button
+        >
         <button class="btn" disabled={working} onclick={() => assistant.run(itemId, "translation")}
           >{t("assist.translate")}</button
         >
@@ -86,15 +92,9 @@
         <ProgressBar value={assistant.fraction * 100} label={t("assist.working")} />
       {/if}
       {#if assistant.error}<p class="error" role="alert">{assistant.error}</p>{/if}
-      {#if assistant.summary}
-        <section aria-label={t("assist.summary")}>
-          <div class="label">{t("assist.summary")}</div>
-          <pre>{assistant.summary}</pre>
-          <button class="btn" onclick={copy}
-            ><Icon name="copy" />{copied ? t("transcript.copied") : t("transcript.copy")}</button
-          >
-        </section>
-      {/if}
+      {#each assistant.notes as note (note.id)}
+        <NoteCard {note} onseek={seek} ondelete={() => assistant.remove(note)} />
+      {/each}
       {#if assistant.translated !== null}
         <section aria-label={t("assist.translation")}>
           <p>{t("assist.translationSaved")}</p>
@@ -147,6 +147,10 @@
     border-radius: 6px;
   }
 
+  .actions {
+    flex-wrap: wrap;
+  }
+
   .row,
   .actions {
     display: flex;
@@ -163,20 +167,6 @@
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
-  }
-
-  pre {
-    width: 100%;
-    max-height: 260px;
-    padding: 12px;
-    overflow: auto;
-    border-radius: 8px;
-    background: var(--bg);
-    font: inherit;
-    font-size: 13px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    user-select: text;
   }
 
   .error {

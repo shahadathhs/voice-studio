@@ -42,6 +42,19 @@ const MIGRATIONS: &[&str] = &[
         INSERT INTO segment_fts(rowid, text) VALUES (new.rowid, new.text);
     END;
 ",
+    // What a language model wrote about a transcript.
+    "
+    CREATE TABLE note (
+        id         INTEGER PRIMARY KEY,
+        item_id    INTEGER NOT NULL REFERENCES item(id) ON DELETE CASCADE,
+        kind       TEXT NOT NULL,
+        language   TEXT,
+        model      TEXT NOT NULL,
+        text       TEXT NOT NULL,
+        created_at INTEGER NOT NULL
+    );
+    CREATE INDEX note_item ON note(item_id);
+",
 ];
 
 /// Brings `conn` up to the latest layout.

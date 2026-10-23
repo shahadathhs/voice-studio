@@ -11,7 +11,7 @@
 use std::path::PathBuf;
 
 use vtt_core::engines::Control;
-use vtt_core::text::{QwenEngine, summarize, translate};
+use vtt_core::text::{QwenEngine, action_items, chapters, summarize, translate};
 use vtt_core::{Segment, Transcript};
 
 fn engine() -> QwenEngine {
@@ -88,4 +88,16 @@ fn translation_keeps_the_lines() {
         assert_eq!(result.segments.len(), 4);
         assert!(result.segments.iter().all(|s| !s.text.is_empty()));
     }
+}
+
+#[test]
+#[ignore = "needs the language model"]
+fn chapters_and_action_items_are_found() {
+    let mut engine = engine();
+    let found = chapters(&mut engine, &meeting(), &mut |_| Control::Continue).unwrap();
+    println!("--- chapters\n{found:?}");
+    assert_eq!(found.len(), 1);
+    let actions = action_items(&mut engine, &meeting(), None, &mut |_| Control::Continue).unwrap();
+    println!("--- actions\n{actions}");
+    assert!(actions.contains("installer"));
 }

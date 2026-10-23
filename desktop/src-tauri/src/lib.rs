@@ -24,6 +24,8 @@ pub fn run() -> tauri::Result<()> {
         })
         .invoke_handler(tauri::generate_handler![
             assistant::cancel_text_task,
+            assistant::delete_note,
+            assistant::list_notes,
             assistant::start_text_task,
             assistant::text_languages,
             commands::app_info,

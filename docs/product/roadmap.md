@@ -44,9 +44,11 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    with `whisper-rs` (both bundle ggml; measured, it aborts). `vtt summarize`, `vtt translate --to <lang>`, and a
    Summary and translate dialog on the transcript screen (a translation is stored as a new library item). Long
    transcripts are split, summarised in parts and merged. Measured on a short meeting: Spanish and Chinese readable;
-   **Bengali is poor with the 1.5B model and still flawed with 7B**, so it is warned about in the app. Still to do:
-   chapters and action items, summaries stored with the transcript, links back to timestamps, a native speaker's
-   judgement of Chinese and Bengali (exit criterion), and a decision on a stronger Bengali model.
+   **Bengali is poor with the 1.5B model and still flawed with 7B**, so it is warned about in the app. Chapters (titles with the time each part starts, which
+   seek the player) and action items are written the same way, and summaries, chapters and action items are kept with
+   the transcript (`vtt summarize --chapters --actions`, the app's dialog). Key points of a summary do not link to
+   timestamps: a small model cannot cite lines reliably, so only chapters do. Still to do: a native speaker's judgement
+   of Chinese and Bengali (exit criterion) and a decision on a stronger Bengali model.
 7. **Speech in more languages.** Translate, then speak. Pronunciation written in Rust per language (no espeak-ng:
    GPL), in this order: Spanish, Italian, Portuguese, French, Chinese (pinyin dictionary), Hindi, Japanese. Kokoro
    v1.0 reportedly has voices for these; verify against the official release first. Each language ships only after

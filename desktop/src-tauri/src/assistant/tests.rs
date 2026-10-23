@@ -43,13 +43,7 @@ fn only_installed_language_models_can_be_used() {
 
 #[test]
 fn the_outcome_is_reported_for_the_screen() {
-    let done = finished(
-        Task::Translation,
-        Ok(Done {
-            text: None,
-            item_id: Some(7),
-        }),
-    );
+    let done = finished(Task::Translation, Ok(Done { item_id: Some(7) }));
     assert_eq!((done.outcome, done.item_id), ("done", Some(7)));
     assert_eq!(
         finished(Task::Summary, Err(Error::Cancelled)).outcome,

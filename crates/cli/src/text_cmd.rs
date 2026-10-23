@@ -6,10 +6,12 @@ use std::path::{Path, PathBuf};
 use clap::Args;
 use vtt_core::engines::Control;
 use vtt_core::export::{self, Format};
-use vtt_core::library::Library;
+use vtt_core::library::{Library, NewNote, NoteKind};
 use vtt_core::models::{Catalog, ModelKind, ModelStore, TEXT_MODEL_ID};
 use vtt_core::paths::Paths;
-use vtt_core::text::{QwenEngine, summarize, translate};
+use vtt_core::text::{
+    QwenEngine, action_items, chapters, chapters_from_json, chapters_to_json, summarize, translate,
+};
 use vtt_core::{Error, Result, Transcript};
 
 use crate::cli::OutputArgs;
@@ -39,6 +41,15 @@ pub struct Summarize {
     /// Output file; '-' or absent for stdout
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
+    /// Give titles to the parts of the recording instead, with the time each starts
+    #[arg(long, conflicts_with = "actions")]
+    pub chapters: bool,
+    /// List the tasks and commitments instead
+    #[arg(long)]
+    pub actions: bool,
+    /// Do not keep the result with the library item
+    #[arg(long)]
+    pub no_save: bool,
 }
 
 #[derive(Args, Debug)]
@@ -55,18 +66,56 @@ pub struct Translate {
 pub fn run_summarize(args: &Summarize, paths: &Paths, out: Output) -> Result<()> {
     let transcript = load(&args.source.source, paths)?;
     let mut engine = engine(&args.source, paths, out)?;
-    let summary = summarize(
-        &mut engine,
-        &transcript,
-        args.to.as_deref(),
-        &mut progress(out),
-    )?;
+    let to = args.to.as_deref();
+    let go = &mut progress(out);
+    let (kind, text) = if args.chapters {
+        let found = chapters(&mut engine, &transcript, go)?;
+        (NoteKind::Chapters, chapters_to_json(&found)?)
+    } else if args.actions {
+        (
+            NoteKind::Actions,
+            action_items(&mut engine, &transcript, to, go)?,
+        )
+    } else {
+        (
+            NoteKind::Summary,
+            summarize(&mut engine, &transcript, to, go)?,
+        )
+    };
     finish_progress(out);
+    if !args.no_save
+        && let Ok(id) = args.source.source.parse::<i64>()
+    {
+        let note = NewNote {
+            kind,
+            language: to,
+            model: &args.source.model,
+            text: &text,
+        };
+        Library::open(paths)?.add_note(id, &note)?;
+    }
+    let shown = match kind {
+        NoteKind::Chapters => chapter_lines(&text)?,
+        _ => text,
+    };
     if out.json {
-        let json = serde_json::json!({"summary": summary, "model": args.source.model});
+        let json = serde_json::json!({"kind": kind, "text": shown, "model": args.source.model});
         return write(&json.to_string(), args.output.as_deref());
     }
-    write(&format!("{summary}\n"), args.output.as_deref())
+    write(&format!("{shown}\n"), args.output.as_deref())
+}
+
+/// `0:00  Title` for each chapter in a stored chapter list.
+fn chapter_lines(json: &str) -> Result<String> {
+    let found = chapters_from_json(json)?;
+    let lines: Vec<String> = found
+        .iter()
+        .map(|c| {
+            let seconds = c.start_ms / 1000;
+            format!("{}:{:02}  {}", seconds / 60, seconds % 60, c.title)
+        })
+        .collect();
+    Ok(lines.join("\n"))
 }
 
 pub fn run_translate(args: &Translate, paths: &Paths, out: Output) -> Result<()> {

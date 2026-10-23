@@ -1,7 +1,8 @@
 //! What the language model is asked to do with a transcript: summarise it, or translate it.
 //! Long transcripts are cut into parts, summarised one by one and the summaries merged.
 
-use super::{chunks, languages};
+use super::chunks;
+use super::steps::{Steps, ask, never_cancel, target_language, translation_instruction};
 use crate::engines::{Control, TextEngine};
 use crate::{Error, Result, Segment, Transcript};
 
@@ -20,59 +21,6 @@ fn merge_instruction() -> &'static str {
     "You are given summaries of consecutive parts of one recording. Merge them into one summary: \
      a short overview in one paragraph, then at most five key points, each on its own line \
      starting with \"- \". Use only what the summaries say."
-}
-
-fn translation_instruction(language: &str) -> Result<String> {
-    let name = languages::name(language)
-        .ok_or_else(|| Error::Input(format!("unsupported language: {language}")))?;
-    Ok(format!(
-        "Translate the user's text into {name}. Reply with only the translation."
-    ))
-}
-
-/// Runs the model for one step of `total`, reporting `done/total` of the whole job.
-struct Steps<'a> {
-    done: usize,
-    total: usize,
-    on_progress: &'a mut dyn FnMut(f32) -> Control,
-}
-
-impl Steps<'_> {
-    fn finish_one(&mut self) -> Result<()> {
-        self.done += 1;
-        self.report()
-    }
-
-    fn report(&mut self) -> Result<()> {
-        let count = |n: usize| f32::from(u16::try_from(n).unwrap_or(u16::MAX));
-        let fraction = count(self.done) / count(self.total).max(1.0);
-        match (self.on_progress)(fraction.min(1.0)) {
-            Control::Continue => Ok(()),
-            Control::Cancel => Err(Error::Cancelled),
-        }
-    }
-}
-
-fn never_cancel(_: usize) -> Control {
-    Control::Continue
-}
-
-/// Summaries are written in the language of the transcript, then translated if another language
-/// is wanted: a small model follows "write in X" far less reliably than "translate into X".
-fn target_language<'a>(
-    transcript: &Transcript,
-    language: Option<&'a str>,
-) -> Result<Option<&'a str>> {
-    let Some(code) = language else {
-        return Ok(None);
-    };
-    translation_instruction(code)?;
-    let same = transcript
-        .language
-        .as_deref()
-        .and_then(languages::name)
-        .is_some_and(|spoken| Some(spoken) == languages::name(code));
-    Ok(if same { None } else { Some(code) })
 }
 
 /// A summary of the transcript: an overview and key points. `language` is a code such as `es`;
@@ -95,12 +43,11 @@ pub fn summarize(
         on_progress,
     };
     let mut ask = |instruction: &str, input: &str, steps: &mut Steps| {
-        let answer = engine.generate(instruction, input, SUMMARY_TOKENS, &mut never_cancel);
-        steps.finish_one().and(answer)
+        ask(engine, steps, instruction, input, SUMMARY_TOKENS)
     };
     let mut summaries = Vec::with_capacity(parts.len());
     for part in &parts {
-        summaries.push(ask(summary_instruction(), part, &mut steps)?);
+        summaries.push(ask(summary_instruction(), &part.text, &mut steps)?);
     }
     let mut summary = if merging {
         ask(merge_instruction(), &summaries.join("\n\n"), &mut steps)?
@@ -151,47 +98,8 @@ pub fn translate(
 
 #[cfg(test)]
 mod tests {
+    use super::super::fake::{Echo, transcript};
     use super::*;
-
-    /// Answers with the first word of the input, and records what it was asked.
-    #[derive(Default)]
-    struct Echo {
-        calls: Vec<(String, String)>,
-    }
-
-    impl TextEngine for Echo {
-        fn generate(
-            &mut self,
-            instruction: &str,
-            input: &str,
-            _max_tokens: usize,
-            _on_progress: &mut dyn FnMut(usize) -> Control,
-        ) -> Result<String> {
-            self.calls.push((instruction.into(), input.into()));
-            Ok(format!(
-                "<{}>",
-                input.split_whitespace().next().unwrap_or("")
-            ))
-        }
-    }
-
-    fn transcript(lines: &[&str]) -> Transcript {
-        Transcript {
-            segments: lines
-                .iter()
-                .enumerate()
-                .map(|(i, text)| Segment {
-                    start_ms: i as u64 * 1000,
-                    end_ms: i as u64 * 1000 + 900,
-                    speaker: Some("Ana".into()),
-                    text: (*text).into(),
-                })
-                .collect(),
-            language: Some("en".into()),
-            duration_ms: 5000,
-            model: Some("whisper-base".into()),
-        }
-    }
 
     #[test]
     fn a_short_transcript_is_summarised_in_one_step() {

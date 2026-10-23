@@ -2,9 +2,11 @@
 //! desktop app share. Lines are indexed for full-text search.
 
 mod edit;
+mod notes;
 mod schema;
 mod search;
 
+pub use notes::{NewNote, Note, NoteKind};
 pub use search::SearchHit;
 
 use std::path::Path;
