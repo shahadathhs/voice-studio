@@ -1,6 +1,7 @@
 # Roadmap
 
-Status: early development. Phases 0, 2, 3 and 4 are complete; phase 1 is mostly done.
+Status: early development. Phases 0 to 4 are complete. The plan for phases 5 to 11 is below; the order and the
+gates are decided, the details of each phase are settled when it starts.
 
 ## Phases
 
@@ -32,9 +33,58 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    [speech.md](speech.md)). The Speak screen has a text box (or a text file), a voice list, speed, progress per sentence, playback
    and Save audio as WAV or FLAC (`--format flac` in the CLI). Still to do: playing audio from the CLI, mp3 output (needs an
    LGPL encoder), keeping speech in the library, British voices, a waveform in the player.
-5. **Recording and live captions:** `vtt record`; Record screen.
-6. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill.
-7. **Packaging:** installers for all three platforms, signing, updater, first release.
+5. **Prove it on all three systems (next):** push `dev` and get CI green on Linux, macOS and Windows, including the
+   Windows and Linux builds nobody has run yet; build installers once as CI artifacts (not published) and run the
+   app on a real Windows and a real Linux machine; write the third-party notices file (see
+   [Legal and safety](#legal-and-safety)). Exit: the app starts, installs a model, transcribes and speaks on each
+   system. Why first: every later phase adds weight to code that has only run on macOS.
+6. **Language models: summaries and translation.** A text-model engine (`TextEngine` trait) on `candle` with GGUF
+   models: Qwen 2.5 (Apache-2.0) at 1.5B and 3B, optional downloads. Not `llama.cpp`: it cannot share a binary
+   with `whisper-rs` (both bundle ggml; measured, it aborts). `vtt summarize`, `vtt translate --to <lang>`, and a
+   Summary and Translate section in the Library; long transcripts are split, summarised in parts and merged;
+   chapters and action items from the same model. Output is labelled AI-generated and links back to timestamps.
+   Exit: Chinese, Spanish, Bengali and English summaries and translations judged readable by a native speaker.
+   Decision gate: if 3B is too slow or poor on Bengali, evaluate a larger or different permissively licensed model.
+7. **Speech in more languages.** Translate, then speak. Pronunciation written in Rust per language (no espeak-ng:
+   GPL), in this order: Spanish, Italian, Portuguese, French, Chinese (pinyin dictionary), Hindi, Japanese. Kokoro
+   v1.0 reportedly has voices for these; verify against the official release first. Each language ships only after
+   a native speaker has listened to a fixed test set. **Bengali is a research gate, not a build task:** find a
+   Bengali voice that is permissively licensed (candidates: Indic Parler-TTS, AI4Bharat Indic-TTS, Thiva-indic;
+   licences conflict between sources, read the licence files) and exportable to ONNX; Meta MMS is
+   non-commercial and excluded. If none qualifies, Bengali stays text-only (translation and summaries) and we say so.
+   `vtt speak --lang`, `--translate-to`, language-aware voice list in the app.
+8. **Custom voices and voice cloning (must have).** Two steps. First, voice presets: saved blends of the shipped
+   voices, with a name and a preview. Second, cloning from a short sample: model chosen by a spike that compares
+   OpenVoice v2 and Chatterbox (MIT as far as known: verify), checks ONNX export, speed and quality; a decision gate
+   before any build. Rules that are part of the feature, not extras: the person must confirm consent for the voice
+   in the sample; everything runs locally; cloned voices are marked as such and a disclosure is added to saved
+   audio (and a watermark if a permissive one exists); no third-party or celebrity voice is ever bundled; a cloned
+   voice can be deleted. `vtt voice create|list|delete`, a Voices screen.
+9. **Recording and live captions:** `vtt record`; Record screen; live captions with a streaming model, labelled
+   draft.
+10. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill, with the documented limits on
+    Linux/Wayland.
+11. **Packaging and first release:** installers for all three platforms, signing and notarization, updater, first
+    public release (the release workflow and version script already exist).
+
+Each of phases 6 to 8 ends with the same checks: CLI and app ship together, tests that need no model, a documented
+evaluation, every new model entered in the licence register, and the interface text translated (English and
+Spanish at least).
+
+## Legal and safety
+
+These are conditions for shipping, checked at the end of every phase.
+
+- **Licence register.** Every model in `catalog/models.json` records its licence, where it was verified and when. Only
+  permissive licences (MIT, Apache-2.0, BSD, CC BY with attribution). Non-commercial, research-only and "custom"
+  licences are excluded, including NLLB, XTTS and Meta MMS. A model whose licence cannot be confirmed is not listed.
+- **Training data.** Some models say "follows the licence of the dataset" (WeSpeaker, VoxCeleb); review the dataset
+  terms before the first release.
+- **Third-party notices.** A generated notices file with every dependency and model, shown in the app and shipped in
+  installers, satisfying the attribution that Apache-2.0, MIT and CC BY require.
+- **Consent and disclosure** for cloned voices as described in phase 8; no feature that impersonates a real person.
+- **Privacy.** Audio and text stay on the device; the only network use is downloading models, which is visible.
+- **Name.** "Voice Studio" is kept; run a trademark search before the first public release.
 
 ## Risks and open questions
 
@@ -51,6 +101,15 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    audio yet. Audio is resampled in a streaming fashion, but the 16 kHz samples are still held in memory (a
    3-hour file is about 700 MB), so very long files need chunked inference.
 7. **GPU matrix.** Metal (mac), Vulkan (Win/Linux), CUDA (optional). Needs CI hardware or manual testing for each.
-8. **Naming/branding.** "Voice Studio" is a placeholder; check trademark conflicts before release.
+8. **Naming/branding.** "Voice Studio" is the name; run a trademark search before the first public release.
 9. **Accessibility.** Keyboard navigation, screen reader labels, contrast; planned from the start, tested per release.
-10. **Localization.** English first; strings externalised from day one.
+10. **Localization.** Done for the interface (English and Spanish, see [localization.md](../localization.md));
+    text that comes from Rust (error messages, voice descriptions, model names) is still English.
+11. **The Python ecosystem gap.** Many speech and language models and their text-processing code are Python-first.
+    Rule: models are exported once to ONNX (or GGUF for language models) on a developer machine and run in Rust;
+    Python never ships. The cost is slower work per language and model, so languages are prioritised, not all
+    promised. An optional external-engine interface is held back as an escape hatch, only if cloning needs it.
+12. **Small language models can be wrong.** Summaries and translations can contain errors or invented details.
+    They are labelled AI-generated, link back to the transcript, and are never written over the transcript itself.
+13. **Native review.** Spanish interface text and any non-English speech or translation quality need a native
+    speaker's review before a release claims support for the language.

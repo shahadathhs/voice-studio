@@ -53,7 +53,9 @@ commit and enforce Conventional Commit messages.
 - Types crossing the Tauri boundary: `desktop/src-tauri/src/commands.rs` and `desktop/src/lib/types.ts`.
 - Colour tokens: `desktop/src/styles/tokens.css` and `docs/design/mockups/src/common.css`.
 
-## Undecided
+## Decided and open
 
-Final product name (placeholders in `crates/core/src/paths.rs` and `desktop/src-tauri/tauri.conf.json`),
-STT backend (whisper.cpp vs sherpa-onnx), model catalog entries and their license review.
+Decided: the name stays "Voice Studio"; the speech-to-text backend is whisper.cpp (`whisper-rs`); language models
+will run on `candle`, not `llama.cpp`, because two copies of ggml cannot share a binary; models run in Rust from
+ONNX or GGUF files and Python never ships. Open: the Bengali voice and the voice-cloning model (both are research
+gates in `docs/product/roadmap.md`), and each model's licence review (see the Legal and safety section there).
