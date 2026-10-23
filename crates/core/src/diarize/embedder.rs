@@ -60,8 +60,8 @@ mod tests {
 
     #[test]
     fn a_missing_model_file_is_reported_as_not_installed() {
-        let result = SpeakerModel::load(Path::new("/no/such/model.onnx"), "wespeaker-resnet34");
-        assert!(matches!(result, Err(Error::ModelMissing(id)) if id == "wespeaker-resnet34"));
+        let result = SpeakerModel::load(Path::new("/no/such/model.onnx"), "speaker-identification");
+        assert!(matches!(result, Err(Error::ModelMissing(id)) if id == "speaker-identification"));
     }
 
     #[test]

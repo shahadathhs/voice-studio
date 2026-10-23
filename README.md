@@ -113,7 +113,7 @@ GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (
 
 ## Under the hood
 
-A Rust core (`vtt-core`) does the work: whisper.cpp for transcription, a WeSpeaker model for speaker
+A Rust core (`vtt-core`) does the work: whisper.cpp for transcription, pyannote and WeSpeaker models for speaker
 labels, Kokoro for speech, SQLite for the library. The desktop app is a [Tauri 2](https://tauri.app)
 shell with a Svelte interface calling the core in-process, so there is no server and no sidecar. The CLI
 is a thin front end on the same core. See [architecture](docs/architecture.md).

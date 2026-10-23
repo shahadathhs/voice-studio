@@ -4,7 +4,7 @@
 //!
 //! ```text
 //! vtt --data-dir /tmp/vtt-data models pull whisper-base
-//! vtt --data-dir /tmp/vtt-data models pull wespeaker-resnet34
+//! vtt --data-dir /tmp/vtt-data models pull speaker-identification
 //! VTT_TEST_DATA_DIR=/tmp/vtt-data VTT_TEST_CONVERSATION=/path/to/two-voices.wav \
 //!     cargo test -p vtt-core --release --test runner_e2e -- --ignored
 //! ```

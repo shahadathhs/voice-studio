@@ -6,73 +6,78 @@ renamed in the viewer; renaming two speakers to the same name merges them.
 
 ## How it works
 
-The method is the one of the earlier Python prototype (git tag `python-final`), with a different model:
+Two small models and a clustering step, all run on the CPU through ONNX Runtime (the same runtime as speech):
 
 1. Whisper transcribes the file as usual, giving lines with start and end times.
-2. Each line of 3 s or more is cut into 1.5 s windows every 0.5 s; shorter lines of at least 1 s are taken whole.
-   Each piece is trimmed to the part that contains speech, and pieces with under 0.8 s of speech are skipped,
-   because one short word gives an unreliable voiceprint.
-3. The speaker model turns each piece into a 256-number voiceprint (an _embedding_). Audio is converted to
-   80-bin Kaldi-style log mel features first (`diarize::fbank`).
-4. Voiceprints are clustered bottom-up (average linkage, cosine distance). Merging stops at `--speakers N`
-   clusters, or when the closest two clusters are further apart than the threshold (default **0.45**).
-5. A line takes the most common cluster among its pieces; lines without a piece take the label of the nearest
-   piece in time. A line of 2 s or less that sits between two lines of the same other speaker is flipped to
-   that speaker, which removes one-off flicker.
+2. **Segmentation.** A segmentation model (pyannote segmentation-3.0) slides over the recording in 10 s windows,
+   a new one every 2.5 s, so each moment is seen four times. For every 10 ms it says which of up to three
+   _local_ speakers is talking, overlaps included.
+3. **Voiceprints.** What one local speaker says in a window is cut out and turned by the speaker model (WeSpeaker
+   ResNet34) into a 256-number voiceprint, using 80-bin log mel features (`diarize::fbank`). A local speaker with
+   under about a second of speech is skipped: one short word gives an unreliable voiceprint. Lines the
+   segmentation hardly covered are embedded whole.
+4. **Clustering.** The voiceprints of the whole recording are clustered bottom-up (average linkage, cosine
+   distance). Voiceprints made from under 2 s of speech never start a speaker; they join the nearest cluster.
+5. **Voting.** Every cluster votes, per 10 ms, for the stretches it covers, and a line takes the speaker with the
+   most votes during it. Because the timeline is built from the segmentation, overlapping speech is heard; a
+   line still gets one label, the one who talks most.
 
-Everything runs on the CPU through ONNX Runtime (the same runtime as speech), with no extra setup. Embedding runs at roughly 20× real time,
-so a one-hour recording takes a few minutes after transcription.
+**How many speakers.** `--speakers N` stops merging at exactly N clusters. Without it, the number is found from
+the merge distances: the voices of different people are far apart, so the last few merges show one big jump,
+and the cut is placed before it. If there is no clear jump (noisy audio where voiceprints do not separate the
+voices) the cut falls back to a distance of 0.55, which prefers merging to inventing speakers.
+`--diarize-threshold X` replaces all of this with a fixed distance.
 
-## The model
+A one-hour recording takes a few minutes after transcription.
 
-`wespeaker-resnet34`, the authors' own ONNX export from
-[Wespeaker/wespeaker-voxceleb-resnet34](https://huggingface.co/Wespeaker/wespeaker-voxceleb-resnet34), pinned to
-commit `ff1ac5b`, 26.5 MB, SHA-256 `9fea6516…` (see `catalog/models.json`). Install it with
-`vtt models pull wespeaker-resnet34` or from the Models screen; `--diarize` offers to download it.
+## The models
 
-**Licence.** The model card says Apache-2.0. The WeSpeaker documentation adds that its VoxCeleb models "follow
+One catalog entry, `speaker-identification`, installs both files (about 32.5 MB). Install it with
+`vtt models pull speaker-identification` or from the Models screen; `--diarize` offers to download it.
+
+| File                     | Model                                                                                                                            | Size    | Licence                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------- | ---------------------- |
+| `voxceleb_resnet34.onnx` | [Wespeaker/wespeaker-voxceleb-resnet34](https://huggingface.co/Wespeaker/wespeaker-voxceleb-resnet34), commit `ff1ac5b`          | 26.5 MB | Apache-2.0 (see below) |
+| `segmentation-3.0.onnx`  | [pyannote segmentation-3.0](https://huggingface.co/csukuangfj/sherpa-onnx-pyannote-segmentation-3-0), ONNX export by sherpa-onnx | 6.0 MB  | MIT                    |
+
+Both are pinned to a commit and checked against a SHA-256 (see `catalog/models.json`).
+
+**Licence.** The WeSpeaker model card says Apache-2.0, and its documentation adds that its VoxCeleb models "follow
 the licence of the dataset", CC BY 4.0 (attribution). Both allow commercial use, but the training data's own terms
-were not independently reviewed. Review this before the first public release (see Risks in the roadmap).
+were not independently reviewed. The pyannote segmentation model is MIT; the licence of its training data was not
+reviewed either. Review both before the first public release (see Risks in the roadmap).
 
 ## Evaluation
 
 `scripts/make-diarization-eval.sh` builds a labelled set from six macOS voices saying four sentences each; the
 ignored test `crates/core/tests/diarize_e2e.rs` joins them into one conversation with a known speaker per line
-and scores how many pairs of lines are grouped correctly (1.0 = perfect). Result with the shipped model:
+and scores how many pairs of lines are grouped correctly (1.0 = perfect):
 
-| Threshold | Speakers found (6 real) | Pair accuracy |
-| --------- | ----------------------- | ------------- |
-| 0.3       | 11                      | 0.949         |
-| 0.4       | 6                       | 1.000         |
-| **0.45**  | **6**                   | **1.000**     |
-| 0.5       | 6                       | 1.000         |
-| 0.6       | 5                       | 0.942         |
-| 0.7       | 4                       | 0.826         |
-| 0.8       | 2                       | 0.594         |
-| 0.9       | 1                       | 0.130         |
-| 6 given   | 6                       | 1.000         |
+| Setting           | Speakers found (6 real) | Pair accuracy |
+| ----------------- | ----------------------- | ------------- |
+| threshold 0.2–0.4 | 6                       | 1.000         |
+| threshold 0.5     | 5                       | 0.942         |
+| threshold 0.6     | 5                       | 0.942         |
+| threshold 0.7     | 4                       | 0.826         |
+| threshold 0.8     | 2                       | 0.594         |
+| **automatic**     | **6**                   | **1.000**     |
+| 6 given           | 6                       | 1.000         |
 
-The default sits in the middle of the range that finds exactly six. A second check transcribed a three-voice
-conversation end to end with Whisper base: all eight lines were attributed correctly.
+`scripts/degrade-diarization-eval.sh` turns the same set into a radio-like one (band-limited, clipped, noisy,
+every voice through the same bad channel) for `crates/core/tests/diarize_real_e2e.rs`.
 
-**What this does and does not show.** The voices are synthetic: clean, one speaker at a time, no overlap, no
-background noise, and each voice is very consistent. Real recordings vary more within one speaker, so expect the
-best threshold to be somewhat higher, and expect worse results with overlapping speech, similar voices, noise or
-many speakers. When you know how many people speak, `--speakers N` is more reliable than the threshold. A set of
-real, labelled recordings is still needed before this is called measured.
+**A real recording.** A 3-minute NASA recording (Apollo 13 air-to-ground radio, public domain: three voices,
+static, radio clipping). The first version of this feature (1.5 s windows and a fixed threshold of 0.45) found
+**33 speakers** in it. The current automatic setting finds **3**.
 
-## A real recording
-
-Checked on a 3-minute NASA recording (Apollo 13 air-to-ground radio, public domain: three voices, static, radio
-clipping). Whisper small transcribed it well, but the default threshold found **33 speakers**. Sweeping the
-threshold: 0.6 gives 8, 0.7 gives 3 (the right number), 0.8 gives 1. The merge distances rise smoothly with no clear
-gap, so choosing the count automatically from their shape was tried and does not work on this audio. Noisy
-audio needs a much higher threshold than the clean synthetic set, so a single default cannot suit both:
-**when you know the number of speakers, pass `--speakers N`**; otherwise raise `--diarize-threshold` for noisy
-recordings.
+**What this does and does not show.** The synthetic voices are clean, one at a time, and very consistent, and the
+radio recording has no labels, so neither measures accuracy on real meetings (similar voices, crosstalk, many
+speakers). When you know how many people speak, `--speakers N` is more reliable than the automatic count. A set
+of real, labelled recordings is still needed before this is called measured.
 
 ## Limits
 
-- Overlapping speech is not handled: a line gets one speaker.
-- A line is one speaker, even if Whisper's line spans a change of speaker.
+- A line is one speaker, even if Whisper's line spans a change of speaker; overlapping speech is heard but only
+  the speaker who talks most gets the line.
+- At most three people speaking at once in a 10 s window (a limit of the segmentation model).
 - There is no progress report during labelling yet; the job shows full progress while it finishes.

@@ -2,7 +2,7 @@
 //! use a fake and the app uses [`WhisperRunner`].
 
 use super::JobSpec;
-use crate::diarize::{SpeakerDiarizer, SpeakerModel};
+use crate::diarize::SpeakerLabeller;
 use crate::engines::{Control, Device, SttOptions, WhisperEngine};
 use crate::models::{Catalog, ModelEntry, ModelStore, SPEAKER_MODEL_ID};
 use crate::paths::Paths;
@@ -24,7 +24,7 @@ pub struct WhisperRunner {
     store: ModelStore,
     device: Device,
     loaded: Option<(String, WhisperEngine)>,
-    speakers: Option<SpeakerDiarizer<SpeakerModel>>,
+    speakers: Option<SpeakerLabeller>,
 }
 
 impl WhisperRunner {
@@ -74,11 +74,7 @@ impl WhisperRunner {
         if self.speakers.is_none() {
             let catalog = Catalog::bundled()?;
             let entry = self.installed_entry(&catalog, SPEAKER_MODEL_ID)?;
-            let path = self.store.file_path(&entry, &entry.files[0]);
-            self.speakers = Some(SpeakerDiarizer::new(SpeakerModel::load(
-                &path,
-                SPEAKER_MODEL_ID,
-            )?));
+            self.speakers = Some(crate::diarize::load(&self.store, &entry)?);
         }
         Ok(())
     }

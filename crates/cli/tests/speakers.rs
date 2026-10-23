@@ -43,7 +43,7 @@ fn the_speaker_model_is_needed_for_diarize_and_the_hint_names_it() {
         .arg("--diarize")
         .assert()
         .code(4)
-        .stderr(contains("vtt models pull wespeaker-resnet34"));
+        .stderr(contains("vtt models pull speaker-identification"));
 }
 
 #[test]

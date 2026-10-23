@@ -4,7 +4,7 @@ use std::io::{IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
-use vtt_core::diarize::{SpeakerDiarizer, SpeakerModel};
+use vtt_core::diarize::SpeakerLabeller;
 use vtt_core::engines::{Control, DiarizeOptions, SttOptions, WhisperEngine};
 use vtt_core::export::{self, ExportOptions, Format};
 use vtt_core::jobs::{Event, Throttle};
@@ -54,7 +54,7 @@ pub struct Recognizer<'a> {
     pub model: &'a str,
     pub options: &'a SttOptions,
     /// The speaker labeller and its settings, when `--diarize` was given.
-    pub speakers: Option<(SpeakerDiarizer<SpeakerModel>, DiarizeOptions)>,
+    pub speakers: Option<(SpeakerLabeller, DiarizeOptions)>,
 }
 
 impl Job<'_> {

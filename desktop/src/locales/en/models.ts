@@ -38,7 +38,7 @@ export const models = {
     "The turbo model compressed to about a third of the download, a little less precise.",
   "modelInfo.whisper-large-v3":
     "Highest accuracy and slowest. For hard recordings where quality matters most.",
-  "modelInfo.wespeaker-resnet34":
+  "modelInfo.speaker-identification":
     "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
   "modelInfo.kokoro-82m":
     "Reads English text aloud in six natural American voices. Runs on the CPU.",

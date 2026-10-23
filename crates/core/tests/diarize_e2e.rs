@@ -3,7 +3,8 @@
 //!
 //! ```text
 //! scripts/make-diarization-eval.sh /tmp/diarization-eval
-//! VTT_TEST_SPEAKER_MODEL=/path/to/voxceleb_resnet34.onnx VTT_TEST_SPEAKER_AUDIO=/tmp/diarization-eval \
+//! VTT_TEST_SPEAKER_MODEL=/path/to/voxceleb_resnet34.onnx \
+//!     VTT_TEST_SEGMENTATION_MODEL=/path/to/segmentation-3.0.onnx VTT_TEST_SPEAKER_AUDIO=/tmp/diarization-eval \
 //!     cargo test -p vtt-core --release --test diarize_e2e -- --ignored --nocapture
 //! ```
 //!
@@ -14,7 +15,7 @@
 use std::path::PathBuf;
 
 use vtt_core::audio::load_for_whisper;
-use vtt_core::diarize::{DEFAULT_THRESHOLD, SpeakerDiarizer, SpeakerModel};
+use vtt_core::diarize::{SegmentationModel, SpeakerDiarizer, SpeakerModel};
 use vtt_core::engines::{AudioBuffer, DiarizeOptions, Diarizer};
 use vtt_core::{Segment, Transcript};
 
@@ -82,55 +83,61 @@ fn pair_accuracy(truth: &[usize], found: &[String]) -> f64 {
     f64::from(right) / f64::from(total)
 }
 
-fn run(model: &std::path::Path, dir: &std::path::Path, options: &DiarizeOptions) -> (f64, usize) {
+fn run(dir: &std::path::Path, options: &DiarizeOptions) -> (f64, usize) {
     let (audio, mut transcript, truth) = conversation(dir);
-    let mut diarizer = SpeakerDiarizer::new(SpeakerModel::load(model, "test").unwrap());
+    let mut diarizer = SpeakerDiarizer::new(
+        SpeakerModel::load(&env_path("VTT_TEST_SPEAKER_MODEL"), "test").unwrap(),
+        SegmentationModel::load(&env_path("VTT_TEST_SEGMENTATION_MODEL"), "test").unwrap(),
+    );
     diarizer
         .label_speakers(&audio, &mut transcript, options)
         .unwrap();
     let found: Vec<String> = transcript
         .segments
         .iter()
-        .map(|s| s.speaker.clone().unwrap())
+        .map(|s| s.speaker.clone().unwrap_or_default())
         .collect();
     let mut distinct = found.clone();
     distinct.sort();
     distinct.dedup();
+    if std::env::var_os("VTT_TEST_VERBOSE").is_some() {
+        let t: String = truth
+            .iter()
+            .map(|v| char::from_digit(u32::try_from(*v).unwrap(), 10).unwrap())
+            .collect();
+        let f: String = found
+            .iter()
+            .map(|v| v.chars().last().unwrap_or('-'))
+            .collect();
+        println!("truth {t}\nfound {f}");
+    }
     (pair_accuracy(&truth, &found), distinct.len())
 }
 
 #[test]
 #[ignore = "needs VTT_TEST_SPEAKER_MODEL and VTT_TEST_SPEAKER_AUDIO"]
 fn six_voices_are_told_apart() {
-    let model = env_path("VTT_TEST_SPEAKER_MODEL");
     let dir = env_path("VTT_TEST_SPEAKER_AUDIO");
 
     println!("threshold  speakers found  pair accuracy");
-    for threshold in [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
+    for threshold in [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] {
         let options = DiarizeOptions {
             speakers: None,
             threshold: Some(threshold),
         };
-        let (accuracy, found) = run(&model, &dir, &options);
+        let (accuracy, found) = run(&dir, &options);
         println!("{threshold:>9}  {found:>14}  {accuracy:>13.3}");
     }
 
-    let by_threshold = DiarizeOptions {
-        speakers: None,
-        threshold: Some(DEFAULT_THRESHOLD),
-    };
-    let (accuracy, found) = run(&model, &dir, &by_threshold);
-    println!("default threshold {DEFAULT_THRESHOLD}: {found} speakers, accuracy {accuracy:.3}");
-    assert!(
-        accuracy >= MIN_PAIR_ACCURACY,
-        "default threshold: {accuracy}"
-    );
+    let (accuracy, found) = run(&dir, &DiarizeOptions::default());
+    println!("automatic: {found} speakers, accuracy {accuracy:.3}");
+    assert!(accuracy >= MIN_PAIR_ACCURACY, "automatic: {accuracy}");
 
     let told = DiarizeOptions {
         speakers: Some(VOICES.len()),
         threshold: None,
     };
-    let (accuracy, found) = run(&model, &dir, &told);
+    let (accuracy, found) = run(&dir, &told);
     println!("6 speakers given: {found} speakers, accuracy {accuracy:.3}");
     assert_eq!(found, VOICES.len());
     assert!(

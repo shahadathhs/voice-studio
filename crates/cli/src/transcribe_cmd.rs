@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use vtt_core::diarize::{SpeakerDiarizer, SpeakerModel};
+use vtt_core::diarize::SpeakerLabeller;
 use vtt_core::engines::{Device, DiarizeOptions, SttOptions, WhisperEngine};
 use vtt_core::export::Format;
 use vtt_core::library::{Library, NewItem, title_for};
@@ -94,7 +94,7 @@ fn speaker_labeller(
     catalog: &Catalog,
     store: &ModelStore,
     out: Output,
-) -> Result<Option<(SpeakerDiarizer<SpeakerModel>, DiarizeOptions)>> {
+) -> Result<Option<(SpeakerLabeller, DiarizeOptions)>> {
     if !args.speakers.diarize && !settings.identify_speakers {
         return Ok(None);
     }
@@ -102,15 +102,11 @@ fn speaker_labeller(
         .find(SPEAKER_MODEL_ID)
         .ok_or_else(|| Error::ModelMissing(SPEAKER_MODEL_ID.into()))?;
     models_cmd::ensure_installed(entry, store, args.yes, out)?;
-    let path = store.file_path(entry, &entry.files[0]);
     let options = DiarizeOptions {
         speakers: args.speakers.speakers,
         threshold: args.speakers.diarize_threshold,
     };
-    Ok(Some((
-        SpeakerDiarizer::new(SpeakerModel::load(&path, &entry.id)?),
-        options,
-    )))
+    Ok(Some((vtt_core::diarize::load(store, entry)?, options)))
 }
 
 fn check_inputs(files: &[PathBuf]) -> Result<()> {

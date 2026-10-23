@@ -41,7 +41,7 @@ export const models: Record<keyof typeof english, string> = {
     "El modelo turbo comprimido a un tercio de la descarga, algo menos preciso.",
   "modelInfo.whisper-large-v3":
     "La mayor precisión y el más lento. Para grabaciones difíciles donde importa la calidad.",
-  "modelInfo.wespeaker-resnet34":
+  "modelInfo.speaker-identification":
     "Distingue las voces para que una transcripción indique quién habla. Pequeño y rápido en la CPU.",
   "modelInfo.kokoro-82m":
     "Lee texto en inglés en voz alta con seis voces naturales estadounidenses. Funciona en la CPU.",

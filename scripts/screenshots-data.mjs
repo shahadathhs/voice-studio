@@ -150,12 +150,12 @@ export const SAMPLE_BACKEND = {
       installed: false,
     }),
     model({
-      id: "wespeaker-resnet34",
-      name: "Speaker identification (WeSpeaker ResNet34)",
+      id: "speaker-identification",
+      name: "Speaker identification (pyannote + WeSpeaker ResNet34)",
       kind: "diarization",
       description:
         "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
-      size_bytes: 26500000,
+      size_bytes: 32500000,
       installed: true,
       license: "Apache-2.0",
     }),

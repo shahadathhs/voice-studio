@@ -44,23 +44,23 @@ vtt transcribe call.wav --translate --json
 cat clip.wav | vtt transcribe - -f txt                # '-' reads audio from stdin
 ```
 
-| Option                          | Meaning                                               |
-| ------------------------------- | ----------------------------------------------------- |
-| `-m, --model <id>`              | STT model (default from config, e.g. `whisper-base`)  |
-| `-l, --language <code>`         | Source language; default auto-detect                  |
-| `--translate`                   | Translate to English (not with the turbo models)      |
-| `--diarize`                     | Identify speakers                                     |
-| `--speakers <N>`                | Exact speaker count (replaces `--max-speakers`)       |
-| `--diarize-threshold <X>`       | Voice distance, 0 to 2 (default 0.5), no `--speakers` |
-| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx`   |
-| `-o, --output <path>`           | File, or directory for several inputs; `-` = stdout   |
-| `--timestamps`                  | Include timestamps in `txt`/`md`                      |
-| `--no-speaker-names`            | Omit speaker labels                                   |
-| `--max-line <N>`, `--lines <N>` | Subtitle line width / lines per cue                   |
-| `--device <auto\|cpu\|gpu>`     | Compute device                                        |
-| `--no-vad`                      | Transcribe the whole file, not only the speech in it  |
-| `--no-library`                  | Do not add the result to the shared Library           |
-| `-y, --yes`                     | Auto-accept the "download missing model?" prompt      |
+| Option                          | Meaning                                                      |
+| ------------------------------- | ------------------------------------------------------------ |
+| `-m, --model <id>`              | STT model (default from config, e.g. `whisper-base`)         |
+| `-l, --language <code>`         | Source language; default auto-detect                         |
+| `--translate`                   | Translate to English (not with the turbo models)             |
+| `--diarize`                     | Identify speakers                                            |
+| `--speakers <N>`                | Exact speaker count (replaces `--max-speakers`)              |
+| `--diarize-threshold <X>`       | Voice distance, 0 to 2 (default: automatic), no `--speakers` |
+| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx`          |
+| `-o, --output <path>`           | File, or directory for several inputs; `-` = stdout          |
+| `--timestamps`                  | Include timestamps in `txt`/`md`                             |
+| `--no-speaker-names`            | Omit speaker labels                                          |
+| `--max-line <N>`, `--lines <N>` | Subtitle line width / lines per cue                          |
+| `--device <auto\|cpu\|gpu>`     | Compute device                                               |
+| `--no-vad`                      | Transcribe the whole file, not only the speech in it         |
+| `--no-library`                  | Do not add the result to the shared Library                  |
+| `-y, --yes`                     | Auto-accept the "download missing model?" prompt             |
 
 By default only the stretches that contain speech are transcribed, in chunks of at most 28 s (an energy-based
 detector; it needs no extra model). Silence is skipped, so timestamps follow the speech and Whisper does not

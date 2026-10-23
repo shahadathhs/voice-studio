@@ -9,7 +9,19 @@ pub enum Stop {
     Clusters(usize),
     /// Stop when the closest two clusters are further apart than this cosine distance.
     Distance(f32),
+    /// Stop at the biggest jump between the last merge distances, where the voices of different
+    /// people start to be merged; or, when there is no clear jump, at [`AUTO_FALLBACK`].
+    Auto,
 }
+
+/// Only the last merges are searched for the jump: that many, so up to one more speaker.
+const AUTO_LOOKBACK: usize = 9;
+/// A jump must be at least this big (cosine distance) to tell speakers apart from variation within
+/// one voice. Measured on the sets in docs/product/diarization.md.
+const AUTO_MIN_JUMP: f32 = 0.15;
+/// Without a clear jump the voiceprints do not separate the voices, as in noisy radio. Splitting
+/// them into many speakers is then worse than merging, so the cut is conservative.
+const AUTO_FALLBACK: f32 = 0.55;
 
 fn normalized(embedding: &[f32]) -> Vec<f32> {
     let length = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
@@ -111,6 +123,20 @@ fn merges_to_apply(heights: &[f32], stop: Stop) -> usize {
     match stop {
         Stop::Clusters(wanted) => (heights.len() + 1).saturating_sub(wanted.max(1)),
         Stop::Distance(limit) => heights.partition_point(|d| *d <= limit),
+        Stop::Auto => auto_merges(heights),
+    }
+}
+
+/// Merges to apply when the number of speakers is found from the biggest jump between the last
+/// merge distances.
+fn auto_merges(heights: &[f32]) -> usize {
+    let last = heights.len();
+    let jump = (last.saturating_sub(AUTO_LOOKBACK)..last.saturating_sub(1))
+        .map(|i| (i, heights[i + 1] - heights[i]))
+        .max_by(|a, b| a.1.total_cmp(&b.1));
+    match jump {
+        Some((i, size)) if size >= AUTO_MIN_JUMP => i + 1,
+        _ => heights.partition_point(|d| *d <= AUTO_FALLBACK),
     }
 }
 
@@ -124,6 +150,36 @@ pub fn agglomerate(embeddings: &[Vec<f32>], stop: Stop) -> Vec<usize> {
         owner.iter_mut().filter(|o| **o == *j).for_each(|o| *o = *i);
     }
     renumber(&owner)
+}
+
+/// Gives each of `others` the label of the cluster whose centre is nearest to it, where cluster
+/// `c` is made of the `embeddings` labelled `c`. `embeddings` must not be empty.
+pub fn nearest_clusters(
+    embeddings: &[Vec<f32>],
+    labels: &[usize],
+    others: &[&Vec<f32>],
+) -> Vec<usize> {
+    let count = labels.iter().max().map_or(0, |m| m + 1);
+    let mut centres = vec![vec![0.0; embeddings.first().map_or(0, Vec::len)]; count];
+    for (embedding, label) in embeddings.iter().zip(labels) {
+        for (sum, x) in centres[*label].iter_mut().zip(normalized(embedding)) {
+            *sum += x;
+        }
+    }
+    let centres: Vec<Vec<f32>> = centres.iter().map(|c| normalized(c)).collect();
+    others
+        .iter()
+        .map(|other| {
+            let unit = normalized(other);
+            let similarity =
+                |centre: &Vec<f32>| -> f32 { centre.iter().zip(&unit).map(|(a, b)| a * b).sum() };
+            centres
+                .iter()
+                .enumerate()
+                .max_by(|a, b| similarity(a.1).total_cmp(&similarity(b.1)))
+                .map_or(0, |(label, _)| label)
+        })
+        .collect()
 }
 
 /// Relabels so numbers go 0, 1, 2... in order of first appearance.
@@ -190,5 +246,38 @@ mod tests {
     #[test]
     fn labels_are_numbered_by_first_appearance() {
         assert_eq!(renumber(&[7, 7, 3, 7, 9, 3]), [0, 0, 1, 0, 2, 1]);
+    }
+
+    #[test]
+    fn the_biggest_jump_between_the_last_merges_sets_the_number_of_speakers() {
+        // Three tight groups along three axes, as far from each other as can be.
+        let mut e: Vec<Vec<f32>> = Vec::new();
+        for axis in 0..3 {
+            for noise in [0.0, 0.02, 0.04, 0.01] {
+                let mut v = vec![noise; 3];
+                v[axis] = 1.0;
+                e.push(v);
+            }
+        }
+        let labels = agglomerate(&e, Stop::Auto);
+        assert_eq!(labels.iter().max(), Some(&2));
+        assert_eq!(labels[0], labels[3]);
+        assert_ne!(labels[0], labels[4]);
+        assert_ne!(labels[4], labels[8]);
+    }
+
+    #[test]
+    fn without_a_clear_jump_the_cut_is_the_conservative_fallback() {
+        // A smooth ramp of angles: neighbours merge, nothing stands out.
+        let e: Vec<Vec<f32>> = (0..12_u8).map(|n| at(f32::from(n) * 4.0)).collect();
+        let labels = agglomerate(&e, Stop::Auto);
+        assert!(labels.iter().all(|l| *l == 0));
+    }
+
+    #[test]
+    fn one_voice_stays_one_speaker_under_auto() {
+        assert_eq!(agglomerate(&[at(0.0), at(3.0)], Stop::Auto), [0, 0]);
+        assert_eq!(agglomerate(&[at(0.0), at(90.0)], Stop::Auto), [0, 1]);
+        assert_eq!(agglomerate(&[at(0.0)], Stop::Auto), [0]);
     }
 }
