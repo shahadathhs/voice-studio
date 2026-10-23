@@ -53,9 +53,10 @@ pub fn decode_wav(bytes: &[u8]) -> Result<AudioBuffer> {
         return Err(Error::Input("not a 16-bit mono WAV file".into()));
     }
     let sample_rate = u32::from_le_bytes([bytes[24], bytes[25], bytes[26], bytes[27]]);
-    let samples = bytes[44..]
-        .chunks_exact(2)
-        .map(|pair| f32::from(i16::from_le_bytes([pair[0], pair[1]])) / f32::from(i16::MAX))
+    let (pairs, _) = bytes[44..].as_chunks::<2>();
+    let samples = pairs
+        .iter()
+        .map(|pair| f32::from(i16::from_le_bytes(*pair)) / f32::from(i16::MAX))
         .collect();
     Ok(AudioBuffer {
         samples,

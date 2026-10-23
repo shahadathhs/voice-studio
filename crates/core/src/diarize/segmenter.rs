@@ -64,8 +64,9 @@ impl SegmentationModel {
 /// The active speakers of the most likely class of every frame; `scores` holds `CLASSES` values
 /// per frame.
 fn decode(scores: &[f32]) -> Vec<Frame> {
-    scores
-        .chunks_exact(CLASSES)
+    let (frames, _) = scores.as_chunks::<CLASSES>();
+    frames
+        .iter()
         .map(|frame| {
             let best = frame
                 .iter()
