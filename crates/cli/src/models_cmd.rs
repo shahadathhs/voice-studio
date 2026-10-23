@@ -37,6 +37,7 @@ fn kind_filter(kind: KindArg) -> ModelKind {
         KindArg::Diarization => ModelKind::Diarization,
         KindArg::Text => ModelKind::Text,
         KindArg::Vad => ModelKind::Vad,
+        KindArg::Clone => ModelKind::Clone,
     }
 }
 

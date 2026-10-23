@@ -3,7 +3,10 @@ import {
   cancelSpeech,
   chooseSavePath,
   chooseTextFile,
+  createVoice,
+  deleteVoice,
   listVoices,
+  previewVoice,
   onSpeechFinished,
   onSpeechProgress,
   readTextFile,
@@ -11,7 +14,8 @@ import {
   speechUrl,
   startSpeech,
 } from "./api";
-import type { SpeechFinished, SpeechProgress, VoiceInfo } from "./types";
+import { cloneVoice, deleteClone } from "./api-clone";
+import type { SpeechFinished, SpeechProgress, VoiceInfo, VoicePart } from "./types";
 
 const MS = 1000;
 
@@ -25,6 +29,8 @@ class SpeechStore {
   speed = $state(1);
   /** Translate the text into the voice's language before speaking it. */
   translate = $state(false);
+  /** The language of the text when a cloned voice (which has none of its own) speaks it. */
+  cloneLanguage = $state("en");
   /** What was spoken, when it was translated first. */
   spoken = $state<string | null>(null);
   voices = $state<VoiceInfo[]>([]);
@@ -72,14 +78,58 @@ class SpeechStore {
   }
 
   async generate(): Promise<void> {
-    if (!this.voice || this.status === "working") return;
+    const voice = this.voice;
+    if (!voice) return;
+    const language = voice.cloned ? this.cloneLanguage : null;
+    await this.#run(() => startSpeech(this.text, voice.id, this.speed, this.translate, language));
+  }
+
+  /** Speaks a sample sentence in a blend that is not saved yet. */
+  async preview(name: string, parts: VoicePart[]): Promise<void> {
+    await this.#run(() => previewVoice(name, parts));
+  }
+
+  /** Saves a blend as a custom voice and chooses it. Returns false when it failed. */
+  async createVoice(name: string, parts: VoicePart[]): Promise<boolean> {
+    this.error = null;
+    try {
+      const made = await createVoice(name, parts);
+      await this.loadVoices();
+      if (made) this.chooseVoice(made.id);
+      return true;
+    } catch (failure) {
+      this.error = messageOf(failure);
+      return false;
+    }
+  }
+
+  /** Makes a cloned voice from a recording and chooses it. Throws the reason when it fails. */
+  async cloneVoice(name: string, path: string, consent: boolean): Promise<void> {
+    const made = await cloneVoice(name, path, consent);
+    await this.loadVoices();
+    if (made) this.chooseVoice(made.id);
+  }
+
+  async removeVoice(id: string): Promise<void> {
+    this.error = null;
+    try {
+      if (this.voices.find((v) => v.id === id)?.cloned) await deleteClone(id);
+      else await deleteVoice(id);
+      await this.loadVoices();
+    } catch (failure) {
+      this.error = messageOf(failure);
+    }
+  }
+
+  async #run(start: () => Promise<void>): Promise<void> {
+    if (this.status === "working") return;
     this.error = null;
     this.#discardAudio();
     this.spoken = null;
     this.status = "working";
     this.progress = null;
     try {
-      await startSpeech(this.text, this.voice.id, this.speed, this.translate);
+      await start();
     } catch (failure) {
       this.status = "idle";
       this.error = messageOf(failure);

@@ -8,9 +8,11 @@
   import { library } from "./lib/library.svelte";
   import { models } from "./lib/models.svelte";
   import { nav } from "./lib/nav.svelte";
+  import { record } from "./lib/record.svelte";
   import { onboarding } from "./lib/onboarding.svelte";
   import { settings } from "./lib/settings.svelte";
   import { speech } from "./lib/speech.svelte";
+  import RecordPage from "./pages/RecordPage.svelte";
   import OnboardingPage from "./pages/OnboardingPage.svelte";
   import LibraryPage from "./pages/LibraryPage.svelte";
   import ModelsPage from "./pages/ModelsPage.svelte";
@@ -25,6 +27,7 @@
     void jobs.start();
     void library.load();
     void speech.start();
+    void record.start();
     void settings.load();
   });
 </script>
@@ -38,6 +41,8 @@
       <main>
         {#if nav.current === "transcribe"}
           <TranscribePage />
+        {:else if nav.current === "record"}
+          <RecordPage />
         {:else if nav.current === "speak"}
           <SpeakPage />
         {:else if nav.current === "library"}

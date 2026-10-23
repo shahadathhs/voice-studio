@@ -1,0 +1,32 @@
+/** Pantalla Grabar: micrófono, medidor de nivel, subtítulos en vivo y qué hacer con la grabación. */
+export const record = {
+  "nav.record": "Grabar",
+  "record.title": "Grabar",
+  "record.subtitle":
+    "Graba con el micrófono y obtén subtítulos en vivo. El audio nunca sale de este equipo.",
+  "record.noDevice.title": "No se encontró ningún micrófono",
+  "record.noDevice.text":
+    "Conecta un micrófono y, en macOS, permite que Voice Studio lo use en Ajustes del Sistema; luego vuelve a abrir esta página.",
+  "record.device": "Micrófono",
+  "record.default": "predeterminado",
+  "record.start": "Empezar a grabar",
+  "record.stop": "Detener la grabación",
+  "record.ready": "Listo para grabar",
+  "record.recording": "Grabando…",
+  "record.saving": "Guardando…",
+  "record.level": "Nivel de entrada",
+  "record.live": "Subtítulos en vivo",
+  "record.needModel": "Instala un modelo de voz para obtener subtítulos en vivo y transcripciones.",
+  "record.openModels": "Abrir Modelos",
+  "record.captions": "Subtítulos en vivo",
+  "record.captionsHint": "Un borrador aproximado; la pasada completa se hace al transcribir",
+  "record.listening": "Escuchando…",
+  "record.noCaptions": "No se captó ninguna voz.",
+  "record.draft": "Borrador",
+  "record.done": "Grabación guardada",
+  "record.length": "Duración {time}",
+  "record.transcribe": "Transcribir",
+  "record.saveAs": "Guardar como…",
+  "record.discard": "Descartar",
+  "record.privacy": "Las grabaciones se quedan en este equipo hasta que las descartes.",
+} as const;

@@ -18,6 +18,7 @@ import type {
   SpeechProgress,
   TranscriptView,
   VoiceInfo,
+  VoicePart,
 } from "./types";
 
 /** True inside the Tauri window; false when the UI is opened in a plain browser (pnpm dev). */
@@ -236,14 +237,30 @@ export async function listVoices(): Promise<VoiceInfo[]> {
   return insideTauri() ? invoke<VoiceInfo[]>("list_voices") : [];
 }
 
+/** Saves a blend of shipped voices as a custom voice. */
+export async function createVoice(name: string, parts: VoicePart[]): Promise<VoiceInfo | null> {
+  return insideTauri() ? invoke<VoiceInfo>("create_voice", { name, parts }) : null;
+}
+
+export async function deleteVoice(id: string): Promise<void> {
+  if (insideTauri()) await invoke("delete_voice", { id });
+}
+
+/** Speaks a sample sentence in an unsaved blend; follow it like `startSpeech`. */
+export async function previewVoice(name: string, parts: VoicePart[]): Promise<void> {
+  if (insideTauri()) await invoke("preview_voice", { name, parts });
+}
+
 /** Starts speaking in the background; follow it with `onSpeechProgress` / `onSpeechFinished`. */
 export async function startSpeech(
   text: string,
   voice: string,
   speed: number,
   translate: boolean,
+  language: string | null = null,
 ): Promise<void> {
-  if (insideTauri()) await invoke("start_speech", { text, voice, speed, translate });
+  if (insideTauri())
+    await invoke("start_speech", { request: { text, voice, speed, translate, language } });
 }
 
 export async function cancelSpeech(): Promise<void> {

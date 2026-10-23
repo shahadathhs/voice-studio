@@ -1,11 +1,13 @@
 <script lang="ts">
   import { t } from "../lib/i18n.svelte";
+  import CloneVoice from "../components/CloneVoice.svelte";
   import EmptyState from "../components/EmptyState.svelte";
   import Icon from "../components/Icon.svelte";
   import Notice from "../components/Notice.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import ProgressBar from "../components/ProgressBar.svelte";
   import SpeechPlayer from "../components/SpeechPlayer.svelte";
+  import VoiceCreator from "../components/VoiceCreator.svelte";
   import VoiceList from "../components/VoiceList.svelte";
   import { percent } from "../lib/format";
   import { languageName } from "../lib/languages";
@@ -13,6 +15,8 @@
   import { nav } from "../lib/nav.svelte";
   import { speech } from "../lib/speech.svelte";
 
+  /** The languages a cloned voice can speak. */
+  const CLONE_LANGUAGES = ["en", "es", "fr", "it", "pt", "hi"];
   const installed = $derived(models.installed.some((model) => model.kind === "tts"));
   const working = $derived(speech.status === "working");
   const translating = $derived(working && speech.progress?.total === 0);
@@ -83,6 +87,18 @@
         {:else}
           <VoiceList />
         {/if}
+        {#if speech.voice?.cloned}
+          <label class="field">
+            <span>{t("clone.language")}</span>
+            <select bind:value={speech.cloneLanguage} disabled={working}>
+              {#each CLONE_LANGUAGES as code (code)}
+                <option value={code}>{languageName(code)}</option>
+              {/each}
+            </select>
+          </label>
+        {/if}
+        <VoiceCreator />
+        <CloneVoice />
 
         {#if hasTextModel && speech.voice}
           <label class="check">
@@ -188,6 +204,14 @@
 
   aside h2:not(:first-child) {
     margin-top: 12px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: var(--text2);
+    font-size: 12.5px;
   }
 
   .speed {

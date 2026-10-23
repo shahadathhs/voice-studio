@@ -3,12 +3,17 @@
   import { languageName } from "../lib/languages";
   import { speech } from "../lib/speech.svelte";
   import type { VoiceInfo } from "../lib/types";
+  import Icon from "./Icon.svelte";
+
+  /** The group of cloned voices, which have no language of their own. */
+  const CLONED = "cloned";
 
   /** The voices of each language together, in the order the languages first appear. */
   const groups = $derived.by(() => {
     const byLanguage = new Map<string, VoiceInfo[]>();
     for (const voice of speech.voices) {
-      byLanguage.set(voice.language, [...(byLanguage.get(voice.language) ?? []), voice]);
+      const key = voice.cloned ? CLONED : voice.language;
+      byLanguage.set(key, [...(byLanguage.get(key) ?? []), voice]);
     }
     return [...byLanguage].map(([language, voices]) => ({ language, voices }));
   });
@@ -17,23 +22,44 @@
 <div class="voices" role="radiogroup" aria-label={t("speak.voice")}>
   {#each groups as group (group.language)}
     {#if groups.length > 1}
-      <div class="language">{languageName(group.language || null)}</div>
+      <div class="language">
+        {group.language === CLONED ? t("clone.group") : languageName(group.language || null)}
+      </div>
     {/if}
     {#each group.voices as voice (voice.id)}
       {@const selected = speech.voice?.id === voice.id}
-      <button
-        class="voice"
-        class:selected
-        role="radio"
-        aria-checked={selected}
-        onclick={() => speech.chooseVoice(voice.id)}
-      >
-        <span class="dot" aria-hidden="true"></span>
-        <span class="text">
-          <strong>{voice.name}</strong>
-          <span class="muted">{voice.description}</span>
-        </span>
-      </button>
+      <div class="row" class:selected>
+        <button
+          class="voice"
+          role="radio"
+          aria-checked={selected}
+          onclick={() => speech.chooseVoice(voice.id)}
+        >
+          <span class="dot" aria-hidden="true"></span>
+          <span class="text">
+            <strong>{voice.name}</strong>
+            <span class="muted">{voice.description}</span>
+          </span>
+          {#if voice.cloned}
+            <span class="badge">{t("clone.badge")}</span>
+          {:else if voice.custom}
+            <span class="badge">{t("voices.custom")}</span>
+          {/if}
+        </button>
+        {#if voice.custom || voice.cloned}
+          {@const label = voice.cloned
+            ? t("clone.delete", { name: voice.name })
+            : t("voices.delete", { name: voice.name })}
+          <button
+            class="remove"
+            title={label}
+            aria-label={label}
+            onclick={() => speech.removeVoice(voice.id)}
+          >
+            <Icon name="trash" />
+          </button>
+        {/if}
+      </div>
     {/each}
   {/each}
 </div>
@@ -48,17 +74,48 @@
     overflow: hidden;
   }
 
-  .voice {
+  .row {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
     border-bottom: 1px solid var(--line);
+  }
+
+  .row:last-child {
+    border-bottom: 0;
+  }
+
+  .voice {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+    padding: 10px 14px;
     text-align: left;
   }
 
-  .voice:last-child {
-    border-bottom: 0;
+  .badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 11.5px;
+    font-weight: 600;
+  }
+
+  .remove {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin-right: 8px;
+    border-radius: 6px;
+    color: var(--text2);
+  }
+
+  .remove:hover {
+    color: var(--danger);
   }
 
   .language {
@@ -70,11 +127,11 @@
     font-weight: 600;
   }
 
-  .voice:hover {
+  .row:hover {
     background: var(--bg);
   }
 
-  .voice.selected {
+  .row.selected {
     background: var(--accent-bg);
   }
 

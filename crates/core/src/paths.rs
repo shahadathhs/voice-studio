@@ -39,6 +39,11 @@ impl Paths {
         self.data.join("models")
     }
 
+    /// Custom voice presets (`<id>.json`).
+    pub fn voices_dir(&self) -> PathBuf {
+        self.data.join("voices")
+    }
+
     pub fn library_db(&self) -> PathBuf {
         self.data.join("library.sqlite")
     }

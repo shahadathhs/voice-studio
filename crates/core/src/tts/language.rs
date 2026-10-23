@@ -70,6 +70,21 @@ impl Language {
         }
     }
 
+    /// A short sentence in the language, for trying out a voice.
+    pub fn sample_sentence(self) -> &'static str {
+        match self {
+            Language::AmericanEnglish | Language::BritishEnglish => {
+                "Hello, this is how my new voice sounds."
+            }
+            Language::Spanish => "Hola, así suena mi nueva voz.",
+            Language::French => "Bonjour, voici comment sonne ma nouvelle voix.",
+            Language::Hindi => "नमस्ते, यह मेरी नई आवाज़ है।",
+            Language::Italian => "Ciao, così suona la mia nuova voce.",
+            Language::Portuguese => "Olá, é assim que soa a minha nova voz.",
+            Language::Chinese => "你好，这是我新的声音。",
+        }
+    }
+
     /// The language as people say it: "Spanish", "British English".
     pub fn name(self) -> &'static str {
         match self {
@@ -126,6 +141,13 @@ mod tests {
         assert_eq!(Language::of_code("bn"), None);
         for language in Language::ALL {
             assert_eq!(Language::of_voice(language.default_voice()), Some(language));
+        }
+    }
+
+    #[test]
+    fn every_language_has_a_sample_sentence() {
+        for language in Language::ALL {
+            assert_ne!(language.sample_sentence(), "");
         }
     }
 

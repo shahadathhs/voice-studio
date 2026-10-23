@@ -8,7 +8,7 @@ and behavior covered by tests. By taking part you agree to the [Code of Conduct]
 Install [Rust](https://rustup.rs) (stable; `rust-toolchain.toml` adds rustfmt and clippy), a C++ compiler and
 [CMake](https://cmake.org) (the speech engine, whisper.cpp, is compiled during the build), Node.js 22+,
 [pnpm](https://pnpm.io) and `make`. On Linux, install the
-[Tauri system packages](https://tauri.app/start/prerequisites/). On Windows, use Git Bash or WSL for
+[Tauri system packages](https://tauri.app/start/prerequisites/) and `libasound2-dev` (microphone recording). On Windows, use Git Bash or WSL for
 `make`, or run the commands in the [Makefile](Makefile) directly.
 
 ```bash

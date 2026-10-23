@@ -21,6 +21,27 @@ fn encode_error(e: impl std::fmt::Display) -> Error {
 /// with silence (less than one block, under 0.1 s at speech sample rates) because some decoders,
 /// this crate's own among them, refuse a file whose last block is short.
 pub fn encode_flac(audio: &AudioBuffer) -> Result<Vec<u8>> {
+    encode_flac_with_note(audio, None)
+}
+
+/// FLAC metadata block type of a Vorbis comment, where players read tags such as `DESCRIPTION`.
+const VORBIS_COMMENT_BLOCK: u8 = 4;
+const COMMENT_VENDOR: &str = "Voice Studio";
+
+fn vorbis_comment(note: &str) -> Vec<u8> {
+    let comment = format!("DESCRIPTION={note}");
+    let length = |text: &str| u32::try_from(text.len()).unwrap_or(0).to_le_bytes();
+    let mut body = Vec::new();
+    body.extend(length(COMMENT_VENDOR));
+    body.extend(COMMENT_VENDOR.as_bytes());
+    body.extend(1u32.to_le_bytes());
+    body.extend(length(&comment));
+    body.extend(comment.as_bytes());
+    body
+}
+
+/// Like [`encode_flac`], with `note` stored as the file's `DESCRIPTION` tag.
+pub fn encode_flac_with_note(audio: &AudioBuffer, note: Option<&str>) -> Result<Vec<u8>> {
     let mut samples: Vec<i32> = audio
         .samples
         .iter()
@@ -38,8 +59,16 @@ pub fn encode_flac(audio: &AudioBuffer) -> Result<Vec<u8>> {
         .map_err(|(_, e)| encode_error(format!("{e:?}")))?;
     let sample_rate = usize::try_from(audio.sample_rate).unwrap_or(usize::MAX);
     let source = flacenc::source::MemSource::from_samples(&samples, CHANNELS, BITS, sample_rate);
-    let stream = flacenc::encode_with_fixed_block_size(&config, source, BLOCK_SIZE)
+    let mut stream = flacenc::encode_with_fixed_block_size(&config, source, BLOCK_SIZE)
         .map_err(|e| encode_error(format!("{e:?}")))?;
+    if let Some(note) = note {
+        let block = flacenc::component::MetadataBlockData::new_unknown(
+            VORBIS_COMMENT_BLOCK,
+            &vorbis_comment(note),
+        )
+        .map_err(|e| encode_error(format!("{e:?}")))?;
+        stream.add_metadata_block(block);
+    }
     let mut sink = flacenc::bitsink::ByteSink::new();
     stream.write(&mut sink).map_err(encode_error)?;
     Ok(sink.as_slice().to_vec())
@@ -87,5 +116,23 @@ mod tests {
             sample_rate: 24_000,
         };
         assert_eq!(&encode_flac(&audio).unwrap()[..4], b"fLaC");
+    }
+
+    #[test]
+    fn a_note_becomes_a_description_tag_and_the_file_still_decodes() {
+        let audio = AudioBuffer {
+            samples: vec![0.1; 4096],
+            sample_rate: 24_000,
+        };
+        let bytes = encode_flac_with_note(&audio, Some("synthetic voice")).unwrap();
+        assert!(
+            bytes
+                .windows(26)
+                .any(|w| w == b"DESCRIPTION=synthetic voic")
+        );
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("n.flac");
+        std::fs::write(&path, bytes).unwrap();
+        assert_eq!(load_for_whisper(&path).unwrap().samples.len(), 2731);
     }
 }

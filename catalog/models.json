@@ -14,7 +14,10 @@
           "sha256": "be07e048e1e599ad46341c8d2a135645097a538221678b7acdd1b1919c6e1b21",
           "size_bytes": 77691713
         }
-      ]
+      ],
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-base",
@@ -30,7 +33,10 @@
           "sha256": "60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe",
           "size_bytes": 147951465
         }
-      ]
+      ],
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-small",
@@ -46,7 +52,10 @@
           "sha256": "1be3a9b2063867b937e64e2ec7483364a79917e157fa98c5d94b5c1fffea987b",
           "size_bytes": 487601967
         }
-      ]
+      ],
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-medium",
@@ -62,7 +71,10 @@
           "sha256": "6c14d5adee5f86394037b4e4e8b59f1673b6cee10e3cf0b11bbdbee79c156208",
           "size_bytes": 1533763059
         }
-      ]
+      ],
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-large-v3-turbo",
@@ -79,7 +91,10 @@
           "size_bytes": 1624555275
         }
       ],
-      "can_translate": false
+      "can_translate": false,
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-large-v3-turbo-q5",
@@ -96,7 +111,10 @@
           "size_bytes": 574041195
         }
       ],
-      "can_translate": false
+      "can_translate": false,
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "whisper-large-v3",
@@ -112,7 +130,10 @@
           "sha256": "64d182b440b98d5203c4f9bd541544d84c605196c4f7b845dfa11fb23594d1e2",
           "size_bytes": 3095033483
         }
-      ]
+      ],
+      "license_url": "https://github.com/openai/whisper/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT"
     },
     {
       "id": "speaker-identification",
@@ -134,7 +155,10 @@
           "sha256": "220ad67ca923bef2fa91f2390c786097bf305bceb5e261d4af67b38e938e1079",
           "size_bytes": 5992913
         }
-      ]
+      ],
+      "license_url": "https://huggingface.co/pyannote/segmentation-3.0",
+      "license_checked": "2026-10-23",
+      "license_note": "pyannote segmentation-3.0 MIT; WeSpeaker ResNet34 Apache-2.0 (trained on VoxCeleb: dataset terms to review before release)"
     },
     {
       "id": "kokoro-82m",
@@ -402,7 +426,10 @@
           "sha256": "dcc769607c220b312fea3e71cb63421298b4b891b1f7356a95ab58f2c96fff81",
           "size_bytes": 1256063
         }
-      ]
+      ],
+      "license_url": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "license_checked": "2026-10-23",
+      "license_note": "Kokoro Apache-2.0; misaki dictionaries Apache-2.0; pinyin-data and phrase-pinyin-data MIT"
     },
     {
       "id": "qwen2.5-1.5b",
@@ -424,7 +451,10 @@
           "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
           "size_bytes": 7031645
         }
-      ]
+      ],
+      "license_url": "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Apache-2.0 (model card)"
     },
     {
       "id": "qwen2.5-7b",
@@ -446,7 +476,77 @@
           "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
           "size_bytes": 7031645
         }
-      ]
+      ],
+      "license_url": "https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/LICENSE",
+      "license_checked": "2026-10-23",
+      "license_note": "Apache-2.0 (model card); GGUF by bartowski"
+    },
+    {
+      "id": "chatterbox-multilingual",
+      "name": "Chatterbox Multilingual (voice cloning)",
+      "kind": "clone",
+      "description": "Speaks in a voice cloned from a short recording of someone who has given permission. Large (about 1.5 GB) and slower than the built-in voices. Languages: English, Spanish, French, Italian, Portuguese and Hindi are supported here.",
+      "languages": ["en", "es", "fr", "it", "pt", "hi"],
+      "license": "MIT",
+      "files": [
+        {
+          "name": "speech_encoder.onnx",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/speech_encoder.onnx",
+          "sha256": "8f1c8a0f89b77bf9cd5dd8f2e034eb2c79dc00fe70d41196b28c257643b00ccb",
+          "size_bytes": 1184608
+        },
+        {
+          "name": "speech_encoder.onnx_data",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/speech_encoder.onnx_data",
+          "sha256": "92f8f290fc9720e169bc2412c507209e20b03f6564bc3243739e25c56f7dfb8f",
+          "size_bytes": 591274880
+        },
+        {
+          "name": "embed_tokens.onnx",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/embed_tokens.onnx",
+          "sha256": "f785819ca4f6271262d5bb8971d62796c3a909e3b031982c113dbe83a4c3b854",
+          "size_bytes": 13286
+        },
+        {
+          "name": "embed_tokens.onnx_data",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/embed_tokens.onnx_data",
+          "sha256": "2a15f7dd73b2ee47f6edf87740324011594b5a528ed6471ae55e327ed6cad68c",
+          "size_bytes": 68390912
+        },
+        {
+          "name": "language_model_q4.onnx",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/language_model_q4.onnx",
+          "sha256": "7f8cdca83b2493536cbf3acf421199808a3d68736f55f4eabd20ef8a99da4313",
+          "size_bytes": 227911
+        },
+        {
+          "name": "language_model_q4.onnx_data",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/language_model_q4.onnx_data",
+          "sha256": "e79ab8784122a501718868b9631ff46e151c552d9b24e50f25d721f375e3526c",
+          "size_bytes": 353621248
+        },
+        {
+          "name": "conditional_decoder.onnx",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/conditional_decoder.onnx",
+          "sha256": "1656d0d31332bae1854839959a3139300ebb67c178651dfa3f8c5fbfa5351351",
+          "size_bytes": 6350448
+        },
+        {
+          "name": "conditional_decoder.onnx_data",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/onnx/conditional_decoder.onnx_data",
+          "sha256": "51d58345a272747665ec9d5bb61e01835258a940e321a288582ac4c18cf01b5a",
+          "size_bytes": 533970816
+        },
+        {
+          "name": "tokenizer.json",
+          "url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX/resolve/452d3f434aa592098f1eedac9099f33642ab2da5/tokenizer.json",
+          "sha256": "29d48c4a178f6af3ad5130097c34744639e9294847b38a7b912c8c68027cb819",
+          "size_bytes": 71798
+        }
+      ],
+      "license_url": "https://huggingface.co/onnx-community/chatterbox-multilingual-ONNX",
+      "license_checked": "2026-10-23",
+      "license_note": "Chatterbox code and weights MIT (model card); ONNX export by onnx-community. The reference Perth watermark is a Python library and is not ported. Training data not reviewed."
     }
   ]
 }

@@ -10,9 +10,11 @@ use crate::config_cmd;
 use crate::library_cmd;
 use crate::models_cmd;
 use crate::output::Output;
+use crate::record_cmd;
 use crate::speak_cmd;
 use crate::text_cmd;
 use crate::transcribe_cmd;
+use crate::voice_cmd;
 
 pub fn run(cli: Cli) -> Result<()> {
     let json = cli.global.json;
@@ -36,9 +38,10 @@ pub fn run(cli: Cli) -> Result<()> {
         Command::Speak(args) => speak_cmd::run(&args, &paths, out),
         Command::Summarize(args) => text_cmd::run_summarize(&args, &paths, out),
         Command::Translate(args) => text_cmd::run_translate(&args, &paths, out),
-        Command::Record(_) => Err(Error::NotImplemented("record")),
+        Command::Record(args) => record_cmd::run(&args, &paths, out),
+        Command::Voice(command) => voice_cmd::run(command, &paths, out),
         Command::Library(command) => library_cmd::run(command, &paths, out),
-        Command::Devices => Err(Error::NotImplemented("devices")),
+        Command::Devices => record_cmd::list_devices(out),
     }
 }
 

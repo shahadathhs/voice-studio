@@ -48,6 +48,8 @@ export const speak: Record<keyof typeof english, string> = {
   "settings.deviceAuto": "Automático (GPU si está disponible)",
   "settings.deviceCpu": "Solo procesador",
   "settings.deviceGpu": "Tarjeta gráfica",
+  "settings.notices": "Avisos de terceros",
+  "settings.showNotices": "Ver licencias",
   "settings.about": "Acerca de",
   "settings.version": "Versión",
   "settings.engine": "Motor principal",

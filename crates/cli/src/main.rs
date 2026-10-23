@@ -1,16 +1,19 @@
 //! `vtt` — command-line front end for Voice Studio. See docs/product/cli.md for the full plan.
 
 mod cli;
+mod clone_cmd;
 mod commands;
 mod config_cmd;
 mod library_cmd;
 mod manage;
 mod models_cmd;
 mod output;
+mod record_cmd;
 mod speak_cmd;
 mod text_cmd;
 mod transcribe_cmd;
 mod transcribe_job;
+mod voice_cmd;
 
 use std::process::ExitCode;
 

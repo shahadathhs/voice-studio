@@ -29,6 +29,11 @@ export const models: Record<keyof typeof english, string> = {
   "models.group.text.title": "Resúmenes y traducción",
   "models.group.text.purpose":
     "Escriben resúmenes y traducciones de las transcripciones, en este ordenador. Opcional; el modelo grande es más claro, sobre todo fuera del inglés y el español, pero necesita más memoria.",
+  "models.group.clone.title": "Clonación de voz",
+  "models.group.clone.purpose":
+    "Habla con una voz creada a partir de una grabación corta de alguien que ha dado su permiso. Opcional; una descarga grande y más lenta que las voces incluidas.",
+  "modelInfo.chatterbox-multilingual":
+    "Clona una voz a partir de 3 a 30 segundos de habla. Inglés, español, francés, italiano, portugués e hindi. Unos 1,5 GB; varias veces más lento que el tiempo real en una CPU.",
   "models.goLibrary": "Ir a la Biblioteca",
   "models.goTranscribe": "Ir a Transcribir",
   "models.goSpeak": "Ir a Hablar",

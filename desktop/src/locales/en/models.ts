@@ -27,6 +27,11 @@ export const models = {
   "models.group.text.title": "Summaries and translation",
   "models.group.text.purpose":
     "Write summaries and translations of transcripts, on this computer. Optional; the larger model is clearer, especially outside English and Spanish, but needs more memory.",
+  "models.group.clone.title": "Voice cloning",
+  "models.group.clone.purpose":
+    "Speak in a voice made from a short recording of someone who has given permission. Optional; a large download, and slower than the built-in voices.",
+  "modelInfo.chatterbox-multilingual":
+    "Clones a voice from 3 to 30 seconds of speech. English, Spanish, French, Italian, Portuguese and Hindi. About 1.5 GB; several times slower than real time on a CPU.",
   "models.goLibrary": "Go to Library",
   "models.goTranscribe": "Go to Transcribe",
   "models.goSpeak": "Go to Speak",

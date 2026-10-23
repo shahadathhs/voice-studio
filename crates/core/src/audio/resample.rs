@@ -2,6 +2,7 @@ use rubato::audioadapter_buffers::direct::InterleavedSlice;
 use rubato::{Fft, FixedSync, Indexing, Resampler};
 
 use super::WHISPER_SAMPLE_RATE;
+use crate::engines::AudioBuffer;
 use crate::{Error, Result};
 
 const CHUNK_FRAMES: usize = 4096;
@@ -22,10 +23,11 @@ pub struct StreamResampler {
 }
 
 impl StreamResampler {
-    pub fn new(input_rate: u32) -> Result<StreamResampler> {
+    /// A resampler from `input_rate` to `output_rate`.
+    pub fn new(input_rate: u32, output_rate: u32) -> Result<StreamResampler> {
         let fft = Fft::<f32>::new(
             input_rate as usize,
-            WHISPER_SAMPLE_RATE as usize,
+            output_rate as usize,
             CHUNK_FRAMES,
             1,
             FixedSync::Input,
@@ -38,7 +40,7 @@ impl StreamResampler {
             output: Vec::new(),
             delay_left,
             input_frames: 0,
-            ratio: f64::from(WHISPER_SAMPLE_RATE) / f64::from(input_rate),
+            ratio: f64::from(output_rate) / f64::from(input_rate),
         })
     }
 
@@ -95,6 +97,27 @@ impl StreamResampler {
     }
 }
 
+/// `audio` as mono at the sample rate speech models expect; unchanged if it already is.
+pub fn resample_to_whisper(audio: &AudioBuffer) -> Result<AudioBuffer> {
+    resample_to(audio, WHISPER_SAMPLE_RATE)
+}
+
+/// `audio` converted to `rate`; unchanged if it already is at that rate.
+pub fn resample_to(audio: &AudioBuffer, rate: u32) -> Result<AudioBuffer> {
+    if audio.sample_rate == rate || audio.samples.is_empty() {
+        return Ok(AudioBuffer {
+            samples: audio.samples.clone(),
+            sample_rate: rate,
+        });
+    }
+    let mut resampler = StreamResampler::new(audio.sample_rate, rate)?;
+    resampler.push(&audio.samples)?;
+    Ok(AudioBuffer {
+        samples: resampler.finish()?,
+        sample_rate: rate,
+    })
+}
+
 #[cfg(test)]
 #[allow(
     clippy::cast_precision_loss,
@@ -112,7 +135,7 @@ mod tests {
     }
 
     fn resample(rate: u32, data: &[f32], piece: usize) -> Vec<f32> {
-        let mut r = StreamResampler::new(rate).unwrap();
+        let mut r = StreamResampler::new(rate, WHISPER_SAMPLE_RATE).unwrap();
         for part in data.chunks(piece) {
             r.push(part).unwrap();
         }
@@ -146,5 +169,22 @@ mod tests {
     fn chunking_of_the_input_does_not_change_the_result() {
         let data = sine(44_100, 1.5, 300.0);
         assert_eq!(resample(44_100, &data, 100), resample(44_100, &data, 5000));
+    }
+
+    #[test]
+    fn a_buffer_is_brought_to_the_speech_rate() {
+        let audio = AudioBuffer {
+            samples: sine(48_000, 1.0, 440.0),
+            sample_rate: 48_000,
+        };
+        let out = resample_to_whisper(&audio).unwrap();
+        assert_eq!((out.sample_rate, out.samples.len()), (16_000, 16_000));
+        let same = resample_to_whisper(&out).unwrap();
+        assert_eq!(same.samples, out.samples);
+        let empty = AudioBuffer {
+            samples: vec![],
+            sample_rate: 44_100,
+        };
+        assert_eq!(resample_to_whisper(&empty).unwrap().samples.len(), 0);
     }
 }

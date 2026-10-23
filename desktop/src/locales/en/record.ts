@@ -1,0 +1,32 @@
+/** The Record screen: microphone, level meter, live captions and what to do with the recording. */
+export const record = {
+  "nav.record": "Record",
+  "record.title": "Record",
+  "record.subtitle":
+    "Record from the microphone, with live captions. Audio never leaves this computer.",
+  "record.noDevice.title": "No microphone found",
+  "record.noDevice.text":
+    "Connect a microphone, and on macOS allow Voice Studio to use it in System Settings, then reopen this page.",
+  "record.device": "Microphone",
+  "record.default": "default",
+  "record.start": "Start recording",
+  "record.stop": "Stop recording",
+  "record.ready": "Ready to record",
+  "record.recording": "Recording…",
+  "record.saving": "Saving…",
+  "record.level": "Input level",
+  "record.live": "Live captions",
+  "record.needModel": "Install a speech model to get live captions and transcripts.",
+  "record.openModels": "Open Models",
+  "record.captions": "Live captions",
+  "record.captionsHint": "A rough draft; the full pass runs when you transcribe",
+  "record.listening": "Listening…",
+  "record.noCaptions": "No speech was caught.",
+  "record.draft": "Draft",
+  "record.done": "Recording saved",
+  "record.length": "Length {time}",
+  "record.transcribe": "Transcribe",
+  "record.saveAs": "Save as…",
+  "record.discard": "Discard",
+  "record.privacy": "Recordings are kept on this computer until you discard them.",
+} as const;

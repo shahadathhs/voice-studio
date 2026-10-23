@@ -5,19 +5,19 @@ Voice Studio is built from the software and models below. This file is generated
 
 ## Models (downloaded by the user, not bundled)
 
-| Model                                                   | Licence         |
-| ------------------------------------------------------- | --------------- |
-| Whisper tiny                                            | MIT             |
-| Whisper base                                            | MIT             |
-| Whisper small                                           | MIT             |
-| Whisper medium                                          | MIT             |
-| Whisper large-v3 turbo                                  | MIT             |
-| Whisper large-v3 turbo (compact)                        | MIT             |
-| Whisper large-v3                                        | MIT             |
-| Speaker identification (pyannote + WeSpeaker ResNet34)  | Apache-2.0, MIT |
-| Kokoro 82M (voices)                                     | Apache-2.0      |
-| Qwen 2.5 1.5B (summaries and translation)               | Apache-2.0      |
-| Qwen 2.5 7B (summaries and translation, better quality) | Apache-2.0      |
+| Model                                                   | Licence         | Where                                                                         | Checked    | Notes                                                                                                                      |
+| ------------------------------------------------------- | --------------- | ----------------------------------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Whisper tiny                                            | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper base                                            | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper small                                           | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper medium                                          | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper large-v3 turbo                                  | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper large-v3 turbo (compact)                        | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Whisper large-v3                                        | MIT             | [source](https://github.com/openai/whisper/blob/main/LICENSE)                 | 2026-10-23 | Whisper weights: MIT (OpenAI); ggml conversion by whisper.cpp, MIT                                                         |
+| Speaker identification (pyannote + WeSpeaker ResNet34)  | Apache-2.0, MIT | [source](https://huggingface.co/pyannote/segmentation-3.0)                    | 2026-10-23 | pyannote segmentation-3.0 MIT; WeSpeaker ResNet34 Apache-2.0 (trained on VoxCeleb: dataset terms to review before release) |
+| Kokoro 82M (voices)                                     | Apache-2.0      | [source](https://huggingface.co/hexgrad/Kokoro-82M)                           | 2026-10-23 | Kokoro Apache-2.0; misaki dictionaries Apache-2.0; pinyin-data and phrase-pinyin-data MIT                                  |
+| Qwen 2.5 1.5B (summaries and translation)               | Apache-2.0      | [source](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct/blob/main/LICENSE) | 2026-10-23 | Apache-2.0 (model card)                                                                                                    |
+| Qwen 2.5 7B (summaries and translation, better quality) | Apache-2.0      | [source](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct/blob/main/LICENSE)   | 2026-10-23 | Apache-2.0 (model card); GGUF by bartowski                                                                                 |
 
 ## Rust crates (665)
 

@@ -45,6 +45,8 @@ export const speak = {
   "settings.deviceAuto": "Automatic (GPU when available)",
   "settings.deviceCpu": "Processor only",
   "settings.deviceGpu": "Graphics card",
+  "settings.notices": "Third-party notices",
+  "settings.showNotices": "Show licences",
   "settings.about": "About",
   "settings.version": "Version",
   "settings.engine": "Core engine",

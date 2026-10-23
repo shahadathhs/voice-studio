@@ -11,6 +11,7 @@ pub enum KindArg {
     Diarization,
     Text,
     Vad,
+    Clone,
 }
 
 #[derive(Subcommand, Debug)]

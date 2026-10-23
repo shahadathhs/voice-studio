@@ -120,6 +120,9 @@ mod tests {
             description: String::new(),
             languages: vec![],
             license: "MIT".into(),
+            license_url: String::new(),
+            license_checked: String::new(),
+            license_note: String::new(),
             can_translate: true,
             files: vec![file],
         }

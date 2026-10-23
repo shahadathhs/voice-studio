@@ -1,4 +1,5 @@
 <script lang="ts">
+  import NoticesDialog from "../components/NoticesDialog.svelte";
   import PageHeader from "../components/PageHeader.svelte";
   import SettingRow from "../components/SettingRow.svelte";
   import ThemeSwitcher from "../components/ThemeSwitcher.svelte";
@@ -8,6 +9,8 @@
   import { models } from "../lib/models.svelte";
   import { settings } from "../lib/settings.svelte";
   import type { Device } from "../lib/types";
+
+  let showingNotices = $state(false);
 
   const speechModels = $derived(models.installed.filter((model) => model.kind === "stt"));
   const hasSpeakerModel = $derived(models.installed.some((model) => model.kind === "diarization"));
@@ -124,9 +127,20 @@
         <dt>{t("settings.dataFolder")}</dt>
         <dd class="mono">{info.value?.dataDir ?? "—"}</dd>
       </div>
+      <div class="row">
+        <dt>{t("settings.notices")}</dt>
+        <dd>
+          <button class="btn" onclick={() => (showingNotices = true)}
+            >{t("settings.showNotices")}</button
+          >
+        </dd>
+      </div>
     </dl>
   </div>
 </section>
+{#if showingNotices}
+  <NoticesDialog onclose={() => (showingNotices = false)} />
+{/if}
 
 <style>
   section {

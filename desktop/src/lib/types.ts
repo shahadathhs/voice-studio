@@ -7,7 +7,7 @@ export interface AppInfo {
   dataDir: string;
 }
 
-export type ModelKind = "stt" | "tts" | "diarization" | "text" | "vad";
+export type ModelKind = "stt" | "tts" | "diarization" | "text" | "vad" | "clone";
 
 /** Catalog data plus install state, from `list_models`. Same fields as `ModelStatus` in vtt-core. */
 export interface ModelStatus {
@@ -119,6 +119,16 @@ export interface VoiceInfo {
   description: string;
   /** The language code the voice speaks, e.g. `es`; empty if unknown. */
   language: string;
+  /** A blend the user made; it can be deleted. */
+  custom: boolean;
+  /** A voice cloned from a recording; it can be deleted. */
+  cloned: boolean;
+}
+
+/** One voice of a blend, with its weight (the weights are scaled to sum to 1). */
+export interface VoicePart {
+  voice: string;
+  weight: number;
 }
 
 /** Event `speech-progress`: sentences spoken so far. */
@@ -175,4 +185,40 @@ export interface Settings {
   language: string | null;
   device: Device;
   identify_speakers: boolean;
+}
+
+/** A microphone. Same fields as `InputDevice` in vtt-core. */
+export interface InputDevice {
+  name: string;
+  is_default: boolean;
+}
+
+/** The `recording-level` event, about 15 times a second while recording. */
+export interface RecordingLevel {
+  /** Recent peak, 0 to 1. */
+  level: number;
+  elapsed_ms: number;
+  /** Set when the microphone stopped working. */
+  error: string | null;
+}
+
+/** The `recording-captions` event: `final` will not change, `draft` may. */
+export interface RecordingCaptions {
+  final: string;
+  draft: string;
+  /** Set when live captions could not run. */
+  error: string | null;
+}
+
+/** A finished recording saved in the data directory. */
+export interface RecordingResult {
+  path: string;
+  duration_ms: number;
+}
+
+/** Event `dictation-state`: what the floating dictation window shows. */
+export interface DictationState {
+  state: "listening" | "working" | "done" | "failed";
+  text: string | null;
+  message: string | null;
 }

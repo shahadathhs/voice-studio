@@ -21,7 +21,10 @@ const crates = metadata.packages
   .sort((a, b) => a.name.localeCompare(b.name) || a.version.localeCompare(b.version));
 
 const catalog = JSON.parse(readFileSync("catalog/models.json", "utf8"));
-const models = catalog.models.map((m) => `| ${m.name ?? m.id} | ${m.license} |`);
+const models = catalog.models.map(
+  (m) =>
+    `| ${m.name ?? m.id} | ${m.license} | [source](${m.license_url}) | ${m.license_checked} | ${m.license_note ?? ""} |`,
+);
 
 const lines = [
   "# Third-party notices",
@@ -31,8 +34,8 @@ const lines = [
   "",
   "## Models (downloaded by the user, not bundled)",
   "",
-  "| Model | Licence |",
-  "| --- | --- |",
+  "| Model | Licence | Where | Checked | Notes |",
+  "| --- | --- | --- | --- | --- |",
   ...models,
   "",
   `## Rust crates (${crates.length})`,

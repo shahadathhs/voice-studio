@@ -12,6 +12,8 @@ use ort::session::Session;
 use ort::value::Tensor;
 
 use super::language::Language;
+use super::levels::{quieten, silence};
+use super::presets::{self, Preset, STYLE_SIZE, read_table};
 use super::pronounce::{GOLD_FILE, Pronouncer, SILVER_FILE};
 use super::sentences::{self, Piece};
 use super::vocab::Vocab;
@@ -22,7 +24,7 @@ use crate::{Error, Result};
 pub const MODEL_FILE: &str = "model_quantized.onnx";
 pub const TOKENIZER_FILE: &str = "tokenizer.json";
 /// Extension of a voice file, named after the voice (`af_heart.bin`).
-const VOICE_EXTENSION: &str = "bin";
+pub(super) const VOICE_EXTENSION: &str = "bin";
 
 /// Kokoro produces audio at this rate.
 pub const SAMPLE_RATE: u32 = 24_000;
@@ -31,7 +33,6 @@ pub const MIN_SPEED: f32 = 0.5;
 pub const MAX_SPEED: f32 = 2.0;
 /// The model reads up to 510 symbols; shorter pieces sound better, so longer ones are halved.
 const MAX_TOKENS: usize = 400;
-const STYLE_SIZE: usize = 256;
 const SENTENCE_PAUSE_MS: usize = 250;
 const PARAGRAPH_PAUSE_MS: usize = 650;
 const SPLIT_PAUSE_MS: usize = 120;
@@ -47,6 +48,10 @@ pub struct KokoroEngine {
     pronouncer: Pronouncer,
     dir: PathBuf,
     voices: HashMap<String, Vec<f32>>,
+    /// Where custom voices are kept; none means only shipped voices.
+    presets_dir: Option<PathBuf>,
+    /// A blend being tried out that is not saved yet.
+    draft: Option<Preset>,
 }
 
 impl KokoroEngine {
@@ -65,7 +70,16 @@ impl KokoroEngine {
             pronouncer: Pronouncer::load(dir)?,
             dir: dir.to_path_buf(),
             voices: HashMap::new(),
+            presets_dir: None,
+            draft: None,
         })
+    }
+
+    /// Lets the engine speak the custom voices saved in `dir`.
+    #[must_use]
+    pub fn with_presets(mut self, dir: &Path) -> KokoroEngine {
+        self.presets_dir = Some(dir.to_path_buf());
+        self
     }
 
     /// The voices installed in `dir`, by name, in alphabetical order.
@@ -83,26 +97,50 @@ impl KokoroEngine {
         names
     }
 
+    /// Sets (or clears) an unsaved blend that can be spoken under its own id.
+    pub fn set_draft(&mut self, draft: Option<Preset>) {
+        self.draft = draft;
+    }
+
+    /// The custom voice called `voice`, if there is one.
+    fn preset(&self, voice: &str) -> Option<Preset> {
+        if let Some(draft) = self.draft.as_ref().filter(|d| d.id == voice) {
+            return Some(draft.clone());
+        }
+        let dir = self.presets_dir.as_deref()?;
+        presets::load(dir, voice).ok()
+    }
+
+    fn voice_path(&self, voice: &str) -> PathBuf {
+        self.dir.join(format!("{voice}.{VOICE_EXTENSION}"))
+    }
+
+    /// The style table of a shipped voice or a custom blend.
+    fn table(&self, voice: &str, preset: Option<&Preset>) -> Result<Vec<f32>> {
+        if let Some(preset) = preset {
+            return preset.blend(|part| read_table(&self.voice_path(part)));
+        }
+        let path = self.voice_path(voice);
+        if !path.is_file() {
+            return Err(Error::Input(format!(
+                "unknown voice: {voice} (installed: {})",
+                KokoroEngine::voices_in(&self.dir).join(", ")
+            )));
+        }
+        read_table(&path)
+    }
+
     /// The style vector for a sentence of `tokens` symbols in `voice`.
     fn style(&mut self, voice: &str, tokens: usize) -> Result<Vec<f32>> {
-        if !self.voices.contains_key(voice) {
-            let path = self.dir.join(format!("{voice}.{VOICE_EXTENSION}"));
-            let bytes = std::fs::read(&path).map_err(|_| {
-                Error::Input(format!(
-                    "unknown voice: {voice} (installed: {})",
-                    KokoroEngine::voices_in(&self.dir).join(", ")
-                ))
-            })?;
-            let (words, _) = bytes.as_chunks::<4>();
-            let numbers: Vec<f32> = words.iter().map(|b| f32::from_le_bytes(*b)).collect();
-            if numbers.is_empty() || !numbers.len().is_multiple_of(STYLE_SIZE) {
-                return Err(Error::Engine(format!(
-                    "kokoro: voice file {voice} is damaged"
-                )));
-            }
-            self.voices.insert(voice.to_string(), numbers);
+        let preset = self.preset(voice);
+        let key = preset
+            .as_ref()
+            .map_or_else(|| voice.to_string(), Preset::cache_key);
+        if !self.voices.contains_key(&key) {
+            let table = self.table(voice, preset.as_ref())?;
+            self.voices.insert(key.clone(), table);
         }
-        let table = &self.voices[voice];
+        let table = &self.voices[&key];
         let rows = table.len() / STYLE_SIZE;
         let row = tokens.min(rows - 1);
         Ok(table[row * STYLE_SIZE..(row + 1) * STYLE_SIZE].to_vec())
@@ -202,20 +240,6 @@ impl KokoroEngine {
     }
 }
 
-fn silence(ms: usize) -> Vec<f32> {
-    vec![0.0; ms * SAMPLE_RATE as usize / 1000]
-}
-
-/// Scales audio down when its peak would clip; quiet audio is left alone.
-fn quieten(samples: &mut [f32]) {
-    let peak = samples.iter().fold(0.0_f32, |peak, s| peak.max(s.abs()));
-    if peak > 1.0 {
-        for sample in samples.iter_mut() {
-            *sample /= peak;
-        }
-    }
-}
-
 impl TtsEngine for KokoroEngine {
     fn synthesize(&mut self, text: &str, options: &TtsOptions) -> Result<AudioBuffer> {
         self.speak(text, options, &mut |_, _| Control::Continue)
@@ -244,16 +268,6 @@ mod tests {
     }
 
     #[test]
-    fn only_audio_that_would_clip_is_scaled_down() {
-        let mut loud = vec![2.0, -1.0, 0.5];
-        quieten(&mut loud);
-        assert_eq!(loud, [1.0, -0.5, 0.25]);
-        let mut quiet = vec![0.2, -0.4];
-        quieten(&mut quiet);
-        assert_eq!(quiet, [0.2, -0.4]);
-    }
-
-    #[test]
     fn the_catalog_installs_every_file_the_engine_reads() {
         let catalog = crate::models::Catalog::bundled().unwrap();
         let entry = catalog.find("kokoro-82m").unwrap();
@@ -269,10 +283,5 @@ mod tests {
                 >= 2
         );
         assert_eq!(entry.kind, crate::models::ModelKind::Tts);
-    }
-
-    #[test]
-    fn pauses_have_the_right_length() {
-        assert_eq!(silence(250).len(), 6000);
     }
 }

@@ -105,7 +105,7 @@ make check     # everything CI runs
 
 You need [Rust](https://rustup.rs), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
 from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
-[Tauri system packages](https://tauri.app/start/prerequisites/). On Windows use Git Bash or WSL.
+[Tauri system packages](https://tauri.app/start/prerequisites/) and the ALSA headers (`libasound2-dev`) for microphone recording. On Windows use Git Bash or WSL.
 `make` lists every target.
 
 GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or

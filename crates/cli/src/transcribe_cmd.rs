@@ -73,7 +73,7 @@ fn keep(library: &mut Library, file: &Path, transcript: &Transcript) -> Result<(
     Ok(())
 }
 
-fn load_engine(
+pub(crate) fn load_engine(
     args: &Transcribe,
     settings: &Settings,
     entry: &ModelEntry,
@@ -127,7 +127,7 @@ fn check_inputs(files: &[PathBuf]) -> Result<()> {
 
 /// `--model` (or the `model` setting) accepts a catalog id (`whisper-base`) or the bare size the Python CLI used (`base`).
 /// Fails when the model is not a speech model, or cannot translate and `--translate` was given.
-fn choose_model<'a>(
+pub(crate) fn choose_model<'a>(
     catalog: &'a Catalog,
     store: &ModelStore,
     args: &Transcribe,

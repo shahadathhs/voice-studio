@@ -2,7 +2,10 @@
 
 use std::sync::Mutex;
 
+use super::render::keep_only;
 use super::*;
+use vtt_core::audio::encode_wav;
+use vtt_core::tts::SAMPLE_RATE;
 
 /// The statics are shared by every test, so tests that touch them run one at a time.
 static SERIAL: Mutex<()> = Mutex::new(());
@@ -17,6 +20,8 @@ fn request(text: &str) -> Request {
         voice: "af_heart".into(),
         speed: 1.0,
         translate: false,
+        draft: None,
+        language: "en".into(),
     }
 }
 

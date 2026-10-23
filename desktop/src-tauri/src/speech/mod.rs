@@ -5,17 +5,18 @@
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Mutex, MutexGuard, PoisonError};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
-use vtt_core::audio::{AudioFormat, decode_wav, encode_wav};
-use vtt_core::engines::{Control, TtsOptions};
+use vtt_core::audio::{AudioFormat, decode_wav, wav_note};
+use vtt_core::engines::Control;
 use vtt_core::models::{Catalog, ModelEntry, ModelStore, SPEECH_MODEL_ID};
 use vtt_core::paths::Paths;
-use vtt_core::tts::{KokoroEngine, SAMPLE_RATE, VoiceInfo, describe};
+use vtt_core::tts::clone::is_clone_id;
+use vtt_core::tts::{KokoroEngine, Preset, VoiceInfo, voice_list};
 use vtt_core::{Error, Result};
 
+use crate::clones;
 use crate::commands::CommandError;
 
 const PROGRESS_EVENT: &str = "speech-progress";
@@ -46,6 +47,17 @@ struct FinishedEvent {
     text: Option<String>,
 }
 
+/// What the Speak screen asks for. Mirrored by the `start_speech` call in `desktop/src/lib/api.ts`.
+#[derive(Debug, serde::Deserialize)]
+pub struct SpeechArgs {
+    text: String,
+    voice: String,
+    speed: f32,
+    translate: bool,
+    /// The language of the text, for a cloned voice.
+    language: Option<String>,
+}
+
 /// What to say and how.
 pub struct Request {
     pub text: String,
@@ -53,6 +65,10 @@ pub struct Request {
     pub speed: f32,
     /// Translate the text into the voice's language before speaking it.
     pub translate: bool,
+    /// A blend that is not saved yet, spoken under its own id (a preview).
+    pub draft: Option<Preset>,
+    /// The language of the text, for a cloned voice (which has none of its own); a code such as `es`.
+    pub language: String,
 }
 
 fn lock<T>(mutex: &'static Mutex<T>) -> MutexGuard<'static, T> {
@@ -74,60 +90,12 @@ fn speech_entry(store: &ModelStore) -> Result<ModelEntry> {
 /// The installed voices; empty when the voice model is not installed.
 pub fn voices(paths: &Paths) -> Vec<VoiceInfo> {
     let store = ModelStore::new(paths);
-    match speech_entry(&store) {
-        Ok(entry) => KokoroEngine::voices_in(&store.model_dir(&entry))
-            .iter()
-            .map(|id| describe(id))
-            .collect(),
+    let mut voices = match speech_entry(&store) {
+        Ok(entry) => voice_list(&store.model_dir(&entry), &paths.voices_dir()),
         Err(_) => Vec::new(),
-    }
-}
-
-/// Deletes earlier speech files so the folder never holds more than the latest one.
-fn keep_only(dir: &Path, keep: &Path) {
-    for entry in std::fs::read_dir(dir).into_iter().flatten().flatten() {
-        let path = entry.path();
-        let is_speech = path
-            .file_name()
-            .and_then(|n| n.to_str())
-            .is_some_and(|n| n.starts_with(FILE_PREFIX));
-        if is_speech && path != keep {
-            let _ = std::fs::remove_file(path);
-        }
-    }
-}
-
-/// Speaks the request into a new WAV in the data directory and returns its path and length.
-fn synthesize(
-    paths: &Paths,
-    request: &Request,
-    on_progress: &mut dyn FnMut(usize, usize) -> Control,
-) -> Result<(PathBuf, u64)> {
-    let store = ModelStore::new(paths);
-    let entry = speech_entry(&store)?;
-    let mut engine = lock(&ENGINE);
-    if engine.is_none() {
-        *engine = Some(KokoroEngine::load(&store.model_dir(&entry), &entry.id)?);
-    }
-    let engine = engine
-        .as_mut()
-        .ok_or_else(|| Error::Engine("no voice model loaded".into()))?;
-    let options = TtsOptions {
-        voice: request.voice.clone(),
-        speed: request.speed,
     };
-    let audio = engine.speak(&request.text, &options, on_progress)?;
-    let dir = paths.data.join(SPEECH_DIR);
-    std::fs::create_dir_all(&dir)?;
-    let millis = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |d| d.as_millis());
-    let path = dir.join(format!("{FILE_PREFIX}{millis}.wav"));
-    std::fs::write(&path, encode_wav(&audio))?;
-    keep_only(&dir, &path);
-    let duration_ms =
-        u64::try_from(audio.samples.len()).unwrap_or(u64::MAX) * 1000 / u64::from(SAMPLE_RATE);
-    Ok((path, duration_ms))
+    voices.extend(clones::listed(paths));
+    voices
 }
 
 fn finished(result: &Result<(PathBuf, u64)>) -> FinishedEvent {
@@ -162,7 +130,9 @@ pub fn start<R: Runtime>(app: AppHandle<R>, paths: Paths, request: Request) -> R
     if request.text.trim().is_empty() {
         return Err(Error::Input("there is no text to speak".into()));
     }
-    speech_entry(&ModelStore::new(&paths))?;
+    if !is_clone_id(&request.voice) {
+        speech_entry(&ModelStore::new(&paths))?;
+    }
     if BUSY.swap(true, Ordering::SeqCst) {
         return Err(Error::Input("something is already being spoken".into()));
     }
@@ -183,9 +153,9 @@ pub fn start<R: Runtime>(app: AppHandle<R>, paths: Paths, request: Request) -> R
                     text: text.clone(),
                     ..request
                 };
-                synthesize(&paths, &request, &mut |d, t| progress(d, t))
+                render::synthesize(&paths, &request, &mut |d, t| progress(d, t))
             }
-            Ok(None) => synthesize(&paths, &request, &mut |d, t| progress(d, t)),
+            Ok(None) => render::synthesize(&paths, &request, &mut |d, t| progress(d, t)),
             Err(error) => Err(Error::Engine(error.to_string())),
         };
         let mut event = match result.as_ref().map(|(path, _)| allow(&app, path)) {
@@ -213,8 +183,13 @@ fn save(destination: &Path) -> Result<()> {
         .clone()
         .ok_or_else(|| Error::Input("nothing has been spoken yet".into()))?;
     if AudioFormat::from_path(destination) == Some(AudioFormat::Flac) {
-        let audio = decode_wav(&std::fs::read(source)?)?;
-        std::fs::write(destination, AudioFormat::Flac.encode(&audio)?)?;
+        let bytes = std::fs::read(source)?;
+        let audio = decode_wav(&bytes)?;
+        let note = wav_note(&bytes);
+        std::fs::write(
+            destination,
+            AudioFormat::Flac.encode_with_note(&audio, note.as_deref())?,
+        )?;
     } else {
         std::fs::copy(source, destination)?;
     }
@@ -228,18 +203,14 @@ pub fn list_voices() -> Vec<VoiceInfo> {
 
 /// Starts speaking; follow it with the `speech-progress` and `speech-finished` events.
 #[tauri::command]
-pub fn start_speech(
-    app: AppHandle,
-    text: String,
-    voice: &str,
-    speed: f32,
-    translate: bool,
-) -> std::result::Result<(), CommandError> {
+pub fn start_speech(app: AppHandle, request: SpeechArgs) -> std::result::Result<(), CommandError> {
     let request = Request {
-        text,
-        voice: voice.to_string(),
-        speed,
-        translate,
+        text: request.text,
+        voice: request.voice,
+        speed: request.speed,
+        translate: request.translate,
+        draft: None,
+        language: request.language.unwrap_or_else(|| "en".into()),
     };
     Ok(start(app, Paths::resolve(None), request)?)
 }
@@ -278,6 +249,7 @@ pub fn save_speech(path: &str) -> std::result::Result<(), CommandError> {
     Ok(save(Path::new(path))?)
 }
 
+mod render;
 #[cfg(test)]
 mod tests;
 mod translate;

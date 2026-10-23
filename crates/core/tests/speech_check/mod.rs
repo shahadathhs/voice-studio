@@ -81,7 +81,15 @@ fn difference(a: &[char], b: &[char]) -> f64 {
 
 /// Speaks every case and fails if Whisper understood too little of any of them.
 pub fn check(cases: &[Case]) {
+    check_with_presets(cases, None);
+}
+
+/// Like [`check`], with the custom voices in `presets` available to the cases.
+pub fn check_with_presets(cases: &[Case], presets: Option<&std::path::Path>) {
     let mut kokoro = KokoroEngine::load(&env_path("VTT_TEST_KOKORO"), "kokoro-82m").unwrap();
+    if let Some(dir) = presets {
+        kokoro = kokoro.with_presets(dir);
+    }
     let mut whisper =
         WhisperEngine::load(&env_path("VTT_TEST_WHISPER"), "whisper", Device::Auto).unwrap();
     let dir = tempfile::tempdir().unwrap();
@@ -123,4 +131,24 @@ pub fn check(cases: &[Case]) {
         }
     }
     assert!(failures.is_empty(), "{failures:#?}");
+}
+
+/// What Whisper hears in the WAV file at `path`, spoken in `language`.
+pub fn listen(whisper: &mut WhisperEngine, path: &std::path::Path, language: &str) -> String {
+    let stt = SttOptions {
+        language: Some(language.into()),
+        ..SttOptions::default()
+    };
+    let heard = transcribe_file(whisper, path, &stt, None, &mut |_, _| Control::Continue).unwrap();
+    heard
+        .segments
+        .iter()
+        .map(|s| s.text.as_str())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// The share of letters that differ between what was said and what was heard.
+pub fn off_by(said: &str, heard: &str) -> f64 {
+    difference(&letters(said), &letters(heard))
 }

@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::str::FromStr;
 
-use super::{encode_flac, encode_wav};
+use super::{encode_flac_with_note, encode_wav_with_note};
 use crate::engines::AudioBuffer;
 use crate::{Error, Result};
 
@@ -31,9 +31,14 @@ impl AudioFormat {
 
     /// The audio as the bytes of a file in this format.
     pub fn encode(self, audio: &AudioBuffer) -> Result<Vec<u8>> {
+        self.encode_with_note(audio, None)
+    }
+
+    /// Like [`AudioFormat::encode`], storing `note` in the file as its comment.
+    pub fn encode_with_note(self, audio: &AudioBuffer, note: Option<&str>) -> Result<Vec<u8>> {
         match self {
-            AudioFormat::Wav => Ok(encode_wav(audio)),
-            AudioFormat::Flac => encode_flac(audio),
+            AudioFormat::Wav => Ok(encode_wav_with_note(audio, note)),
+            AudioFormat::Flac => encode_flac_with_note(audio, note),
         }
     }
 }

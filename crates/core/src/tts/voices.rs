@@ -4,6 +4,7 @@
 use serde::Serialize;
 
 use super::language::Language;
+use super::presets::Preset;
 
 /// A voice as a front end shows it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -16,6 +17,10 @@ pub struct VoiceInfo {
     pub description: String,
     /// The language code the voice speaks (`es`, `en`), for grouping; empty if unknown.
     pub language: String,
+    /// A voice the user made by blending shipped voices (see [`super::presets`]).
+    pub custom: bool,
+    /// A voice cloned from a recording (see [`super::clone`]); always shown as such.
+    pub cloned: bool,
 }
 
 fn gender(code: char) -> Option<&'static str> {
@@ -47,13 +52,39 @@ pub fn describe(id: &str) -> VoiceInfo {
             name: capitalised(name),
             description: format!("{}, {gender}", language.name()),
             language: language.code().to_string(),
+            custom: false,
+            cloned: false,
         },
         None => VoiceInfo {
             id: id.to_string(),
             name: id.to_string(),
             description: String::new(),
             language: String::new(),
+            custom: false,
+            cloned: false,
         },
+    }
+}
+
+/// Describes a custom voice: its own name, and which shipped voices it blends.
+pub fn describe_preset(preset: &Preset) -> VoiceInfo {
+    let language = preset.language();
+    let mix: Vec<String> = preset
+        .parts
+        .iter()
+        .map(|p| format!("{} {:.0}%", describe(&p.voice).name, p.weight * 100.0))
+        .collect();
+    VoiceInfo {
+        id: preset.id.clone(),
+        name: preset.name.clone(),
+        description: format!(
+            "{}, custom blend: {}",
+            language.map_or("", Language::name),
+            mix.join(", ")
+        ),
+        language: language.map_or_else(String::new, |l| l.code().to_string()),
+        custom: true,
+        cloned: false,
     }
 }
 

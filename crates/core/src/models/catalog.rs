@@ -10,6 +10,8 @@ pub enum ModelKind {
     Diarization,
     Text,
     Vad,
+    /// Voice cloning: speaks in a voice made from a recording.
+    Clone,
 }
 
 /// One downloadable file of a model.
@@ -31,6 +33,15 @@ pub struct ModelEntry {
     #[serde(default)]
     pub languages: Vec<String>,
     pub license: String,
+    /// Where the licence text or model card says so, for the licence register.
+    #[serde(default)]
+    pub license_url: String,
+    /// The day the licence was last read there (`YYYY-MM-DD`).
+    #[serde(default)]
+    pub license_checked: String,
+    /// What exactly is covered, and anything still to review.
+    #[serde(default)]
+    pub license_note: String,
     /// Whether a speech model can translate to English; the turbo Whisper models cannot.
     #[serde(default = "can_translate_by_default")]
     pub can_translate: bool,
@@ -124,6 +135,25 @@ mod tests {
                     file.name
                 );
             }
+        }
+    }
+
+    /// The licence register: only permissive licences, each with where and when it was read.
+    #[test]
+    fn every_model_has_a_permissive_licence_that_was_checked() {
+        const PERMISSIVE: [&str; 4] = ["MIT", "Apache-2.0", "BSD", "CC-BY"];
+        for model in Catalog::bundled().unwrap().models {
+            let parts: Vec<&str> = model.license.split(',').map(str::trim).collect();
+            assert!(
+                parts
+                    .iter()
+                    .all(|p| PERMISSIVE.iter().any(|ok| p.starts_with(ok))),
+                "{}: {}",
+                model.id,
+                model.license
+            );
+            assert!(model.license_url.starts_with("https://"), "{}", model.id);
+            assert_eq!(model.license_checked.len(), 10, "{}", model.id);
         }
     }
 

@@ -10,36 +10,34 @@ use vtt_core::jobs::Event;
 use vtt_core::models::{Catalog, ModelStore, SPEECH_MODEL_ID, TEXT_MODEL_ID};
 use vtt_core::paths::Paths;
 use vtt_core::text::translate_text;
-use vtt_core::tts::{KokoroEngine, Language, MAX_SPEED, MIN_SPEED, describe};
+use vtt_core::tts::{KokoroEngine, Language, MAX_SPEED, MIN_SPEED, voice_list};
 use vtt_core::{Error, Result};
 
+use vtt_core::tts::clone::is_clone_id;
+
 use crate::cli::Speak;
+use crate::clone_cmd;
 use crate::models_cmd;
 use crate::output::Output;
 use crate::text_cmd;
+use crate::voice_cmd;
 
 const DEFAULT_VOICE: &str = "af_heart";
 const DEFAULT_OUTPUT_NAME: &str = "speech";
 
 pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
-    if args.play {
-        return Err(Error::NotImplemented(
-            "playing speech (--play); save it with -o",
-        ));
-    }
-    // Checked first so a bad format fails before any model is loaded.
-    output_format(args)?;
-    if !(MIN_SPEED..=MAX_SPEED).contains(&args.speed) {
-        return Err(Error::Input(format!(
-            "speed must be between {MIN_SPEED} and {MAX_SPEED}"
-        )));
-    }
+    check_args(args)?;
     let (text, language) = if args.list_voices {
         (String::new(), None)
     } else {
         translated(read_text(args)?, args, paths, out)?
     };
 
+    if !args.list_voices
+        && let Some(id) = args.voice.as_deref().filter(|v| is_clone_id(v))
+    {
+        return clone_cmd::speak(id, &text, args, paths, out);
+    }
     let catalog = Catalog::bundled()?;
     let store = ModelStore::new(paths);
     let entry = catalog
@@ -47,12 +45,11 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
         .ok_or_else(|| Error::ModelMissing(SPEECH_MODEL_ID.into()))?;
     models_cmd::ensure_installed(entry, &store, args.yes, out)?;
     let dir = store.model_dir(entry);
-    let voices = KokoroEngine::voices_in(&dir);
+    let mut infos = voice_list(&dir, &paths.voices_dir());
+    infos.extend(clone_cmd::listed(paths));
+    let voices: Vec<String> = infos.iter().map(|v| v.id.clone()).collect();
     if args.list_voices {
-        for id in &voices {
-            let voice = describe(id);
-            println!("{:<12} {} ({})", voice.id, voice.name, voice.description);
-        }
+        voice_cmd::print_voices(&infos);
         return Ok(());
     }
     let wanted = args
@@ -60,7 +57,7 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
         .as_deref()
         .or(language.map(Language::default_voice));
     let voice = resolve_voice(&voices, wanted)?;
-    let mut engine = KokoroEngine::load(&dir, &entry.id)?;
+    let mut engine = KokoroEngine::load(&dir, &entry.id)?.with_presets(&paths.voices_dir());
     speak(
         &mut engine,
         &text,
@@ -71,6 +68,22 @@ pub fn run(args: &Speak, paths: &Paths, out: Output) -> Result<()> {
         args,
         out,
     )
+}
+
+/// Rejects what cannot work before any model is loaded.
+fn check_args(args: &Speak) -> Result<()> {
+    if args.play {
+        return Err(Error::NotImplemented(
+            "playing speech (--play); save it with -o",
+        ));
+    }
+    output_format(args)?;
+    if !(MIN_SPEED..=MAX_SPEED).contains(&args.speed) {
+        return Err(Error::Input(format!(
+            "speed must be between {MIN_SPEED} and {MAX_SPEED}"
+        )));
+    }
+    Ok(())
 }
 
 /// The text translated into `--translate-to`, if asked, with the language it is now in.
@@ -125,7 +138,7 @@ fn speak(
 }
 
 /// The format to write: `--format`, else what the output file's extension says, else WAV.
-fn output_format(args: &Speak) -> Result<AudioFormat> {
+pub(crate) fn output_format(args: &Speak) -> Result<AudioFormat> {
     match (&args.format, &args.output) {
         (Some(name), _) => name.parse(),
         (None, Some(path)) => Ok(AudioFormat::from_path(path).unwrap_or_default()),
@@ -178,7 +191,11 @@ fn default_name(format: AudioFormat) -> String {
 }
 
 /// Writes the audio where the user asked and returns the path, or `None` for standard output.
-fn write(audio: &[u8], format: AudioFormat, output: Option<&Path>) -> Result<Option<String>> {
+pub(crate) fn write(
+    audio: &[u8],
+    format: AudioFormat,
+    output: Option<&Path>,
+) -> Result<Option<String>> {
     let path: PathBuf = match output {
         Some(p) if p == Path::new("-") => {
             std::io::stdout().write_all(audio)?;

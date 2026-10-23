@@ -3,6 +3,7 @@
 use vtt_core::engines::Control;
 use vtt_core::paths::Paths;
 use vtt_core::tts::Language;
+use vtt_core::tts::clone::is_clone_id;
 use vtt_core::{Error, Result};
 
 use super::Request;
@@ -18,11 +19,15 @@ pub(super) fn translated(
     if !request.translate {
         return Ok(None);
     }
-    let language = Language::of_voice(&request.voice)
-        .ok_or_else(|| Error::Input(format!("unknown voice: {}", request.voice)))?;
+    let code = if is_clone_id(&request.voice) {
+        request.language.as_str()
+    } else {
+        Language::of_voice(&request.voice)
+            .ok_or_else(|| Error::Input(format!("unknown voice: {}", request.voice)))?
+            .code()
+    };
     progress(0, 0);
-    let text = assistant::translate_for_speech(paths, &request.text, language.code(), &mut |_| {
-        progress(0, 0)
-    })?;
+    let text =
+        assistant::translate_for_speech(paths, &request.text, code, &mut |_| progress(0, 0))?;
     Ok(Some(text))
 }

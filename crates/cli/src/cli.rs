@@ -54,6 +54,9 @@ pub enum Command {
     /// Manage speech models and voices
     #[command(subcommand)]
     Models(Models),
+    /// Make and manage custom voices
+    #[command(subcommand)]
+    Voice(crate::voice_cmd::VoiceCommand),
     /// Browse the shared library
     #[command(subcommand)]
     Library(Library),
@@ -163,6 +166,42 @@ pub struct Transcribe {
     pub yes: bool,
 }
 
+impl Transcribe {
+    /// The arguments `vtt transcribe <file>` would have with no other flags, plus these choices.
+    pub fn plain(
+        file: PathBuf,
+        model: Option<String>,
+        language: Option<String>,
+        yes: bool,
+    ) -> Self {
+        Transcribe {
+            files: vec![file],
+            model,
+            language,
+            recognition: RecognitionArgs {
+                translate: false,
+                no_vad: false,
+            },
+            speakers: SpeakerArgs {
+                diarize: false,
+                speakers: None,
+                diarize_threshold: None,
+            },
+            out: OutputArgs {
+                format: "txt".into(),
+                output: None,
+                timestamps: false,
+                no_speaker_names: false,
+                max_line: 42,
+                lines: 2,
+            },
+            device: None,
+            no_library: false,
+            yes,
+        }
+    }
+}
+
 #[derive(Args, Debug)]
 pub struct Speak {
     /// Text to speak (or use --file, or pipe it in; '-' reads stdin)
@@ -176,6 +215,9 @@ pub struct Speak {
     /// Speaking speed, 0.5 to 2.0
     #[arg(long, default_value_t = 1.0, value_name = "0.5-2.0")]
     pub speed: f32,
+    /// Language of the text, for a cloned voice (en, es, fr, it, pt, hi; default: --translate-to, else en)
+    #[arg(long, value_name = "LANG")]
+    pub language: Option<String>,
     /// Output format: wav or flac (default: from the output file's extension, else wav)
     #[arg(long)]
     pub format: Option<String>,
@@ -199,17 +241,40 @@ pub struct Speak {
 
 #[derive(Args, Debug)]
 pub struct Record {
+    /// Where to save the recording (.wav or .flac); default recording.wav
     #[arg(short, long, value_name = "PATH")]
     pub output: Option<PathBuf>,
-    /// Input device name
+    /// Input device name (see --list-devices)
     #[arg(long)]
     pub device: Option<String>,
-    /// Stop after this long, e.g. 30s
-    #[arg(long)]
-    pub duration: Option<String>,
-    /// Transcribe when finished
+    /// Stop after this long, e.g. 30s, 2m, 1m30s
+    #[arg(long, value_parser = crate::record_cmd::parse_duration, value_name = "TIME")]
+    pub duration: Option<std::time::Duration>,
+    /// Transcribe the recording when finished (like `vtt transcribe`)
     #[arg(long)]
     pub transcribe: bool,
+    /// Show draft captions on stderr while recording; the text goes to stdout at the end
+    #[arg(long)]
+    pub live: bool,
+    /// List the input devices and exit
+    #[arg(long)]
+    pub list_devices: bool,
+    #[command(flatten)]
+    pub recognition: RecordRecognition,
+}
+
+/// Which speech model and language `vtt record` uses for `--live` and `--transcribe`.
+#[derive(Args, Debug)]
+pub struct RecordRecognition {
+    /// STT model (default: from `vtt config`)
+    #[arg(short, long, env = "VTT_MODEL")]
+    pub model: Option<String>,
+    /// Spoken language code (default: from `vtt config`)
+    #[arg(short, long)]
+    pub language: Option<String>,
+    /// Accept prompts (e.g. download a missing model)
+    #[arg(short = 'y', long)]
+    pub yes: bool,
 }
 
 #[derive(Args, Debug)]

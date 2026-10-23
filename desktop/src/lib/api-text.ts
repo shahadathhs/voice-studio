@@ -41,3 +41,8 @@ export async function listNotes(itemId: number): Promise<Note[]> {
 export async function deleteNote(noteId: number): Promise<void> {
   if (insideTauri()) await invoke("delete_note", { noteId });
 }
+
+/** The licences of everything the app is built from. */
+export async function thirdPartyNotices(): Promise<string> {
+  return insideTauri() ? invoke<string>("third_party_notices") : "";
+}

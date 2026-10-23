@@ -21,6 +21,11 @@ fn unreadable(path: &Path, why: impl std::fmt::Display) -> Error {
 }
 
 pub fn decode_to_whisper_input(path: &Path) -> Result<AudioBuffer> {
+    decode_to_rate(path, WHISPER_SAMPLE_RATE)
+}
+
+/// Decodes the first audio track of `path` to mono at `rate`.
+pub fn decode_to_rate(path: &Path, rate: u32) -> Result<AudioBuffer> {
     let (mut format, track_id, mut decoder) = open(path)?;
     let mut resampler: Option<StreamResampler> = None;
     let mut interleaved: Vec<f32> = Vec::new();
@@ -44,7 +49,7 @@ pub fn decode_to_whisper_input(path: &Path) -> Result<AudioBuffer> {
         buffer.copy_to_vec_interleaved::<f32>(&mut interleaved);
         downmix(&interleaved, channels, &mut mono);
         if resampler.is_none() {
-            resampler = Some(StreamResampler::new(buffer.spec().rate())?);
+            resampler = Some(StreamResampler::new(buffer.spec().rate(), rate)?);
         }
         if let Some(r) = resampler.as_mut() {
             r.push(&mono)?;
@@ -53,7 +58,7 @@ pub fn decode_to_whisper_input(path: &Path) -> Result<AudioBuffer> {
     let resampler = resampler.ok_or_else(|| unreadable(path, "the audio track is empty"))?;
     Ok(AudioBuffer {
         samples: resampler.finish()?,
-        sample_rate: WHISPER_SAMPLE_RATE,
+        sample_rate: rate,
     })
 }
 
@@ -92,7 +97,7 @@ fn open(path: &Path) -> Result<OpenedAudio> {
 
 /// Averages the channels of interleaved audio into one.
 #[allow(clippy::cast_precision_loss)]
-fn downmix(interleaved: &[f32], channels: usize, out: &mut Vec<f32>) {
+pub(super) fn downmix(interleaved: &[f32], channels: usize, out: &mut Vec<f32>) {
     out.clear();
     out.extend(
         interleaved

@@ -18,6 +18,7 @@ pub mod settings;
 pub mod testing;
 pub mod text;
 pub mod transcribe;
+pub mod transcribe_live;
 pub mod tts;
 pub mod types;
 
