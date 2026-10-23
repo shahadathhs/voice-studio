@@ -6,7 +6,7 @@ CARGO := cargo
 
 .DEFAULT_GOAL := help
 .PHONY: help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
-        format format-check typecheck test test-e2e check clean mockups
+        format format-check typecheck test test-e2e check clean mockups screenshots version release
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -72,10 +72,22 @@ check: format-check lint-ui typecheck ## Everything CI runs: format, lint, types
 	$(CARGO) lint
 	$(CARGO) test --workspace
 
+# ---- Versions and releases ---------------------------------------------------
+
+version: ## Write a new version into every file that carries it (no git): make version v=0.2.0
+	@v=$(v) scripts/bump-version.sh version
+
+release: ## Bump, commit and push a release: make release v=0.2.0 (run by you, never automatic)
+	@v=$(v) scripts/bump-version.sh release
+
 # ---- Housekeeping ------------------------------------------------------------
 
 mockups: ## Re-render the design mockups to PNG (needs Google Chrome)
 	docs/design/render.sh
+
+screenshots: ## Re-render the README screenshots from the real UI with sample data (needs Google Chrome)
+	$(PNPM) build
+	node scripts/screenshots.mjs
 
 clean: ## Remove build output (keeps dependencies)
 	$(CARGO) clean
