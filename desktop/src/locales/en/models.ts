@@ -45,7 +45,7 @@ export const models = {
   "modelInfo.speaker-identification":
     "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
   "modelInfo.kokoro-82m":
-    "Reads English text aloud in six natural American voices. Runs on the CPU.",
+    "Reads text aloud in natural voices: American and British English and Spanish, with more languages to come. Runs on the CPU.",
   "modelInfo.qwen2.5-1.5b":
     "Writes summaries and translations of transcripts in about 20 languages. Needs about 2 GB of memory. Read what it writes: it can make mistakes.",
   "modelInfo.qwen2.5-7b":

@@ -3,6 +3,8 @@
 
 use serde::Serialize;
 
+use super::language::Language;
+
 /// A voice as a front end shows it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VoiceInfo {
@@ -12,14 +14,8 @@ pub struct VoiceInfo {
     pub name: String,
     /// e.g. `American English, female`.
     pub description: String,
-}
-
-fn accent(code: char) -> Option<&'static str> {
-    match code {
-        'a' => Some("American English"),
-        'b' => Some("British English"),
-        _ => None,
-    }
+    /// The language code the voice speaks (`es`, `en`), for grouping; empty if unknown.
+    pub language: String,
 }
 
 fn gender(code: char) -> Option<&'static str> {
@@ -41,20 +37,22 @@ fn capitalised(word: &str) -> String {
 pub fn describe(id: &str) -> VoiceInfo {
     let parsed = id.split_once('_').and_then(|(prefix, name)| {
         let mut codes = prefix.chars();
-        let (a, g) = (codes.next()?, codes.next()?);
+        let (_, g) = (codes.next()?, codes.next()?);
         codes.next().is_none().then_some(())?;
-        Some((accent(a)?, gender(g)?, name))
+        Some((Language::of_voice(prefix)?, gender(g)?, name))
     });
     match parsed {
-        Some((accent, gender, name)) => VoiceInfo {
+        Some((language, gender, name)) => VoiceInfo {
             id: id.to_string(),
             name: capitalised(name),
-            description: format!("{accent}, {gender}"),
+            description: format!("{}, {gender}", language.name()),
+            language: language.code().to_string(),
         },
         None => VoiceInfo {
             id: id.to_string(),
             name: id.to_string(),
             description: String::new(),
+            language: String::new(),
         },
     }
 }
@@ -69,6 +67,11 @@ mod tests {
         assert_eq!(heart.name, "Heart");
         assert_eq!(heart.description, "American English, female");
         assert_eq!(describe("bm_george").description, "British English, male");
+        let dora = describe("ef_dora");
+        assert_eq!(
+            (dora.description.as_str(), dora.language.as_str()),
+            ("Spanish, female", "es")
+        );
     }
 
     #[test]

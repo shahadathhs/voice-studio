@@ -2,12 +2,10 @@
 //! each word is looked up in the dictionary (or guessed from its spelling), and punctuation is
 //! kept because the model uses it for pauses and intonation.
 
+use super::flow::{self, Words};
 use super::lexicon::Lexicon;
-use super::tokens::{Token, tokenize};
 use super::{numbers, spelling};
 
-/// Quotes and brackets that open a phrase when they follow a gap.
-const OPENERS: [char; 3] = ['(', '“', '"'];
 /// Unknown words of this many letters or fewer, written in capitals, are spelled out as letters.
 const MAX_ACRONYM: usize = 4;
 /// Shortest part either side of a split when an unknown word is two known words joined.
@@ -42,30 +40,21 @@ fn dollars(amount: &str) -> String {
     words
 }
 
-/// Phonemes under construction: where the next word goes.
-#[derive(Default)]
-struct Output {
-    text: String,
-    /// Set after an opening quote or bracket, which the next word hugs.
-    glue_next: bool,
-}
-
-impl Output {
-    fn word(&mut self, phonemes: &str) {
-        if !self.text.is_empty() && !self.glue_next {
-            self.text.push(' ');
-        }
-        self.text.push_str(phonemes);
-        self.glue_next = false;
+impl Words for Phonemizer {
+    fn number(&self, digits: &str) -> String {
+        numbers::spoken(digits)
     }
 
-    fn punctuation(&mut self, c: char, after_gap: bool) {
-        let opening = OPENERS.contains(&c) && (self.text.is_empty() || after_gap);
-        if opening && !self.text.is_empty() {
-            self.text.push(' ');
-        }
-        self.text.push(c);
-        self.glue_next = opening;
+    fn ordinal(&self, digits: &str) -> String {
+        numbers::ordinal(digits.parse().unwrap_or(0))
+    }
+
+    fn dollars(&self, amount: &str) -> String {
+        dollars(amount)
+    }
+
+    fn word(&self, word: &str) -> String {
+        self.english_word(word)
     }
 }
 
@@ -76,42 +65,16 @@ impl Phonemizer {
 
     /// The phonemes of `text`, words separated by spaces and punctuation attached as written.
     pub fn phonemize(&self, text: &str) -> String {
-        let mut out = Output::default();
-        let mut after_gap = false;
-        for token in tokenize(text) {
-            let words = match token {
-                Token::Gap => {
-                    after_gap = true;
-                    continue;
-                }
-                Token::Punct(c) => {
-                    out.punctuation(c, after_gap);
-                    after_gap = false;
-                    continue;
-                }
-                Token::Word(word) => word,
-                Token::Number(number) => numbers::spoken(&number),
-                Token::Ordinal(number) => numbers::ordinal(number.parse().unwrap_or(0)),
-                Token::Dollars(amount) => dollars(&amount),
-            };
-            after_gap = false;
-            for word in words.split_whitespace() {
-                let phonemes = self.word(word);
-                if !phonemes.is_empty() {
-                    out.word(&phonemes);
-                }
-            }
-        }
-        out.text
+        flow::phonemize(self, text)
     }
 
     /// One word: abbreviation, dictionary, letter names for acronyms, two joined words, or spelling.
-    fn word(&self, word: &str) -> String {
+    pub(super) fn english_word(&self, word: &str) -> String {
         let lower = word.to_lowercase();
         if let Some((_, full)) = ABBREVIATIONS.iter().find(|(short, _)| *short == lower) {
             return full
                 .split(' ')
-                .map(|w| self.word(w))
+                .map(|w| self.english_word(w))
                 .collect::<Vec<_>>()
                 .join(" ");
         }

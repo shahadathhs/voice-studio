@@ -48,7 +48,7 @@ export const models: Record<keyof typeof english, string> = {
   "modelInfo.speaker-identification":
     "Distingue las voces para que una transcripción indique quién habla. Pequeño y rápido en la CPU.",
   "modelInfo.kokoro-82m":
-    "Lee texto en inglés en voz alta con seis voces naturales estadounidenses. Funciona en la CPU.",
+    "Lee texto en voz alta con voces naturales: inglés estadounidense y británico y español, con más idiomas por llegar. Funciona en la CPU.",
   "modelInfo.qwen2.5-1.5b":
     "Escribe resúmenes y traducciones de transcripciones en unos 20 idiomas. Necesita unos 2 GB de memoria. Revisa lo que escribe: puede equivocarse.",
   "modelInfo.qwen2.5-7b":
