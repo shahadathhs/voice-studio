@@ -11,7 +11,7 @@ Read first: `docs/README.md` (index), `docs/guidelines.md` (the rules below in f
 - `crates/cli` (`vtt-cli`, binary `vtt`): clap front end and black-box tests.
 - `desktop/src-tauri` (`vtt-desktop`): Tauri shell; thin commands that call `vtt-core` in-process.
 - `desktop/src`: Svelte UI (`components/`, `pages/`, `lib/`, `styles/`).
-- `catalog/models.json`: model catalog, empty until real URLs, checksums and licenses are verified.
+- `catalog/models.json`: model catalog (Whisper, WeSpeaker, Kokoro) with pinned URLs, sizes, SHA-256 and licenses.
 - `docs/`: `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
 - The earlier Python prototype lives only at git tag `python-final`.
 
