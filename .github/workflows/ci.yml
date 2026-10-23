@@ -1,11 +1,13 @@
 name: CI
 
-# Runs on pull requests into main and on pushes to main, not on every push to dev.
+# Runs on pull requests into main and on pushes to main, not on every push to dev. To check dev on
+# demand: gh workflow run ci.yml --ref dev
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   web:
