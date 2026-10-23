@@ -71,8 +71,8 @@ mod tests {
     fn a_missing_or_damaged_file_is_an_empty_queue() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().join("queue.json");
-        assert!(load(&path).is_empty());
+        assert_eq!(load(&path).len(), 0);
         std::fs::write(&path, "{not json").unwrap();
-        assert!(load(&path).is_empty());
+        assert_eq!(load(&path).len(), 0);
     }
 }

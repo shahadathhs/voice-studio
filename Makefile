@@ -5,7 +5,7 @@ PNPM  := pnpm --dir desktop
 CARGO := cargo
 
 .DEFAULT_GOAL := help
-.PHONY: help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
+.PHONY: notices help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
         format format-check typecheck test test-e2e check clean mockups screenshots version release
 
 help: ## Show this help
@@ -88,6 +88,9 @@ mockups: ## Re-render the design mockups to PNG (needs Google Chrome)
 screenshots: ## Re-render the README screenshots from the real UI with sample data (needs Google Chrome)
 	$(PNPM) build
 	node scripts/screenshots.mjs
+
+notices: ## Regenerate THIRD_PARTY_NOTICES.md from the crates and the model catalog
+	node scripts/notices.mjs
 
 clean: ## Remove build output (keeps dependencies)
 	$(CARGO) clean

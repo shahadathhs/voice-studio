@@ -157,7 +157,10 @@ mod tests {
     fn a_line_the_segmentation_covered_is_left_alone() {
         let samples = tone(5);
         let covering = [unit(0..40_000)];
-        assert!(from_uncovered_lines(&samples, 16_000, &[line(0, 2500)], &covering).is_empty());
+        assert_eq!(
+            from_uncovered_lines(&samples, 16_000, &[line(0, 2500)], &covering).len(),
+            0
+        );
     }
 
     #[test]
@@ -172,13 +175,16 @@ mod tests {
     #[test]
     fn a_line_with_under_a_second_of_speech_is_skipped() {
         let samples = tone(5);
-        assert!(from_uncovered_lines(&samples, 16_000, &[line(0, 600)], &[]).is_empty());
+        assert_eq!(
+            from_uncovered_lines(&samples, 16_000, &[line(0, 600)], &[]).len(),
+            0
+        );
     }
 
     #[test]
     fn audio_is_cut_from_its_place_and_clipped_to_the_recording() {
         let samples: Vec<f32> = (0..10_u8).map(f32::from).collect();
         assert_eq!(audio_of(&samples, &[2..4, 8..20]), [2.0, 3.0, 8.0, 9.0]);
-        assert!(audio_of(&samples, std::slice::from_ref(&(30..40))).is_empty());
+        assert_eq!(audio_of(&samples, std::slice::from_ref(&(30..40))).len(), 0);
     }
 }

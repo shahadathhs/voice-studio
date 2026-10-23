@@ -63,7 +63,7 @@ mod tests {
         let (_, transcript) = library.get(id).unwrap();
         assert_eq!(transcript.segments[0].text, "hello world");
         assert_eq!(library.search("world", 10).unwrap().len(), 1);
-        assert!(library.search("wrold", 10).unwrap().is_empty());
+        assert_eq!(library.search("wrold", 10).unwrap().len(), 0);
         assert_eq!(library.search("second", 10).unwrap().len(), 1);
     }
 

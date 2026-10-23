@@ -195,6 +195,6 @@ mod tests {
     #[test]
     fn a_speaker_with_under_a_second_of_speech_is_not_embedded() {
         let turns = local_turns(&[window_with(&[[true, false, false]; 40])], &[]);
-        assert!(turns.is_empty());
+        assert_eq!(turns.len(), 0);
     }
 }

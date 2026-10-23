@@ -49,8 +49,8 @@ mod tests {
     fn silence_stays_flat_and_short_audio_gives_fewer_bars() {
         assert_eq!(peaks(&[0.0; 10], 4), [0.0; 4]);
         assert_eq!(peaks(&[0.5, 0.25], 10).len(), 2);
-        assert!(peaks(&[], 5).is_empty());
-        assert!(peaks(&[0.5], 0).is_empty());
+        assert_eq!(peaks(&[], 5).len(), 0);
+        assert_eq!(peaks(&[0.5], 0).len(), 0);
     }
 
     #[test]
