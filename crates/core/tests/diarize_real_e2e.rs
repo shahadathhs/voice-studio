@@ -14,7 +14,7 @@ use std::path::PathBuf;
 
 use vtt_core::audio::load_for_whisper;
 use vtt_core::diarize::{SegmentationModel, SpeakerDiarizer, SpeakerModel};
-use vtt_core::engines::{AudioBuffer, DiarizeOptions, Diarizer};
+use vtt_core::engines::{AudioBuffer, Control, DiarizeOptions, Diarizer};
 use vtt_core::{Segment, Transcript};
 
 const PIECE_SAMPLES: usize = 3 * 16_000;
@@ -98,7 +98,7 @@ fn run(dir: &std::path::Path, options: &DiarizeOptions) -> (f64, usize) {
         SegmentationModel::load(&env_path("VTT_TEST_SEGMENTATION_MODEL"), "test").unwrap(),
     );
     diarizer
-        .label_speakers(&audio, &mut transcript, options)
+        .label_speakers(&audio, &mut transcript, options, &mut |_| Control::Continue)
         .unwrap();
     let found: Vec<String> = transcript
         .segments

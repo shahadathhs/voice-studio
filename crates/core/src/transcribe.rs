@@ -5,6 +5,8 @@ use std::path::Path;
 
 use crate::engines::{AudioBuffer, Control, DiarizeOptions, Diarizer, SttEngine, SttOptions};
 use crate::{Error, Result, Transcript};
+use num_traits::ToPrimitive;
+
 use crate::{audio, repetition};
 
 /// Who-said-what labelling to run after the speech has been transcribed.
@@ -25,17 +27,38 @@ pub fn transcribe_file(
     on_progress: &mut dyn FnMut(u64, u64) -> Control,
 ) -> Result<Transcript> {
     let audio = audio::load_for_whisper(path)?;
-    let mut transcript = if options.vad {
-        transcribe_speech(engine, &audio, options, on_progress)?
-    } else {
-        repetition::transcribe_without_loops(engine, &audio, options, on_progress)?
+    let total = audio.duration_ms();
+    // With speaker labels the work has two halves, which share the progress bar equally.
+    let share = if speakers.is_some() { 2 } else { 1 };
+    let mut transcript = {
+        let mut progress = |done: u64, total: u64| on_progress(done / share, total);
+        if options.vad {
+            transcribe_speech(engine, &audio, options, &mut progress)?
+        } else {
+            repetition::transcribe_without_loops(engine, &audio, options, &mut progress)?
+        }
     };
     if let Some(speakers) = speakers {
-        speakers
-            .diarizer
-            .label_speakers(&audio, &mut transcript, speakers.options)?;
+        speakers.diarizer.label_speakers(
+            &audio,
+            &mut transcript,
+            speakers.options,
+            &mut |part| {
+                let done = total / 2 + (total / 2).saturating_mul(permille(part)) / 1000;
+                on_progress(done, total)
+            },
+        )?;
+        on_progress(total, total);
     }
     Ok(transcript)
+}
+
+/// A 0 to 1 fraction as thousandths (clamped), for scaling milliseconds without float casts.
+fn permille(fraction: f32) -> u64 {
+    (fraction.clamp(0.0, 1.0) * 1000.0)
+        .round()
+        .to_u64()
+        .unwrap_or(0)
 }
 
 fn to_ms(samples: usize, rate: u32) -> u64 {

@@ -20,7 +20,7 @@ pub use load::{SpeakerLabeller, load};
 pub use segmenter::{SegmentationModel, Segmenter};
 
 use crate::audio::WHISPER_SAMPLE_RATE;
-use crate::engines::{AudioBuffer, DiarizeOptions, Diarizer};
+use crate::engines::{AudioBuffer, Control, DiarizeOptions, Diarizer};
 use crate::{Error, Result, Transcript};
 use cluster::Stop;
 use group::group;
@@ -49,11 +49,24 @@ impl<E: SpeakerEmbedder, S: Segmenter> SpeakerDiarizer<E, S> {
         }
     }
 
-    fn voiceprints(&mut self, samples: &[f32], units: &[Unit]) -> Result<Vec<Vec<f32>>> {
-        units
-            .iter()
-            .map(|unit| self.embedder.embed(&units::audio_of(samples, &unit.listen)))
-            .collect()
+    /// One voiceprint per unit. `on_unit(done, total)` is called after each and can cancel.
+    fn voiceprints(
+        &mut self,
+        samples: &[f32],
+        units: &[Unit],
+        on_unit: &mut dyn FnMut(usize, usize) -> Control,
+    ) -> Result<Vec<Vec<f32>>> {
+        let mut prints = Vec::with_capacity(units.len());
+        for (done, unit) in units.iter().enumerate() {
+            prints.push(
+                self.embedder
+                    .embed(&units::audio_of(samples, &unit.listen))?,
+            );
+            if on_unit(done + 1, units.len()) == Control::Cancel {
+                return Err(Error::Cancelled);
+            }
+        }
+        Ok(prints)
     }
 }
 
@@ -63,6 +76,7 @@ impl<E: SpeakerEmbedder, S: Segmenter> Diarizer for SpeakerDiarizer<E, S> {
         audio: &AudioBuffer,
         transcript: &mut Transcript,
         options: &DiarizeOptions,
+        on_progress: &mut dyn FnMut(f32) -> Control,
     ) -> Result<()> {
         if audio.sample_rate != WHISPER_SAMPLE_RATE {
             return Err(Error::Engine(format!(
@@ -70,7 +84,13 @@ impl<E: SpeakerEmbedder, S: Segmenter> Diarizer for SpeakerDiarizer<E, S> {
                 audio.sample_rate
             )));
         }
-        let windows = windows::analyse(&audio.samples, WINDOW_SHIFT, &mut self.segmenter)?;
+        // Finding who talks when is the first half of the work, the voiceprints the second.
+        let windows = windows::analyse(
+            &audio.samples,
+            WINDOW_SHIFT,
+            &mut self.segmenter,
+            &mut |done, total| on_progress(fraction(done, total) / 2.0),
+        )?;
         let edges = line_edges(transcript, audio.sample_rate);
         let mut found = units::from_windows(&windows, &windows::local_turns(&windows, &edges));
         let whole = units::from_uncovered_lines(
@@ -83,7 +103,9 @@ impl<E: SpeakerEmbedder, S: Segmenter> Diarizer for SpeakerDiarizer<E, S> {
         if found.is_empty() {
             return Ok(());
         }
-        let voiceprints = self.voiceprints(&audio.samples, &found)?;
+        let voiceprints = self.voiceprints(&audio.samples, &found, &mut |done, total| {
+            on_progress(0.5 + fraction(done, total) / 2.0)
+        })?;
         let stop = match options.speakers {
             Some(count) if count >= 1 => Stop::Clusters(count),
             _ => options.threshold.map_or(Stop::Auto, Stop::Distance),
@@ -92,6 +114,15 @@ impl<E: SpeakerEmbedder, S: Segmenter> Diarizer for SpeakerDiarizer<E, S> {
         label_lines(transcript, &timeline_of(audio, &found, &clusters));
         Ok(())
     }
+}
+
+/// `done` out of `total` as 0 to 1, to a thousandth.
+fn fraction(done: usize, total: usize) -> f32 {
+    if total == 0 {
+        return 1.0;
+    }
+    let thousandths = (done.saturating_mul(1000) / total).min(1000);
+    f32::from(u16::try_from(thousandths).unwrap_or(1000)) / 1000.0
 }
 
 /// Gives every line the speaker who talks most during it, numbered by first appearance.

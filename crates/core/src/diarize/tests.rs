@@ -3,6 +3,7 @@
 use super::segmenter::{FIELD_SAMPLES, FRAME_SAMPLES, Frame, WINDOW_SAMPLES};
 use super::*;
 use crate::Segment;
+use crate::engines::Control;
 
 /// Hears one speaker wherever the audio is not silent.
 struct ActivitySegmenter;
@@ -96,7 +97,7 @@ fn speakers(transcript: &Transcript) -> Vec<Option<&str>> {
 fn run(parts: &[(u64, f32)], options: &DiarizeOptions) -> Transcript {
     let (audio, mut transcript) = conversation(parts);
     SpeakerDiarizer::new(LevelEmbedder, ActivitySegmenter)
-        .label_speakers(&audio, &mut transcript, options)
+        .label_speakers(&audio, &mut transcript, options, &mut |_| Control::Continue)
         .unwrap();
     transcript
 }
@@ -157,7 +158,12 @@ fn a_line_that_is_mostly_silence_is_not_embedded_on_its_own() {
     audio.samples[start..start + 500 * 16].fill(LOUD);
     let (_, mut transcript) = conversation(&[(3000, LOUD), (1500, QUIET), (3000, QUIET)]);
     SpeakerDiarizer::new(LevelEmbedder, ActivitySegmenter)
-        .label_speakers(&audio, &mut transcript, &DiarizeOptions::default())
+        .label_speakers(
+            &audio,
+            &mut transcript,
+            &DiarizeOptions::default(),
+            &mut |_| Control::Continue,
+        )
         .unwrap();
     assert_eq!(speakers(&transcript)[1], Some("SPEAKER_00"));
 }
@@ -172,7 +178,12 @@ fn audio_with_nothing_long_enough_leaves_the_transcript_unlabelled() {
 fn lines_the_segmentation_missed_are_told_apart_from_their_own_audio() {
     let (audio, mut transcript) = conversation(&[(2500, LOUD), (2500, QUIET), (2500, LOUD)]);
     SpeakerDiarizer::new(LevelEmbedder, DeafSegmenter)
-        .label_speakers(&audio, &mut transcript, &DiarizeOptions::default())
+        .label_speakers(
+            &audio,
+            &mut transcript,
+            &DiarizeOptions::default(),
+            &mut |_| Control::Continue,
+        )
         .unwrap();
     assert_eq!(
         speakers(&transcript),
@@ -188,6 +199,44 @@ fn audio_at_another_sample_rate_is_rejected() {
         &audio,
         &mut transcript,
         &DiarizeOptions::default(),
+        &mut |_| Control::Continue,
     );
     assert!(matches!(result, Err(Error::Engine(_))));
+}
+
+#[test]
+fn progress_runs_from_zero_towards_one_in_order_and_ends_at_one() {
+    let (audio, mut transcript) = conversation(&[(4000, LOUD), (4000, QUIET), (4000, LOUD)]);
+    let mut seen = Vec::new();
+    SpeakerDiarizer::new(LevelEmbedder, ActivitySegmenter)
+        .label_speakers(
+            &audio,
+            &mut transcript,
+            &DiarizeOptions::default(),
+            &mut |p| {
+                seen.push(p);
+                Control::Continue
+            },
+        )
+        .unwrap();
+    assert!(seen.len() >= 2, "{seen:?}");
+    assert!(seen.windows(2).all(|pair| pair[0] <= pair[1]), "{seen:?}");
+    assert!(seen.iter().all(|p| (0.0..=1.0).contains(p)), "{seen:?}");
+    assert!(
+        (seen.last().copied().unwrap() - 1.0).abs() < f32::EPSILON,
+        "{seen:?}"
+    );
+}
+
+#[test]
+fn a_cancel_during_labelling_stops_it() {
+    let (audio, mut transcript) = conversation(&[(4000, LOUD), (4000, QUIET)]);
+    let result = SpeakerDiarizer::new(LevelEmbedder, ActivitySegmenter).label_speakers(
+        &audio,
+        &mut transcript,
+        &DiarizeOptions::default(),
+        &mut |_| Control::Cancel,
+    );
+    assert!(matches!(result, Err(Error::Cancelled)));
+    assert!(transcript.segments.iter().all(|s| s.speaker.is_none()));
 }

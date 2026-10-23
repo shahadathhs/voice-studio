@@ -4,7 +4,8 @@
 use super::segmenter::{
     FIELD_SAMPLES, FRAME_SAMPLES, Frame, LOCAL_SPEAKERS, Segmenter, WINDOW_SAMPLES,
 };
-use crate::Result;
+use crate::engines::Control;
+use crate::{Error, Result};
 
 /// A local speaker needs at least this many frames (about 1 s) of speech to be embedded; less
 /// gives an unreliable voiceprint.
@@ -43,24 +44,30 @@ pub fn window_starts(length: usize, shift: usize) -> Vec<usize> {
     starts
 }
 
-/// Runs the segmenter over the whole recording.
+/// Runs the segmenter over the whole recording. `on_window(done, total)` is called after each
+/// window and can stop the work by returning [`Control::Cancel`].
 pub fn analyse(
     samples: &[f32],
     shift: usize,
     segmenter: &mut dyn Segmenter,
+    on_window: &mut dyn FnMut(usize, usize) -> Control,
 ) -> Result<Vec<Window>> {
-    window_starts(samples.len(), shift)
-        .into_iter()
-        .map(|start| {
-            let end = (start + WINDOW_SAMPLES).min(samples.len());
-            let mut window = samples[start..end].to_vec();
-            window.resize(WINDOW_SAMPLES, 0.0);
-            Ok(Window {
-                start,
-                frames: segmenter.activity(&window)?,
-            })
-        })
-        .collect()
+    let starts = window_starts(samples.len(), shift);
+    let total = starts.len();
+    let mut windows = Vec::with_capacity(total);
+    for (done, start) in starts.into_iter().enumerate() {
+        let end = (start + WINDOW_SAMPLES).min(samples.len());
+        let mut window = samples[start..end].to_vec();
+        window.resize(WINDOW_SAMPLES, 0.0);
+        windows.push(Window {
+            start,
+            frames: segmenter.activity(&window)?,
+        });
+        if on_window(done + 1, total) == Control::Cancel {
+            return Err(Error::Cancelled);
+        }
+    }
+    Ok(windows)
 }
 
 /// The first sample of the 270 samples a frame stands for, centred in its receptive field.

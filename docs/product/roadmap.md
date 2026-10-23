@@ -24,7 +24,7 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    clustering with an automatic speaker count, and voting onto the transcript lines; `--translate` refuses the turbo
    models, which cannot translate. The app has an "Identify speakers" option, a speaker panel with talk-time shares,
    and rename or merge of speakers. Evaluated on synthetic voices and one noisy real recording (see
-   [diarization.md](diarization.md)). Not yet: a set of real labelled recordings, speaker progress reporting,
+   [diarization.md](diarization.md)). Not yet: a set of real labelled recordings,
    recolouring speakers.
 4. **Text to speech (done):** Kokoro-82M through ONNX Runtime, English text spoken sentence by
    sentence with pauses, pronunciation from the misaki dictionaries in pure Rust, six American voices,

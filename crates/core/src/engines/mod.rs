@@ -80,12 +80,14 @@ pub struct DiarizeOptions {
 }
 
 pub trait Diarizer: Send {
-    /// Assigns `speaker` labels to the segments of `transcript` using `audio`.
+    /// Assigns `speaker` labels to the segments of `transcript` using `audio`. `on_progress`
+    /// receives how far along it is, from 0 to 1, and can cancel by returning [`Control::Cancel`].
     fn label_speakers(
         &mut self,
         audio: &AudioBuffer,
         transcript: &mut Transcript,
         options: &DiarizeOptions,
+        on_progress: &mut dyn FnMut(f32) -> Control,
     ) -> Result<()>;
 }
 

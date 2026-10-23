@@ -28,7 +28,8 @@ and the cut is placed before it. If there is no clear jump (noisy audio where vo
 voices) the cut falls back to a distance of 0.55, which prefers merging to inventing speakers.
 `--diarize-threshold X` replaces all of this with a fixed distance.
 
-A one-hour recording takes a few minutes after transcription.
+A one-hour recording takes a few minutes after transcription. When speakers are being identified, the progress bar
+is shared: the first half is transcription, the second half is labelling, and either can be cancelled.
 
 ## The models
 
@@ -80,4 +81,3 @@ of real, labelled recordings is still needed before this is called measured.
 - A line is one speaker, even if Whisper's line spans a change of speaker; overlapping speech is heard but only
   the speaker who talks most gets the line.
 - At most three people speaking at once in a 10 s window (a limit of the segmentation model).
-- There is no progress report during labelling yet; the job shows full progress while it finishes.
