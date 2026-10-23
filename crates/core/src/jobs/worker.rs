@@ -12,6 +12,8 @@ use crate::library::{Library, NewItem, title_for};
 use crate::paths::Paths;
 use crate::{Error, Result, Transcript};
 
+/// The unfinished jobs, in the data directory.
+const JOURNAL_FILE: &str = "queue.json";
 const PROGRESS_EVERY: Duration = Duration::from_millis(100);
 
 /// Called for every job that changes state or makes progress, on the worker thread.
@@ -26,6 +28,9 @@ impl Queue {
         let shared = Arc::clone(&queue.shared);
         // A fresh queue has no notifier yet, so this cannot fail.
         let _ = shared.notify.set(Arc::clone(&notify));
+        let journal = paths.data.join(JOURNAL_FILE);
+        shared.restore(&journal);
+        let _ = shared.journal.set(journal);
         std::thread::spawn(move || work(&shared, runner, &paths, &notify));
         queue
     }
@@ -81,6 +86,8 @@ fn next_job(shared: &Shared, notify: &Notify) -> Option<(u64, JobSpec)> {
         }
         if let Some(started) = start_waiting(&mut inner) {
             let (info, spec) = started;
+            // Saved before the work begins, so a crash during it counts as an attempt.
+            shared.persist(&inner);
             drop(inner);
             notify(&info);
             return Some((info.id, spec));
@@ -101,6 +108,7 @@ fn start_waiting(inner: &mut Inner) -> Option<(JobInfo, JobSpec)> {
         .iter_mut()
         .find(|e| e.info.state == JobState::Waiting)?;
     entry.info.state = JobState::Running;
+    entry.attempts = entry.attempts.saturating_add(1);
     Some((entry.info.clone(), entry.spec.clone()))
 }
 
@@ -138,4 +146,5 @@ fn finish(shared: &Shared, id: u64, outcome: Result<i64>, notify: &Notify) {
             info.error = Some(error.to_string());
         }
     });
+    shared.persist(&shared.lock());
 }

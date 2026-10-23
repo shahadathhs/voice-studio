@@ -1,6 +1,7 @@
 //! Jobs: the events front ends subscribe to (the CLI prints them as NDJSON with `--json`) and the
 //! queue that runs transcriptions one after another for the desktop app.
 
+mod journal;
 mod queue;
 mod runner;
 mod throttle;
@@ -8,6 +9,8 @@ mod worker;
 
 #[cfg(test)]
 mod queue_tests;
+#[cfg(test)]
+mod resume_tests;
 
 pub use queue::{JobInfo, JobSpec, Queue};
 pub use runner::{JobRunner, WhisperRunner};

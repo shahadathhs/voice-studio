@@ -5,14 +5,15 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Condvar, Mutex, MutexGuard, OnceLock, PoisonError};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
+use super::journal::{self, MAX_ATTEMPTS, Saved};
 use super::{JobState, Notify};
 use crate::engines::DiarizeOptions;
 use crate::library::title_for;
 
 /// What to transcribe and how.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct JobSpec {
     pub file: PathBuf,
     pub model_id: String,
@@ -43,6 +44,8 @@ pub(super) struct Entry {
     pub info: JobInfo,
     pub spec: JobSpec,
     pub cancel: Arc<AtomicBool>,
+    /// How many times a worker has started this job; saved with it (see [`journal`]).
+    pub attempts: u8,
 }
 
 #[derive(Default)]
@@ -60,11 +63,72 @@ pub(super) struct Shared {
     pub wake: Condvar,
     /// Set once by [`Queue::start`]; lets the handle announce changes it makes itself.
     pub notify: OnceLock<Notify>,
+    /// Where unfinished jobs are saved; set once by [`Queue::start`].
+    pub journal: OnceLock<PathBuf>,
 }
 
 impl Shared {
     pub fn lock(&self) -> MutexGuard<'_, Inner> {
         self.inner.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+}
+
+impl Shared {
+    /// Saves the jobs that have not finished. Call with the lock held, after any change to them.
+    pub fn persist(&self, inner: &Inner) {
+        let Some(path) = self.journal.get() else {
+            return;
+        };
+        let unfinished: Vec<Saved> = inner
+            .jobs
+            .iter()
+            .filter(|e| matches!(e.info.state, JobState::Waiting | JobState::Running))
+            .map(|e| Saved {
+                spec: e.spec.clone(),
+                attempts: e.attempts,
+            })
+            .collect();
+        journal::save(path, &unfinished);
+    }
+
+    /// Puts back the jobs saved by an earlier run. One that was started too often is shown as
+    /// failed instead of being run again.
+    pub fn restore(&self, path: &std::path::Path) {
+        let mut inner = self.lock();
+        for saved in journal::load(path) {
+            let give_up = saved.attempts >= MAX_ATTEMPTS;
+            let mut entry = new_entry(&mut inner, saved.spec, saved.attempts);
+            if give_up {
+                entry.info.state = JobState::Failed;
+                entry.info.error = Some(
+                    "The app stopped while this was being transcribed, twice. It was not started again."
+                        .into(),
+                );
+            }
+            inner.jobs.push(entry);
+        }
+        self.persist(&inner);
+    }
+}
+
+fn new_entry(inner: &mut Inner, spec: JobSpec, attempts: u8) -> Entry {
+    inner.next_id += 1;
+    let info = JobInfo {
+        id: inner.next_id,
+        file: spec.file.display().to_string(),
+        title: title_for(&spec.file),
+        model: spec.model_id.clone(),
+        state: JobState::Waiting,
+        processed_ms: 0,
+        total_ms: 0,
+        error: None,
+        item_id: None,
+    };
+    Entry {
+        info,
+        spec,
+        cancel: Arc::default(),
+        attempts,
     }
 }
 
@@ -84,23 +148,10 @@ impl Queue {
     /// Appends a job and returns it; the worker picks it up when it is its turn.
     pub fn add(&self, spec: JobSpec) -> JobInfo {
         let mut inner = self.shared.lock();
-        inner.next_id += 1;
-        let info = JobInfo {
-            id: inner.next_id,
-            file: spec.file.display().to_string(),
-            title: title_for(&spec.file),
-            model: spec.model_id.clone(),
-            state: JobState::Waiting,
-            processed_ms: 0,
-            total_ms: 0,
-            error: None,
-            item_id: None,
-        };
-        inner.jobs.push(Entry {
-            info: info.clone(),
-            spec,
-            cancel: Arc::default(),
-        });
+        let entry = new_entry(&mut inner, spec, 0);
+        let info = entry.info.clone();
+        inner.jobs.push(entry);
+        self.shared.persist(&inner);
         drop(inner);
         self.shared.wake.notify_all();
         info
@@ -127,6 +178,7 @@ impl Queue {
         }
         entry.info.state = JobState::Cancelled;
         let info = entry.info.clone();
+        self.shared.persist(&inner);
         drop(inner);
         if let Some(notify) = self.shared.notify.get() {
             notify(&info);
@@ -141,13 +193,16 @@ impl Queue {
         inner
             .jobs
             .retain(|e| e.info.id != id || e.info.state == JobState::Running);
+        self.shared.persist(&inner);
         inner.jobs.len() < before
     }
 
     /// Drops every job that has finished, failed or been cancelled.
     pub fn clear_finished(&self) {
         let active = |e: &Entry| matches!(e.info.state, JobState::Waiting | JobState::Running);
-        self.shared.lock().jobs.retain(active);
+        let mut inner = self.shared.lock();
+        inner.jobs.retain(active);
+        self.shared.persist(&inner);
     }
 
     /// Moves a waiting job to `position` in the list (clamped). Returns whether it moved.
@@ -162,6 +217,7 @@ impl Queue {
         let entry = inner.jobs.remove(from);
         let to = position.min(inner.jobs.len());
         inner.jobs.insert(to, entry);
+        self.shared.persist(&inner);
         true
     }
 

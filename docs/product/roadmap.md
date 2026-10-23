@@ -17,7 +17,7 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    energy-based voice-activity detection that transcribes only the speech in chunks, `vtt transcribe` with
    txt, srt, vtt, md and json output; a sequential job queue (cancel, reorder, pause) and the SQLite
    library with full-text search (`vtt library`); the Transcribe, Library, transcript viewer and Export
-   screens in the app. Transcript lines can be corrected and moved to another speaker in the viewer and with `vtt library edit`. Not yet: audio player with waveform, crash-safe job resume,
+   screens in the app. Transcript lines can be corrected and moved to another speaker in the viewer and with `vtt library edit`. The app's queue is saved to `queue.json` in the data folder, so unfinished files resume after a quit or a crash (a file that was started twice without finishing is shown as failed rather than retried forever). Not yet: audio player with waveform,
    parallel jobs, a neural VAD (Silero), and Vulkan/CUDA builds in CI.
 3. **Speaker identification and translation (done):** `vtt transcribe --diarize` with pyannote segmentation and a
    WeSpeaker ResNet34 voice model on ONNX Runtime: overlap-aware segmentation, voiceprints, average-linkage

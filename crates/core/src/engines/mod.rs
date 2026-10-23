@@ -5,6 +5,8 @@ mod whisper;
 
 pub use whisper::{Device, WhisperEngine};
 
+use serde::{Deserialize, Serialize};
+
 use crate::{Result, Transcript};
 
 /// Mono PCM audio.
@@ -71,7 +73,7 @@ pub trait TtsEngine: Send {
     fn synthesize(&mut self, text: &str, options: &TtsOptions) -> Result<AudioBuffer>;
 }
 
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct DiarizeOptions {
     pub speakers: Option<usize>,
     pub threshold: Option<f32>,
