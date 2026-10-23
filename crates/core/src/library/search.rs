@@ -1,4 +1,4 @@
-//! Full-text search over transcript text (SQLite FTS5).
+//! Full-text search over transcript text (`SQLite` FTS5).
 
 use serde::Serialize;
 

@@ -1,4 +1,4 @@
-//! The library: every transcript the user has made, stored in one SQLite file that the CLI and the
+//! The library: every transcript the user has made, stored in one `SQLite` file that the CLI and the
 //! desktop app share. Lines are indexed for full-text search.
 
 mod schema;
@@ -47,7 +47,7 @@ pub struct NewItem<'a> {
     pub source_path: Option<&'a str>,
 }
 
-/// SQLite stores signed 64-bit integers; durations and counts are never negative.
+/// `SQLite` stores signed 64-bit integers; durations and counts are never negative.
 fn unsigned(row: &Row<'_>, index: usize) -> rusqlite::Result<u64> {
     Ok(u64::try_from(row.get::<_, i64>(index)?).unwrap_or(0))
 }

@@ -1,4 +1,4 @@
-//! Database layout and migrations, versioned with SQLite's `user_version`.
+//! Database layout and migrations, versioned with `SQLite`'s `user_version`.
 
 use rusqlite::Connection;
 
