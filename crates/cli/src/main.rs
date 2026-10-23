@@ -4,6 +4,7 @@ mod cli;
 mod commands;
 mod config_cmd;
 mod library_cmd;
+mod manage;
 mod models_cmd;
 mod output;
 mod speak_cmd;

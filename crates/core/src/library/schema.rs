@@ -5,7 +5,8 @@ use rusqlite::Connection;
 use crate::Result;
 
 /// Each entry upgrades the database by one version; never edit an entry that has shipped.
-const MIGRATIONS: &[&str] = &["
+const MIGRATIONS: &[&str] = &[
+    "
     CREATE TABLE item (
         id            INTEGER PRIMARY KEY,
         title         TEXT NOT NULL,
@@ -33,7 +34,15 @@ const MIGRATIONS: &[&str] = &["
     CREATE TRIGGER segment_removed AFTER DELETE ON segment BEGIN
         INSERT INTO segment_fts(segment_fts, rowid, text) VALUES ('delete', old.rowid, old.text);
     END;
-"];
+",
+    // Editing a line keeps the search index in step: remove the old text, add the new.
+    "
+    CREATE TRIGGER segment_edited AFTER UPDATE OF text ON segment BEGIN
+        INSERT INTO segment_fts(segment_fts, rowid, text) VALUES ('delete', old.rowid, old.text);
+        INSERT INTO segment_fts(rowid, text) VALUES (new.rowid, new.text);
+    END;
+",
+];
 
 /// Brings `conn` up to the latest layout.
 pub fn migrate(conn: &mut Connection) -> Result<()> {

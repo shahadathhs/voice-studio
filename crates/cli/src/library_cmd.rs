@@ -17,6 +17,13 @@ pub fn run(command: Library, paths: &Paths, out: Output) -> Result<()> {
         Library::List => list(&store, out),
         Library::Search { query, limit } => search(&store, &query, limit, out),
         Library::Show { id, out: args } => show(&store, &id, &args),
+        Library::Lines { id } => lines(&store, &id, out),
+        Library::Edit {
+            id,
+            line,
+            text,
+            speaker,
+        } => edit(&mut store, &id, line, text.as_deref(), speaker.as_deref()),
         Library::Export { ids, out: args } => export_all(&store, &ids, &args),
         Library::Delete { ids } => delete(&mut store, &ids, out),
     }
@@ -66,6 +73,45 @@ fn search(store: &Store, query: &str, limit: usize, out: Output) -> Result<()> {
     }
     for hit in &hits {
         println!("{}\n        {}", describe(&hit.item), hit.snippet);
+    }
+    Ok(())
+}
+
+/// Prints the lines of a transcript numbered from 1, the numbers `edit` takes.
+fn lines(store: &Store, id: &str, out: Output) -> Result<()> {
+    let (_, transcript) = store.get(parse_id(id)?)?;
+    if out.json {
+        return print_json(&transcript.segments);
+    }
+    for (number, line) in transcript.segments.iter().enumerate() {
+        let speaker = line.speaker.as_deref().unwrap_or("-");
+        println!(
+            "{:>4}  {:>7}  {:<12}  {}",
+            number + 1,
+            clock(line.start_ms),
+            speaker,
+            line.text
+        );
+    }
+    Ok(())
+}
+
+fn edit(
+    store: &mut Store,
+    id: &str,
+    line: usize,
+    text: Option<&str>,
+    speaker: Option<&str>,
+) -> Result<()> {
+    let id = parse_id(id)?;
+    let index = line
+        .checked_sub(1)
+        .ok_or_else(|| vtt_core::Error::Input("line numbers start at 1".into()))?;
+    if let Some(text) = text {
+        store.set_line_text(id, index, text)?;
+    }
+    if let Some(speaker) = speaker {
+        store.set_line_speaker(id, index, speaker)?;
     }
     Ok(())
 }

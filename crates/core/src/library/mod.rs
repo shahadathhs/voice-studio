@@ -1,6 +1,7 @@
 //! The library: every transcript the user has made, stored in one `SQLite` file that the CLI and the
 //! desktop app share. Lines are indexed for full-text search.
 
+mod edit;
 mod schema;
 mod search;
 
@@ -205,12 +206,7 @@ impl Library {
                 "no speaker named {from} in item {id}"
             )));
         }
-        tx.execute(
-            "UPDATE item SET speaker_count = (SELECT COUNT(DISTINCT speaker) FROM segment
-                                              WHERE item_id = ?1 AND speaker IS NOT NULL)
-             WHERE id = ?1",
-            [id],
-        )?;
+        refresh_speaker_count(&tx, id)?;
         tx.commit()?;
         Ok(signed_back(changed))
     }
@@ -223,6 +219,17 @@ impl Library {
         tx.commit()?;
         Ok(removed > 0)
     }
+}
+
+/// Recounts the distinct speakers of an item after lines were relabelled.
+fn refresh_speaker_count(tx: &rusqlite::Transaction<'_>, id: i64) -> Result<()> {
+    tx.execute(
+        "UPDATE item SET speaker_count = (SELECT COUNT(DISTINCT speaker) FROM segment
+                                          WHERE item_id = ?1 AND speaker IS NOT NULL)
+         WHERE id = ?1",
+        [id],
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]

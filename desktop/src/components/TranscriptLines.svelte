@@ -4,17 +4,22 @@
   import { player } from "../lib/player.svelte";
   import type { Segment } from "../lib/types";
   import Icon from "./Icon.svelte";
+  import InlineEdit from "./InlineEdit.svelte";
 
   let {
     itemId,
     segments,
     query,
     speakerOrder,
+    onedit,
+    onspeaker,
   }: {
     itemId: number;
     segments: readonly Segment[];
     query: string;
     speakerOrder: readonly string[];
+    onedit: (line: number, text: string) => void;
+    onspeaker: (line: number, speaker: string) => void;
   } = $props();
 
   const isPlaying = (index: number): boolean => player.isActive(itemId, index);
@@ -58,12 +63,26 @@
         {formatClock(segment.start_ms)}–{formatClock(segment.end_ms)}
       </button>
       <span class="speaker" style:color={segment.speaker ? colour(segment.speaker) : undefined}>
-        {segment.speaker ?? ""}
+        <InlineEdit
+          value={segment.speaker ?? ""}
+          label={t("lines.speaker")}
+          suggestions={speakerOrder}
+          onsave={(speaker) => onspeaker(index, speaker)}
+        >
+          {segment.speaker ?? "—"}
+        </InlineEdit>
       </span>
       <p>
-        {#each split(segment.text) as part, partIndex (partIndex)}
-          {#if part.hit}<mark>{part.text}</mark>{:else}{part.text}{/if}
-        {/each}
+        <InlineEdit
+          value={segment.text}
+          label={t("lines.text")}
+          multiline
+          onsave={(text) => onedit(index, text)}
+        >
+          {#each split(segment.text) as part, partIndex (partIndex)}
+            {#if part.hit}<mark>{part.text}</mark>{:else}{part.text}{/if}
+          {/each}
+        </InlineEdit>
       </p>
     </li>
   {/each}

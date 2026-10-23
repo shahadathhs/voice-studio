@@ -2,6 +2,7 @@
 #![allow(clippy::unwrap_used)]
 
 use assert_cmd::Command;
+use predicates::prelude::PredicateBooleanExt;
 use predicates::str::contains;
 use tempfile::TempDir;
 use vtt_core::library::{Library, NewItem};
@@ -136,4 +137,58 @@ fn transcribe_offers_the_options_that_shape_what_is_stored_and_transcribed() {
         .success()
         .stdout(contains("--no-vad"))
         .stdout(contains("--no-library"));
+}
+
+#[test]
+fn lines_are_numbered_from_one_and_edit_corrects_words_and_speaker() {
+    let dir = seeded();
+    vtt(&dir)
+        .args([
+            "library",
+            "edit",
+            "1",
+            "1",
+            "--text",
+            "ship the importer behind a switch",
+        ])
+        .assert()
+        .success();
+    vtt(&dir)
+        .args(["library", "edit", "1", "1", "--speaker", "Maria"])
+        .assert()
+        .success();
+    vtt(&dir)
+        .args(["library", "lines", "1"])
+        .assert()
+        .success()
+        .stdout(
+            contains("   1")
+                .and(contains("Maria"))
+                .and(contains("behind a switch")),
+        );
+    vtt(&dir)
+        .args(["library", "search", "switch"])
+        .assert()
+        .success()
+        .stdout(contains("Standup"));
+    vtt(&dir)
+        .args(["library", "search", "flag"])
+        .assert()
+        .success()
+        .stdout("");
+}
+
+#[test]
+fn editing_a_line_that_does_not_exist_is_an_input_error() {
+    let dir = seeded();
+    for line in ["0", "9"] {
+        vtt(&dir)
+            .args(["library", "edit", "1", line, "--text", "x"])
+            .assert()
+            .code(3);
+    }
+    vtt(&dir)
+        .args(["library", "edit", "1", "1"])
+        .assert()
+        .code(2);
 }

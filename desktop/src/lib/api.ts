@@ -193,6 +193,14 @@ export async function playbackUrl(id: number): Promise<string | null> {
 }
 
 /** Renames a speaker in one transcript; a name another speaker has merges the two. */
+export async function setLineText(id: number, line: number, text: string): Promise<void> {
+  if (insideTauri()) await invoke("set_line_text", { id, line, text });
+}
+
+export async function setLineSpeaker(id: number, line: number, speaker: string): Promise<void> {
+  if (insideTauri()) await invoke("set_line_speaker", { id, line, speaker });
+}
+
 export async function renameSpeaker(id: number, from: string, to: string): Promise<void> {
   if (insideTauri()) await invoke("rename_speaker", { id, from, to });
 }

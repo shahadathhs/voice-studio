@@ -4,7 +4,13 @@
   import Icon from "../components/Icon.svelte";
   import SpeakerPanel from "../components/SpeakerPanel.svelte";
   import TranscriptLines from "../components/TranscriptLines.svelte";
-  import { getTranscript, renameSpeaker, renderExport } from "../lib/api";
+  import {
+    getTranscript,
+    renameSpeaker,
+    renderExport,
+    setLineSpeaker,
+    setLineText,
+  } from "../lib/api";
   import { formatClock } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { library } from "../lib/library.svelte";
@@ -36,6 +42,17 @@
 
   async function rename(from: string, to: string): Promise<void> {
     await renameSpeaker(id, from, to);
+    view = await getTranscript(id);
+    await library.load();
+  }
+
+  async function editText(line: number, text: string): Promise<void> {
+    await setLineText(id, line, text);
+    view = await getTranscript(id);
+  }
+
+  async function moveLine(line: number, speaker: string): Promise<void> {
+    await setLineSpeaker(id, line, speaker);
     view = await getTranscript(id);
     await library.load();
   }
@@ -94,7 +111,14 @@
         {#if view.transcript.segments.length === 0}
           <p class="muted empty">{t("transcript.noSpeech")}</p>
         {:else}
-          <TranscriptLines itemId={id} segments={view.transcript.segments} {query} {speakerOrder} />
+          <TranscriptLines
+            itemId={id}
+            segments={view.transcript.segments}
+            {query}
+            {speakerOrder}
+            onedit={editText}
+            onspeaker={moveLine}
+          />
         {/if}
       </div>
     </div>
@@ -122,14 +146,16 @@
 
   header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 10px;
     padding: 16px 32px;
     border-bottom: 1px solid var(--line);
   }
 
+  /* Wide enough to read the title; the buttons wrap below it when the window is narrow. */
   .heading {
-    flex: 1;
+    flex: 1 1 240px;
     min-width: 0;
   }
 

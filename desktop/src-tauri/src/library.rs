@@ -109,6 +109,18 @@ pub fn rename_speaker(id: i64, from: &str, to: &str) -> Result<(), CommandError>
     Ok(())
 }
 
+/// Corrects the words of one line (counting from 0).
+#[tauri::command]
+pub fn set_line_text(id: i64, line: usize, text: &str) -> Result<(), CommandError> {
+    Ok(open()?.set_line_text(id, line, text)?)
+}
+
+/// Gives one line to a speaker, who may be new.
+#[tauri::command]
+pub fn set_line_speaker(id: i64, line: usize, speaker: &str) -> Result<(), CommandError> {
+    Ok(open()?.set_line_speaker(id, line, speaker)?)
+}
+
 /// The exported text, for the dialog's preview and for Copy.
 #[tauri::command]
 pub fn render_export(

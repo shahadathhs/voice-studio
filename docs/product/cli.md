@@ -20,7 +20,7 @@ vtt speak [TEXT] [options]             text → audio
 vtt record [options]                   microphone → file (optionally transcribe)
 vtt export <TRANSCRIPT.json> [options] convert a transcript to txt/srt/vtt/md/json
 vtt models <list|info|pull|remove|verify>
-vtt library <list|search|show|export|delete>
+vtt library <list|search|show|lines|edit|export|delete>
 vtt devices                            list audio input/output devices
 vtt config <path|list|get|set>
 vtt doctor                             diagnose GPU, devices, models, permissions
@@ -112,7 +112,9 @@ Voices are models of kind `tts`; `vtt models list --kind tts` is the voice list.
 ### `vtt library`
 
 `list`, `search <query> [--limit N]` (full-text, every word must match, the last as a prefix; the match is shown
-between `[` and `]`), `show <id> [-f fmt]`, `export <id>... -f fmt -o dir` (one `<id>-<title>.<ext>` file each) and
+between `[` and `]`), `show <id> [-f fmt]`, `lines <id>` (the lines numbered from 1, with time and speaker),
+`edit <id> <line> [--text T] [--speaker S]` (correct the words, or give the line to a speaker, new names allowed;
+the search index follows the edit), `export <id>... -f fmt -o dir` (one `<id>-<title>.<ext>` file each) and
 `delete <id>...`. With `--json`, `list` and `search` print one JSON array. Ids that are not numbers or not in the
 library exit with code 3. The library is one SQLite file, `library.sqlite`, in the data directory.
 
