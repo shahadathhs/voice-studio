@@ -62,7 +62,7 @@
   <h2>{t("voices.create.title")}</h2>
   <p class="muted">{t("voices.create.hint")}</p>
 
-  <label class="field">
+  <label class="group">
     <span>{t("voices.name")}</span>
     <input
       type="text"
@@ -74,7 +74,7 @@
   </label>
 
   {#if accents.length > 1}
-    <label class="field">
+    <label class="group">
       <span>{t("voices.language")}</span>
       <select
         value={accent?.letter}
@@ -143,13 +143,9 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--surface);
   }
 
-  .field {
+  .group {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -157,8 +153,8 @@
     font-size: 12px;
   }
 
-  .field input,
-  .field select {
+  .group input,
+  .group select {
     padding: 6px 8px;
     border: 1px solid var(--line-strong);
     border-radius: 6px;

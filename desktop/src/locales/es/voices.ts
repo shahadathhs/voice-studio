@@ -1,6 +1,14 @@
 import type { voices as english } from "../en/voices";
 
 export const voices: Record<keyof typeof english, string> = {
+  "voices.manage": "Crear o clonar una voz…",
+  "voices.manage.title": "Tus voces",
+  "voices.tab.blend": "Mezclar",
+  "voices.tab.clone": "Clonar",
+  "voices.tab.mine": "Mis voces",
+  "voices.mine": "Mis voces",
+  "voices.noneYet":
+    "Aún no has creado ninguna voz. Mezcla dos voces integradas o clona una desde una grabación.",
   "voices.create.title": "Crear una voz",
   "voices.create.hint":
     "Mezcla de 2 a 4 voces de un mismo idioma en una voz nueva. Es una mezcla de las voces sintéticas incluidas, no la copia de una persona.",

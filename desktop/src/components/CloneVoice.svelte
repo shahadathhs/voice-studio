@@ -45,7 +45,7 @@
     <p class="muted">{t("clone.needModel")}</p>
     <button class="btn" onclick={() => nav.go("models")}>{t("clone.openModels")}</button>
   {:else}
-    <div class="field">
+    <div class="group">
       <span>{t("clone.file")}</span>
       <div class="file">
         <button class="btn" onclick={pick} disabled={busy}>{t("clone.chooseFile")}</button>
@@ -53,7 +53,7 @@
       </div>
     </div>
 
-    <label class="field">
+    <label class="group">
       <span>{t("clone.name")}</span>
       <input
         type="text"
@@ -91,7 +91,7 @@
     margin-top: 12px;
   }
 
-  .field {
+  .group {
     display: flex;
     flex-direction: column;
     gap: 4px;

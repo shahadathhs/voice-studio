@@ -1,5 +1,13 @@
 /** Custom voices: blends of shipped voices of one language. */
 export const voices = {
+  "voices.manage": "Create or clone a voice…",
+  "voices.manage.title": "Your voices",
+  "voices.tab.blend": "Blend",
+  "voices.tab.clone": "Clone",
+  "voices.tab.mine": "My voices",
+  "voices.mine": "My voices",
+  "voices.noneYet":
+    "You have not made a voice yet. Blend two built-in voices, or clone one from a recording.",
   "voices.create.title": "Create a voice",
   "voices.create.hint":
     "Blend 2 to 4 voices of one language into a new voice. It is a mix of the built-in synthetic voices, not a copy of a person.",
