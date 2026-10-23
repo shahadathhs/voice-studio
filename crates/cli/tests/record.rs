@@ -14,7 +14,12 @@ fn code_is_ok_or_no_devices(command: &mut Command) {
     let code = output.status.code().unwrap();
     assert!(matches!(code, 0 | 3), "exit {code}");
     if code == 3 {
-        assert!(String::from_utf8_lossy(&output.stderr).contains("error:"));
+        // Plain mode prints `error: ...`; `--json` prints an error event instead.
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("error:") || stderr.contains("\"error\""),
+            "{stderr}"
+        );
     }
 }
 
