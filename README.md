@@ -127,8 +127,7 @@ is a thin front end on the same core. See [architecture](docs/architecture.md).
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code guidelines](docs/guidelines.md). Please read the
-[Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md). The earlier Python
-prototype is preserved at the git tag `python-final`.
+[Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md).
 
 ## Licence
 

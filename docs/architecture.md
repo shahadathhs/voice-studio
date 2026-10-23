@@ -50,17 +50,17 @@ the colour tokens shared with the mockups. Logic that is not about presentation 
 
 **Technology choices**
 
-| Concern        | Choice                                                                                                                         | Why                                                                                     |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Shell          | Tauri 2                                                                                                                        | Native Rust backend, small binaries, signed installers, updater, tray, global shortcuts |
-| UI             | Svelte 5 + TypeScript + Vite                                                                                                   | Small runtime, plain CSS tokens as in the mockups, no UI kit                            |
-| Speech to text | whisper.cpp or sherpa-onnx (Whisper models)                                                                                    | Prebuilt, fast, Metal/Vulkan/CUDA capable                                               |
-| Text to speech | Kokoro-82M, Piper voices via ONNX Runtime                                                                                      | Small, CPU-capable, permissive licenses (verify per voice)                              |
-| Diarization    | Speaker embeddings + agglomerative clustering + temporal smoothing, ported from the earlier prototype (git tag `python-final`) | Proven heuristics; models via ONNX                                                      |
-| VAD            | Silero VAD (ONNX)                                                                                                              | Skips silence and prevents Whisper hallucinating on it                                  |
-| Audio          | `symphonia` (decode), `cpal` (devices), `rubato` (resample)                                                                    | No ffmpeg dependency                                                                    |
-| Storage        | SQLite via `rusqlite`, FTS5 for search                                                                                         | One file, searchable, easy backup                                                       |
-| Updates        | Tauri updater against GitHub Releases                                                                                          | Signed, optional                                                                        |
+| Concern        | Choice                                                                                                | Why                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Shell          | Tauri 2                                                                                               | Native Rust backend, small binaries, signed installers, updater, tray, global shortcuts |
+| UI             | Svelte 5 + TypeScript + Vite                                                                          | Small runtime, plain CSS tokens as in the mockups, no UI kit                            |
+| Speech to text | whisper.cpp or sherpa-onnx (Whisper models)                                                           | Prebuilt, fast, Metal/Vulkan/CUDA capable                                               |
+| Text to speech | Kokoro-82M, Piper voices via ONNX Runtime                                                             | Small, CPU-capable, permissive licenses (verify per voice)                              |
+| Diarization    | Speaker embeddings + agglomerative clustering + temporal smoothing, ported from the earlier prototype | Proven heuristics; models via ONNX                                                      |
+| VAD            | Silero VAD (ONNX)                                                                                     | Skips silence and prevents Whisper hallucinating on it                                  |
+| Audio          | `symphonia` (decode), `cpal` (devices), `rubato` (resample)                                           | No ffmpeg dependency                                                                    |
+| Storage        | SQLite via `rusqlite`, FTS5 for search                                                                | One file, searchable, easy backup                                                       |
+| Updates        | Tauri updater against GitHub Releases                                                                 | Signed, optional                                                                        |
 
 ## Data model (sketch)
 
