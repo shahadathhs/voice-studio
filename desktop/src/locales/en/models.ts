@@ -42,4 +42,13 @@ export const models = {
     "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
   "modelInfo.kokoro-82m":
     "Reads English text aloud in six natural American voices. Runs on the CPU.",
+  "onboarding.title": "Choose what to download",
+  "onboarding.lead":
+    "Models run on this computer, so they need to be downloaded once. You can add or remove any of them later in Models.",
+  "onboarding.total": "{size} to download",
+  "onboarding.downloading": "Downloading… this screen closes when transcription is ready.",
+  "onboarding.download": "Download",
+  "onboarding.skip": "Skip for now",
+  "onboarding.privacy":
+    "Downloads come from the model authors' public hosting. No account, and nothing about you is sent.",
 } as const;

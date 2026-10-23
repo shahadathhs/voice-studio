@@ -45,4 +45,14 @@ export const models: Record<keyof typeof english, string> = {
     "Distingue las voces para que una transcripción indique quién habla. Pequeño y rápido en la CPU.",
   "modelInfo.kokoro-82m":
     "Lee texto en inglés en voz alta con seis voces naturales estadounidenses. Funciona en la CPU.",
+  "onboarding.title": "Elige qué descargar",
+  "onboarding.lead":
+    "Los modelos se ejecutan en este ordenador, así que hay que descargarlos una vez. Puedes añadir o quitar cualquiera después en Modelos.",
+  "onboarding.total": "{size} por descargar",
+  "onboarding.downloading":
+    "Descargando… esta pantalla se cierra cuando la transcripción esté lista.",
+  "onboarding.download": "Descargar",
+  "onboarding.skip": "Omitir por ahora",
+  "onboarding.privacy":
+    "Las descargas vienen del alojamiento público de los autores de los modelos. Sin cuenta, y no se envía nada sobre ti.",
 };

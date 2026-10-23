@@ -24,14 +24,16 @@ const SHOTS = [
     text: "Welcome back. Your recordings stay on this computer, and so does everything you make from them.",
   },
   { name: "models", page: 3, height: 1000 },
+  { name: "onboarding", fresh: true, height: 900 },
 ];
 
 const LOCALE = process.env.SHOTS_LOCALE ?? "en";
 
-const mockScript = (theme) => `
+const mockScript = (theme, fresh) => `
   localStorage.setItem("voice-studio-theme", "${theme}");
   localStorage.setItem("voice-studio-locale", "${LOCALE}");
   const backend = ${JSON.stringify(SAMPLE_BACKEND)};
+  if (${fresh}) backend.list_models = backend.list_models.map((m) => ({ ...m, installed: false }));
   let callbackId = 1;
   window.__TAURI_INTERNALS__ = {
     metadata: { currentWindow: { label: "main" }, currentWebview: { label: "main", windowLabel: "main" } },
@@ -105,10 +107,14 @@ async function shoot(shot, theme) {
     deviceScaleFactor: 2,
     mobile: false,
   });
-  await session.send("Page.addScriptToEvaluateOnNewDocument", { source: mockScript(theme) });
+  await session.send("Page.addScriptToEvaluateOnNewDocument", {
+    source: mockScript(theme, Boolean(shot.fresh)),
+  });
   await session.send("Page.navigate", { url: SITE });
   await sleep(1200);
-  await session.evaluate(`document.querySelectorAll("aside .item")[${shot.page}].click()`);
+  if (shot.page !== undefined) {
+    await session.evaluate(`document.querySelectorAll("aside .item")[${shot.page}].click()`);
+  }
   await sleep(400);
   if (shot.open) {
     await session.evaluate(clickByText(shot.open));

@@ -8,7 +8,9 @@
   import { library } from "./lib/library.svelte";
   import { models } from "./lib/models.svelte";
   import { nav } from "./lib/nav.svelte";
+  import { onboarding } from "./lib/onboarding.svelte";
   import { speech } from "./lib/speech.svelte";
+  import OnboardingPage from "./pages/OnboardingPage.svelte";
   import LibraryPage from "./pages/LibraryPage.svelte";
   import ModelsPage from "./pages/ModelsPage.svelte";
   import SettingsPage from "./pages/SettingsPage.svelte";
@@ -26,26 +28,30 @@
 </script>
 
 <div class="window">
-  <div class="body">
-    <Sidebar />
-    <main>
-      {#if nav.current === "transcribe"}
-        <TranscribePage />
-      {:else if nav.current === "speak"}
-        <SpeakPage />
-      {:else if nav.current === "library"}
-        {#if nav.viewing !== null}
-          <TranscriptPage id={nav.viewing} />
+  {#if onboarding.needed}
+    <OnboardingPage />
+  {:else}
+    <div class="body">
+      <Sidebar />
+      <main>
+        {#if nav.current === "transcribe"}
+          <TranscribePage />
+        {:else if nav.current === "speak"}
+          <SpeakPage />
+        {:else if nav.current === "library"}
+          {#if nav.viewing !== null}
+            <TranscriptPage id={nav.viewing} />
+          {:else}
+            <LibraryPage />
+          {/if}
+        {:else if nav.current === "models"}
+          <ModelsPage />
         {:else}
-          <LibraryPage />
+          <SettingsPage />
         {/if}
-      {:else if nav.current === "models"}
-        <ModelsPage />
-      {:else}
-        <SettingsPage />
-      {/if}
-    </main>
-  </div>
+      </main>
+    </div>
+  {/if}
   <StatusBar />
 </div>
 
