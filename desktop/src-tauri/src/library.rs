@@ -138,8 +138,10 @@ pub fn save_export(
     settings: ExportSettings,
     path: &str,
 ) -> Result<(), CommandError> {
-    let text = render_in(&open()?, id, format, settings)?;
-    std::fs::write(Path::new(path), text).map_err(vtt_core::Error::from)?;
+    let format: Format = format.parse()?;
+    let (_, transcript) = open()?.get(id)?;
+    let bytes = export::render_bytes(&transcript, format, &settings.into())?;
+    std::fs::write(Path::new(path), bytes).map_err(vtt_core::Error::from)?;
     Ok(())
 }
 

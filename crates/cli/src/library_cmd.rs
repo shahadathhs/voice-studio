@@ -116,16 +116,16 @@ fn edit(
     Ok(())
 }
 
-fn rendered(store: &Store, id: i64, args: &OutputArgs) -> Result<(String, Format)> {
+fn rendered(store: &Store, id: i64, args: &OutputArgs) -> Result<(Vec<u8>, Format)> {
     let format: Format = args.format.parse()?;
     let (_, transcript) = store.get(id)?;
-    let text = export::render(&transcript, format, &args.export_options())?;
+    let text = export::render_bytes(&transcript, format, &args.export_options())?;
     Ok((text, format))
 }
 
 fn show(store: &Store, id: &str, args: &OutputArgs) -> Result<()> {
     let (text, _) = rendered(store, parse_id(id)?, args)?;
-    std::io::stdout().write_all(text.as_bytes())?;
+    std::io::stdout().write_all(&text)?;
     Ok(())
 }
 
@@ -142,7 +142,7 @@ fn export_all(store: &Store, ids: &[String], args: &OutputArgs) -> Result<()> {
         let id = parse_id(id)?;
         let (text, format) = rendered(store, id, args)?;
         match target {
-            None => std::io::stdout().write_all(text.as_bytes())?,
+            None => std::io::stdout().write_all(&text)?,
             Some(path) if single => std::fs::write(path, text)?,
             Some(dir) => {
                 std::fs::create_dir_all(dir)?;

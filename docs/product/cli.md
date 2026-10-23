@@ -31,9 +31,9 @@ vtt serve                              optional local HTTP API (later phase)
 ### `vtt transcribe`
 
 **Implemented:** files in WAV, MP3, M4A/AAC, FLAC, OGG and the audio of MP4/MOV/MKV; `-m`, `-l`, `--translate`,
-`--device`, `-f txt|srt|vtt|json|md`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
+`--device`, `-f txt|srt|vtt|json|md|docx`, `-o` (file or directory), `--timestamps`, `--no-speaker-names`, `--max-line`,
 `--lines`, `-y`, `--no-vad`, `--json`, and saving every result to the shared library (`--no-library` skips it). **Not yet:**
-`-f docx` and reading audio from stdin (`-`). These exit with code 70. Speaker identification is described in
+reading audio from stdin (`-`), which exits with code 70. Speaker identification is described in
 [diarization.md](diarization.md).
 
 ```
@@ -52,7 +52,7 @@ cat clip.wav | vtt transcribe - -f txt                # '-' reads audio from std
 | `--diarize`                     | Identify speakers                                            |
 | `--speakers <N>`                | Exact speaker count (replaces `--max-speakers`)              |
 | `--diarize-threshold <X>`       | Voice distance, 0 to 2 (default: automatic), no `--speakers` |
-| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx`          |
+| `-f, --format <fmt>`            | `txt` (default), `srt`, `vtt`, `json`, `md`, `docx` (Word)   |
 | `-o, --output <path>`           | File, or directory for several inputs; `-` = stdout          |
 | `--timestamps`                  | Include timestamps in `txt`/`md`                             |
 | `--no-speaker-names`            | Omit speaker labels                                          |

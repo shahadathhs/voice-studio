@@ -27,7 +27,7 @@ _Screenshots show the real interface with made-up sample data._
   rename or merge speakers afterwards.
 - **Search everything you have transcribed.** Every transcript goes into a library with full-text search.
   Click a timestamp to hear that moment.
-- **Export anywhere.** TXT, SRT and VTT subtitles, Markdown and JSON, with control over line width,
+- **Export anywhere.** TXT, SRT and VTT subtitles, Markdown, JSON and Word documents, with control over line width,
   timestamps and speaker names.
 - **Read text aloud.** Paste text or open a file, pick one of six natural English voices, and play or save it.
 - **Choose your models.** A model manager shows what each model is for, how big it is, and its licence.

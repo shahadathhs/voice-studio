@@ -52,5 +52,7 @@ export const library = {
   "export.srt": "Subtitle file with numbered cues, readable by most video players and editors.",
   "export.vtt": "WebVTT subtitles for the web.",
   "export.json": "Every line with its timestamps; can be converted again with vtt export.",
+  "export.docx":
+    "A Word document, one paragraph per line with the speaker in bold. The preview shows its text.",
   "export.md": "Markdown with the speaker names in bold.",
 } as const;

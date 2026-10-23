@@ -14,6 +14,7 @@
     { value: "vtt", label: "VTT" },
     { value: "json", label: "JSON" },
     { value: "md", label: "Markdown" },
+    { value: "docx", label: "Word" },
   ];
   const DESCRIPTIONS: Record<ExportFormat, MessageKey> = {
     txt: "export.txt",
@@ -21,6 +22,7 @@
     vtt: "export.vtt",
     json: "export.json",
     md: "export.md",
+    docx: "export.docx",
   };
   const PREVIEW_CHARS = 700;
 

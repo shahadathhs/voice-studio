@@ -55,5 +55,7 @@ export const library: Record<keyof typeof english, string> = {
     "Archivo de subtítulos con cues numerados, que leen la mayoría de reproductores y editores de vídeo.",
   "export.vtt": "Subtítulos WebVTT para la web.",
   "export.json": "Cada línea con sus marcas de tiempo; se puede volver a convertir con vtt export.",
+  "export.docx":
+    "Un documento de Word, un párrafo por línea con el hablante en negrita. La vista previa muestra su texto.",
   "export.md": "Markdown con los nombres de los hablantes en negrita.",
 };

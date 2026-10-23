@@ -94,7 +94,7 @@ impl Job<'_> {
 
     /// Writes the transcript where the user asked and returns the path, if it went to a file.
     fn write(&self, transcript: &Transcript, out: Output) -> Result<Option<String>> {
-        let rendered = export::render(transcript, self.format, self.export_options)?;
+        let rendered = export::render_bytes(transcript, self.format, self.export_options)?;
         let path = match self.destination {
             Destination::Stdout => {
                 if out.json {
@@ -105,7 +105,7 @@ impl Job<'_> {
                         },
                     );
                 } else {
-                    std::io::stdout().write_all(rendered.as_bytes())?;
+                    std::io::stdout().write_all(&rendered)?;
                 }
                 return Ok(None);
             }

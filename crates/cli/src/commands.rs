@@ -52,10 +52,10 @@ fn read_input(path: &Path) -> Result<String> {
 fn export_cmd(a: &Export) -> Result<()> {
     let transcript: Transcript = serde_json::from_str(&read_input(&a.input)?)?;
     let format: Format = a.out.format.parse()?;
-    let rendered = export::render(&transcript, format, &a.out.export_options())?;
+    let rendered = export::render_bytes(&transcript, format, &a.out.export_options())?;
     match a.out.output.as_deref() {
         Some(p) if p != Path::new("-") => std::fs::write(p, rendered)?,
-        _ => std::io::stdout().write_all(rendered.as_bytes())?,
+        _ => std::io::stdout().write_all(&rendered)?,
     }
     Ok(())
 }

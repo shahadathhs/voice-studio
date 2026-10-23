@@ -74,15 +74,6 @@ fn unknown_format_is_exit_3() {
 }
 
 #[test]
-fn docx_is_reported_as_not_implemented() {
-    vtt()
-        .args(["export", "-", "-f", "docx"])
-        .write_stdin(TRANSCRIPT)
-        .assert()
-        .code(70);
-}
-
-#[test]
 fn engine_commands_are_not_implemented_yet() {
     vtt().args(["record"]).assert().code(70);
 }
@@ -255,10 +246,6 @@ fn several_files_need_an_output_directory() {
 #[test]
 fn features_that_are_not_built_yet_exit_70() {
     let dir = tempfile::tempdir().unwrap();
-    transcribe_in(&dir)
-        .args([TONE, "-f", "docx"])
-        .assert()
-        .code(70);
     transcribe_in(&dir).arg("-").assert().code(70);
 }
 

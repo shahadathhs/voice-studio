@@ -102,7 +102,7 @@ export interface TranscriptView {
   speakers: SpeakerShare[];
 }
 
-export type ExportFormat = "txt" | "srt" | "vtt" | "json" | "md";
+export type ExportFormat = "txt" | "srt" | "vtt" | "json" | "md" | "docx";
 
 /** Argument of `render_export` and `save_export`; `ExportSettings` in desktop/src-tauri. */
 export interface ExportSettings {

@@ -1,10 +1,11 @@
-//! Transcript exporters. Pure functions: transcript in, string out.
-//! DOCX needs a zip writer and arrives later.
+//! Transcript exporters. Pure functions: transcript in, text or file bytes out.
 
 mod cues;
+mod docx;
 mod json;
 mod markdown;
 mod text;
+mod zip;
 
 use std::str::FromStr;
 
@@ -17,6 +18,8 @@ pub enum Format {
     Vtt,
     Json,
     Markdown,
+    /// A Word document: binary, so use [`render_bytes`] to get the file.
+    Docx,
 }
 
 impl Format {
@@ -27,6 +30,7 @@ impl Format {
             Format::Vtt => "vtt",
             Format::Json => "json",
             Format::Markdown => "md",
+            Format::Docx => "docx",
         }
     }
 }
@@ -41,7 +45,7 @@ impl FromStr for Format {
             "vtt" => Ok(Format::Vtt),
             "json" => Ok(Format::Json),
             "md" | "markdown" => Ok(Format::Markdown),
-            "docx" => Err(Error::NotImplemented("docx export")),
+            "docx" => Ok(Format::Docx),
             other => Err(Error::Input(format!("unknown format: {other}"))),
         }
     }
@@ -66,14 +70,28 @@ impl Default for ExportOptions {
     }
 }
 
+/// The transcript as text. A binary format (docx) gives its plain-text equivalent, which is what
+/// a preview shows; use [`render_bytes`] for the file itself.
 pub fn render(transcript: &Transcript, format: Format, options: &ExportOptions) -> Result<String> {
     Ok(match format {
-        Format::Txt => text::render(transcript, options),
+        Format::Txt | Format::Docx => text::render(transcript, options),
         Format::Srt => cues::render_srt(transcript, options),
         Format::Vtt => cues::render_vtt(transcript, options),
         Format::Json => json::render(transcript)?,
         Format::Markdown => markdown::render(transcript, options),
     })
+}
+
+/// The transcript as the bytes of a file in `format`.
+pub fn render_bytes(
+    transcript: &Transcript,
+    format: Format,
+    options: &ExportOptions,
+) -> Result<Vec<u8>> {
+    match format {
+        Format::Docx => Ok(docx::build(transcript, options)),
+        _ => Ok(render(transcript, format, options)?.into_bytes()),
+    }
 }
 
 /// `HH:MM:SS` for text exports.
