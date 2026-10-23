@@ -37,6 +37,7 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
         language: args.language.clone().or_else(|| settings.language.clone()),
         translate: args.recognition.translate,
         vad: !args.recognition.no_vad,
+        ..SttOptions::default()
     };
     let export_options = args.out.export_options();
     let mut recognizer = Recognizer {

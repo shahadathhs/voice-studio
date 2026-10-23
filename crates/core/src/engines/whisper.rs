@@ -137,6 +137,7 @@ fn infer(
         .min(MAX_THREADS);
     params.set_n_threads(i32::try_from(threads).unwrap_or(4));
     params.set_translate(options.translate);
+    params.set_temperature(options.temperature);
     params.set_language(Some(options.language.as_deref().unwrap_or("auto")));
     params.set_print_progress(false);
     params.set_print_realtime(false);

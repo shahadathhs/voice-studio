@@ -39,6 +39,9 @@ pub struct SttOptions {
     pub translate: bool,
     /// Transcribe only the stretches that contain speech, in chunks (see `audio::speech_chunks`).
     pub vad: bool,
+    /// Randomness when choosing words: 0 always takes the likeliest, a higher value can get a
+    /// decoder out of a loop. Used by the retry in `repetition::transcribe_without_loops`.
+    pub temperature: f32,
 }
 
 /// Returned by progress callbacks so a front end can cancel a running job.

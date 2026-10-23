@@ -90,6 +90,7 @@ impl JobRunner for WhisperRunner {
             language: spec.language.clone(),
             translate: spec.translate,
             vad: true,
+            ..SttOptions::default()
         };
         self.load_engine(spec)?;
         if spec.speakers.is_some() {

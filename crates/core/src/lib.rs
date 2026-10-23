@@ -12,6 +12,7 @@ pub mod library;
 pub mod models;
 pub mod onnx;
 pub mod paths;
+pub mod repetition;
 pub mod settings;
 #[cfg(feature = "testing")]
 pub mod testing;

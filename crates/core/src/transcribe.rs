@@ -3,9 +3,9 @@
 use std::ops::Range;
 use std::path::Path;
 
-use crate::audio;
 use crate::engines::{AudioBuffer, Control, DiarizeOptions, Diarizer, SttEngine, SttOptions};
 use crate::{Error, Result, Transcript};
+use crate::{audio, repetition};
 
 /// Who-said-what labelling to run after the speech has been transcribed.
 pub struct Speakers<'a> {
@@ -28,7 +28,7 @@ pub fn transcribe_file(
     let mut transcript = if options.vad {
         transcribe_speech(engine, &audio, options, on_progress)?
     } else {
-        engine.transcribe(&audio, options, on_progress)?
+        repetition::transcribe_without_loops(engine, &audio, options, on_progress)?
     };
     if let Some(speakers) = speakers {
         speakers
@@ -87,7 +87,7 @@ fn transcribe_chunk(
         samples: audio.samples[range].to_vec(),
         sample_rate: audio.sample_rate,
     };
-    engine.transcribe(&chunk, options, &mut |done, _| on_progress(done))
+    repetition::transcribe_without_loops(engine, &chunk, options, &mut |done, _| on_progress(done))
 }
 
 #[cfg(test)]
