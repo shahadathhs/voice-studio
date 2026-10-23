@@ -5,7 +5,8 @@ use vtt_core::export::{self, Format};
 use vtt_core::paths::Paths;
 use vtt_core::{Error, Result, Transcript};
 
-use crate::cli::{Cli, Command, Config, Export};
+use crate::cli::{Cli, Command, Export};
+use crate::config_cmd;
 use crate::library_cmd;
 use crate::models_cmd;
 use crate::output::Output;
@@ -22,18 +23,7 @@ pub fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Export(a) => export_cmd(&a),
         Command::Models(m) => models_cmd::run(m, &paths, out),
-        Command::Config(Config::Path) => {
-            if json {
-                println!(
-                    "{}",
-                    serde_json::json!({"config": paths.config, "data": paths.data})
-                );
-            } else {
-                println!("config: {}", paths.config.display());
-                println!("data:   {}", paths.data.display());
-            }
-            Ok(())
-        }
+        Command::Config(config) => config_cmd::run(config, &paths, json),
         Command::Doctor => doctor(&paths, json),
         Command::Completions { shell } => {
             use clap::CommandFactory;

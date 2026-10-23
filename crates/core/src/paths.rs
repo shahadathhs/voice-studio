@@ -20,14 +20,18 @@ impl Paths {
     /// Resolve locations. `data_override` (flag) wins over `VTT_DATA_DIR`, which wins over the OS default.
     pub fn resolve(data_override: Option<PathBuf>) -> Paths {
         let dirs = ProjectDirs::from(QUALIFIER, ORGANIZATION, APPLICATION);
-        let data = data_override
-            .or_else(|| std::env::var_os("VTT_DATA_DIR").map(PathBuf::from))
+        let overridden =
+            data_override.or_else(|| std::env::var_os("VTT_DATA_DIR").map(PathBuf::from));
+        // A relocated data directory is a self-contained setup (tests, portable use), so its
+        // settings live with it instead of in the user's real config.
+        let config = match (&overridden, &dirs) {
+            (None, Some(d)) => d.config_dir().join("config.toml"),
+            (Some(data), _) => data.join("config.toml"),
+            (None, None) => PathBuf::from(".voice-studio").join("config.toml"),
+        };
+        let data = overridden
             .or_else(|| dirs.as_ref().map(|d| d.data_dir().to_path_buf()))
             .unwrap_or_else(|| PathBuf::from(".voice-studio"));
-        let config = dirs.map_or_else(
-            || data.join("config.toml"),
-            |d| d.config_dir().join("config.toml"),
-        );
         Paths { data, config }
     }
 

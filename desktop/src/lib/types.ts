@@ -132,3 +132,15 @@ export interface SpeechFinished {
   duration_ms: number;
   message: string | null;
 }
+
+export type Device = "auto" | "cpu" | "gpu";
+
+/** The saved defaults, from `get_settings`. Same fields as `Settings` in vtt-core. */
+export interface Settings {
+  /** Catalog id of the transcription model to start with; null picks one automatically. */
+  model: string | null;
+  /** Spoken language code; null detects it for each file. */
+  language: string | null;
+  device: Device;
+  identify_speakers: boolean;
+}

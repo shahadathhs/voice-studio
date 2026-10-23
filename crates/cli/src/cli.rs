@@ -108,13 +108,13 @@ impl OutputArgs {
 /// Speaker identification options.
 #[derive(Args, Debug)]
 pub struct SpeakerArgs {
-    /// Identify speakers
+    /// Identify speakers (also on when `vtt config set identify-speakers true`)
     #[arg(long)]
     pub diarize: bool,
     /// Exact number of speakers (alias: --max-speakers)
     #[arg(long, alias = "max-speakers", value_name = "N", requires = "diarize")]
     pub speakers: Option<usize>,
-    /// How different two voices must be to count as two speakers, 0 to 2 (default 0.45); used when
+    /// How different two voices must be to count as two speakers, 0 to 2 (default 0.5); used when
     /// --speakers is not set
     #[arg(long, value_name = "X", requires = "diarize")]
     pub diarize_threshold: Option<f32>,
@@ -136,10 +136,10 @@ pub struct Transcribe {
     /// Audio/video files; use '-' to read audio from stdin
     #[arg(required = true)]
     pub files: Vec<PathBuf>,
-    /// STT model id
+    /// STT model id (default: from `vtt config`)
     #[arg(short, long, env = "VTT_MODEL")]
     pub model: Option<String>,
-    /// Source language code (default: auto-detect)
+    /// Source language code (default: from `vtt config`, else auto-detect)
     #[arg(short, long)]
     pub language: Option<String>,
     #[command(flatten)]
@@ -148,8 +148,9 @@ pub struct Transcribe {
     pub speakers: SpeakerArgs,
     #[command(flatten)]
     pub out: OutputArgs,
-    #[arg(long, value_enum, default_value_t = DeviceChoice::Auto, env = "VTT_DEVICE")]
-    pub device: DeviceChoice,
+    /// Hardware to run on (default: from `vtt config`, else auto)
+    #[arg(long, value_enum, env = "VTT_DEVICE")]
+    pub device: Option<DeviceChoice>,
     /// Do not add the result to the shared library
     #[arg(long)]
     pub no_library: bool,
@@ -280,4 +281,10 @@ pub enum Library {
 pub enum Config {
     /// Print the config file and data directory
     Path,
+    /// Show every setting and its value
+    List,
+    /// Show one setting: model, language, device or identify-speakers
+    Get { key: String },
+    /// Change a setting; `auto` clears model and language. Flags still win for one run
+    Set { key: String, value: String },
 }

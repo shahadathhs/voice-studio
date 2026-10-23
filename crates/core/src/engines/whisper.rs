@@ -6,6 +6,8 @@ use std::sync::atomic::{AtomicBool, AtomicI32, Ordering};
 use std::sync::{Arc, Once};
 use std::time::Duration;
 
+use serde::{Deserialize, Serialize};
+
 use whisper_rs::{
     FullParams, SamplingStrategy, WhisperContext, WhisperContextParameters, get_lang_str,
 };
@@ -26,7 +28,8 @@ fn engine_error(e: impl Display) -> Error {
 }
 
 /// Which hardware runs the model.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum Device {
     /// Use the GPU when this build supports one, otherwise the CPU.
     #[default]

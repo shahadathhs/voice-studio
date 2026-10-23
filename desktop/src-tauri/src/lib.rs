@@ -6,6 +6,7 @@ mod downloads;
 mod jobs;
 mod library;
 mod playback;
+mod settings;
 mod speech;
 
 /// Starts the desktop application.
@@ -41,6 +42,8 @@ pub fn run() -> tauri::Result<()> {
             library::render_export,
             library::save_export,
             playback::prepare_playback,
+            settings::get_settings,
+            settings::save_settings,
             speech::list_voices,
             speech::start_speech,
             speech::cancel_speech,

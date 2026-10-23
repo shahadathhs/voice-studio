@@ -8,6 +8,7 @@ use vtt_core::export::Format;
 use vtt_core::library::{Library, NewItem, title_for};
 use vtt_core::models::{Catalog, ModelEntry, ModelKind, ModelStore, SPEAKER_MODEL_ID};
 use vtt_core::paths::Paths;
+use vtt_core::settings::Settings;
 use vtt_core::{Error, Result, Transcript};
 
 use crate::cli::{DeviceChoice, Transcribe};
@@ -16,6 +17,7 @@ use crate::output::Output;
 use crate::transcribe_job::{Destination, Job, Recognizer};
 
 pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
+    let settings = Settings::load(paths)?;
     let format: Format = args.out.format.parse()?;
     let destination = Destination::resolve(&args.files, args.out.output.as_deref())?;
     check_inputs(&args.files)?;
@@ -27,12 +29,12 @@ pub fn run(args: &Transcribe, paths: &Paths, out: Output) -> Result<()> {
     };
     let catalog = Catalog::bundled()?;
     let store = ModelStore::new(paths);
-    let entry = choose_model(&catalog, &store, args)?;
+    let entry = choose_model(&catalog, &store, args, &settings)?;
     models_cmd::ensure_installed(entry, &store, args.yes, out)?;
-    let speakers = speaker_labeller(args, &catalog, &store, out)?;
-    let mut engine = load_engine(args, entry, &store)?;
+    let speakers = speaker_labeller(args, &settings, &catalog, &store, out)?;
+    let mut engine = load_engine(args, &settings, entry, &store)?;
     let options = SttOptions {
-        language: args.language.clone(),
+        language: args.language.clone().or_else(|| settings.language.clone()),
         translate: args.recognition.translate,
         vad: !args.recognition.no_vad,
     };
@@ -70,11 +72,17 @@ fn keep(library: &mut Library, file: &Path, transcript: &Transcript) -> Result<(
     Ok(())
 }
 
-fn load_engine(args: &Transcribe, entry: &ModelEntry, store: &ModelStore) -> Result<WhisperEngine> {
+fn load_engine(
+    args: &Transcribe,
+    settings: &Settings,
+    entry: &ModelEntry,
+    store: &ModelStore,
+) -> Result<WhisperEngine> {
     let device = match args.device {
-        DeviceChoice::Auto => Device::Auto,
-        DeviceChoice::Cpu => Device::Cpu,
-        DeviceChoice::Gpu => Device::Gpu,
+        Some(DeviceChoice::Auto) => Device::Auto,
+        Some(DeviceChoice::Cpu) => Device::Cpu,
+        Some(DeviceChoice::Gpu) => Device::Gpu,
+        None => settings.device,
     };
     WhisperEngine::load(&store.file_path(entry, &entry.files[0]), &entry.id, device)
 }
@@ -82,11 +90,12 @@ fn load_engine(args: &Transcribe, entry: &ModelEntry, store: &ModelStore) -> Res
 /// Loads the speaker model (offering to download it) when `--diarize` was given.
 fn speaker_labeller(
     args: &Transcribe,
+    settings: &Settings,
     catalog: &Catalog,
     store: &ModelStore,
     out: Output,
 ) -> Result<Option<(SpeakerDiarizer<SpeakerModel>, DiarizeOptions)>> {
-    if !args.speakers.diarize {
+    if !args.speakers.diarize && !settings.identify_speakers {
         return Ok(None);
     }
     let entry = catalog
@@ -119,14 +128,15 @@ fn check_inputs(files: &[PathBuf]) -> Result<()> {
     Ok(())
 }
 
-/// `--model` accepts a catalog id (`whisper-base`) or the bare size the Python CLI used (`base`).
+/// `--model` (or the `model` setting) accepts a catalog id (`whisper-base`) or the bare size the Python CLI used (`base`).
 /// Fails when the model is not a speech model, or cannot translate and `--translate` was given.
 fn choose_model<'a>(
     catalog: &'a Catalog,
     store: &ModelStore,
     args: &Transcribe,
+    settings: &Settings,
 ) -> Result<&'a ModelEntry> {
-    let entry = match args.model.as_deref() {
+    let entry = match args.model.as_deref().or(settings.model.as_deref()) {
         Some(name) => catalog
             .find(name)
             .or_else(|| catalog.find(&format!("whisper-{name}")))

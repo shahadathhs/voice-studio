@@ -6,10 +6,11 @@ use std::sync::{Arc, OnceLock};
 
 use tauri::{AppHandle, Emitter};
 use vtt_core::Error;
-use vtt_core::engines::{Device, DiarizeOptions};
+use vtt_core::engines::DiarizeOptions;
 use vtt_core::jobs::{JobInfo, JobSpec, Queue, WhisperRunner};
 use vtt_core::models::{Catalog, ModelEntry, ModelStore, SPEAKER_MODEL_ID};
 use vtt_core::paths::Paths;
+use vtt_core::settings::Settings;
 
 use crate::commands::CommandError;
 
@@ -25,7 +26,8 @@ pub fn start(app: &AppHandle) {
         let notify = Arc::new(move |info: &JobInfo| {
             let _ = handle.emit(UPDATED_EVENT, info);
         });
-        Queue::start(WhisperRunner::new(&paths, Device::Auto), paths, notify)
+        let device = Settings::load(&paths).unwrap_or_default().device;
+        Queue::start(WhisperRunner::new(&paths, device), paths, notify)
     });
 }
 
@@ -151,6 +153,8 @@ mod tests {
     use std::sync::Arc;
 
     use vtt_core::jobs::JobState;
+
+    use vtt_core::engines::Device;
 
     use super::*;
 

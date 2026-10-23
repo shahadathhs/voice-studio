@@ -101,3 +101,8 @@ select:disabled {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
+
+input[type="checkbox"],
+input[type="range"] {
+  accent-color: var(--accent);
+}

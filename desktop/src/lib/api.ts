@@ -13,6 +13,7 @@ import type {
   ModelStatus,
   ProgressEvent,
   SearchHit,
+  Settings,
   SpeechFinished,
   SpeechProgress,
   TranscriptView,
@@ -29,10 +30,26 @@ const BROWSER_PREVIEW: AppInfo = {
   dataDir: "unavailable",
 };
 
+const DEFAULT_SETTINGS: Settings = {
+  model: null,
+  language: null,
+  device: "auto",
+  identify_speakers: false,
+};
+
 const noop = async (): Promise<void> => {};
 
 export async function appInfo(): Promise<AppInfo> {
   return insideTauri() ? invoke<AppInfo>("app_info") : BROWSER_PREVIEW;
+}
+
+export async function getSettings(): Promise<Settings> {
+  return insideTauri() ? invoke<Settings>("get_settings") : DEFAULT_SETTINGS;
+}
+
+/** Stores the settings and returns what was stored. */
+export async function saveSettings(settings: Settings): Promise<Settings> {
+  return insideTauri() ? invoke<Settings>("save_settings", { settings }) : settings;
 }
 
 export async function listModels(): Promise<ModelStatus[]> {

@@ -24,6 +24,7 @@ const SHOTS = [
     text: "Welcome back. Your recordings stay on this computer, and so does everything you make from them.",
   },
   { name: "models", page: 3, height: 1000 },
+  { name: "settings", page: 4, height: 1000 },
   { name: "onboarding", fresh: true, height: 900 },
 ];
 

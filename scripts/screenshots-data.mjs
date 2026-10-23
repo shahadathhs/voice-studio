@@ -170,6 +170,7 @@ export const SAMPLE_BACKEND = {
       license: "Apache-2.0",
     }),
   ],
+  get_settings: { model: "whisper-small", language: null, device: "auto", identify_speakers: true },
   list_jobs: jobs,
   list_library: library,
   search_library: [],

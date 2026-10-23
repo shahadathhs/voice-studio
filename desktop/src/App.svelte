@@ -9,6 +9,7 @@
   import { models } from "./lib/models.svelte";
   import { nav } from "./lib/nav.svelte";
   import { onboarding } from "./lib/onboarding.svelte";
+  import { settings } from "./lib/settings.svelte";
   import { speech } from "./lib/speech.svelte";
   import OnboardingPage from "./pages/OnboardingPage.svelte";
   import LibraryPage from "./pages/LibraryPage.svelte";
@@ -24,6 +25,7 @@
     void jobs.start();
     void library.load();
     void speech.start();
+    void settings.load();
   });
 </script>
 

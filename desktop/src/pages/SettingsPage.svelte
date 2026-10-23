@@ -1,8 +1,21 @@
 <script lang="ts">
   import PageHeader from "../components/PageHeader.svelte";
+  import SettingRow from "../components/SettingRow.svelte";
   import ThemeSwitcher from "../components/ThemeSwitcher.svelte";
   import { info } from "../lib/app-info.svelte";
   import { i18n, LOCALES, t } from "../lib/i18n.svelte";
+  import { languageOptions } from "../lib/languages";
+  import { models } from "../lib/models.svelte";
+  import { settings } from "../lib/settings.svelte";
+  import type { Device } from "../lib/types";
+
+  const speechModels = $derived(models.installed.filter((model) => model.kind === "stt"));
+  const hasSpeakerModel = $derived(models.installed.some((model) => model.kind === "diarization"));
+  const DEVICES = [
+    ["auto", "settings.deviceAuto"],
+    ["cpu", "settings.deviceCpu"],
+    ["gpu", "settings.deviceGpu"],
+  ] as const;
 </script>
 
 <section>
@@ -36,6 +49,64 @@
         </select>
       </div>
     </div>
+  </div>
+
+  <div>
+    <h2>{t("settings.transcription")}</h2>
+    <div class="panel">
+      <SettingRow id="model" label={t("settings.model")} hint={t("settings.modelHint")}>
+        <select
+          id="model"
+          class="field"
+          value={settings.value.model ?? ""}
+          onchange={(event) => settings.update({ model: event.currentTarget.value || null })}
+        >
+          <option value="">{t("settings.modelAuto")}</option>
+          {#each speechModels as model (model.id)}
+            <option value={model.id}>{model.name}</option>
+          {/each}
+        </select>
+      </SettingRow>
+      <SettingRow
+        id="spoken"
+        label={t("settings.transcriptionLanguage")}
+        hint={t("settings.transcriptionLanguageHint")}
+      >
+        <select
+          id="spoken"
+          class="field"
+          value={settings.value.language ?? ""}
+          onchange={(event) => settings.update({ language: event.currentTarget.value || null })}
+        >
+          <option value="">{t("settings.languageDetect")}</option>
+          {#each languageOptions() as option (option.code)}
+            <option value={option.code}>{option.label}</option>
+          {/each}
+        </select>
+      </SettingRow>
+      <SettingRow id="identify" label={t("settings.identify")} hint={t("settings.identifyHint")}>
+        <input
+          id="identify"
+          type="checkbox"
+          checked={settings.value.identify_speakers}
+          disabled={!hasSpeakerModel}
+          onchange={(event) => settings.update({ identify_speakers: event.currentTarget.checked })}
+        />
+      </SettingRow>
+      <SettingRow id="device" label={t("settings.device")} hint={t("settings.deviceHint")}>
+        <select
+          id="device"
+          class="field"
+          value={settings.value.device}
+          onchange={(event) => settings.update({ device: event.currentTarget.value as Device })}
+        >
+          {#each DEVICES as [value, label] (value)}
+            <option {value}>{t(label)}</option>
+          {/each}
+        </select>
+      </SettingRow>
+    </div>
+    {#if settings.error}<p class="error" role="alert">{settings.error}</p>{/if}
   </div>
 
   <div>
