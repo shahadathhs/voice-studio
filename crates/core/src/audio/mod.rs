@@ -6,9 +6,11 @@ mod resample;
 pub(crate) mod synthetic;
 mod vad;
 mod wav;
+mod waveform;
 
 pub use vad::{speech_chunks, voiced_span};
 pub use wav::encode_wav;
+pub use waveform::{peaks, waveform_of};
 
 use std::path::Path;
 

@@ -32,6 +32,8 @@ export const library: Record<keyof typeof english, string> = {
   "speakers.rename": "Renombrar a {name}",
   "speakers.renameHint": "Renombrar. Si el nombre ya existe, se fusionan los dos hablantes.",
   "speakers.newName": "Nuevo nombre para {name}",
+  "waveform.label":
+    "Posición de la grabación. Haz clic para saltar; las flechas avanzan 5 segundos.",
   "edit.label": "Editar {what}",
   "lines.text": "texto de la línea",
   "lines.speaker": "hablante de esta línea",

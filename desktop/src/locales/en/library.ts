@@ -31,6 +31,7 @@ export const library = {
   "speakers.rename": "Rename {name}",
   "speakers.renameHint": "Rename. A name that is already taken merges the two speakers.",
   "speakers.newName": "New name for {name}",
+  "waveform.label": "Recording position. Click to jump; arrow keys move by 5 seconds.",
   "edit.label": "Edit {what}",
   "lines.text": "line text",
   "lines.speaker": "speaker of this line",

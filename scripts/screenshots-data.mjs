@@ -171,6 +171,9 @@ export const SAMPLE_BACKEND = {
     }),
   ],
   get_settings: { model: "whisper-small", language: null, device: "auto", identify_speakers: true },
+  get_waveform: Array.from({ length: 240 }, (_, n) =>
+    Math.min(1, 0.12 + 0.88 * Math.abs(Math.sin(n / 5) * Math.sin(n / 23 + 1)) ** 0.8),
+  ),
   list_jobs: jobs,
   list_library: library,
   search_library: [],

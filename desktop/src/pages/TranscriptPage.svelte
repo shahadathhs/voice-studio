@@ -4,6 +4,7 @@
   import Icon from "../components/Icon.svelte";
   import SpeakerPanel from "../components/SpeakerPanel.svelte";
   import TranscriptLines from "../components/TranscriptLines.svelte";
+  import Waveform from "../components/Waveform.svelte";
   import {
     getTranscript,
     renameSpeaker,
@@ -107,6 +108,7 @@
         {/if}
       </header>
       {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
+      <Waveform itemId={id} durationMs={view.item.duration_ms} />
       <div class="lines">
         {#if view.transcript.segments.length === 0}
           <p class="muted empty">{t("transcript.noSpeech")}</p>

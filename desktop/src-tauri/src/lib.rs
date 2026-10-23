@@ -44,6 +44,7 @@ pub fn run() -> tauri::Result<()> {
             library::render_export,
             library::save_export,
             playback::prepare_playback,
+            playback::get_waveform,
             settings::get_settings,
             settings::save_settings,
             speech::list_voices,

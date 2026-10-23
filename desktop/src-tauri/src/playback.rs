@@ -55,6 +55,23 @@ pub fn prepare_playback(id: i64) -> std::result::Result<String, CommandError> {
     Ok(path.display().to_string())
 }
 
+/// How many bars the waveform asked for may be at most; a few hundred is plenty for a window.
+const MAX_BARS: usize = 1000;
+
+/// The outline of the recording of item `id`, `bars` values from 0 to 1. Decoding a long file
+/// takes a moment, so it runs off the interface's thread.
+#[tauri::command]
+pub async fn get_waveform(id: i64, bars: usize) -> std::result::Result<Vec<f32>, CommandError> {
+    let outline = tauri::async_runtime::spawn_blocking(move || -> Result<Vec<f32>> {
+        let library = Library::open(&Paths::resolve(None))?;
+        let path = source_file(&library, id)?;
+        vtt_core::audio::waveform_of(&path, bars.min(MAX_BARS))
+    })
+    .await
+    .map_err(|e| CommandError(e.to_string()))?;
+    Ok(outline?)
+}
+
 #[cfg(test)]
 mod tests {
     use vtt_core::Transcript;

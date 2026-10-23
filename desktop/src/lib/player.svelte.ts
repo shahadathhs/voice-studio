@@ -30,6 +30,25 @@ class Player {
     endMs: number | null,
   ): Promise<void> {
     if (this.isActive(itemId, key)) return this.stop();
+    return this.#start(itemId, key, startMs, endMs);
+  }
+
+  /** Jumps to `ms` in the whole recording: moves the playhead if it is playing, otherwise starts
+   *  playing from there. */
+  async seek(itemId: number, ms: number): Promise<void> {
+    if (!this.isActive(itemId, "all") || !this.#audio) {
+      return this.#start(itemId, "all", ms, null);
+    }
+    this.#audio.currentTime = ms / MS;
+    this.position = ms;
+  }
+
+  async #start(
+    itemId: number,
+    key: number | "all",
+    startMs: number,
+    endMs: number | null,
+  ): Promise<void> {
     this.error = null;
     try {
       const audio = await this.#load(itemId);

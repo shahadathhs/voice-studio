@@ -193,6 +193,11 @@ export async function playbackUrl(id: number): Promise<string | null> {
 }
 
 /** Renames a speaker in one transcript; a name another speaker has merges the two. */
+/** The outline of a recording for drawing: `bars` values from 0 to 1. Empty in a browser. */
+export async function getWaveform(id: number, bars: number): Promise<number[]> {
+  return insideTauri() ? invoke<number[]>("get_waveform", { id, bars }) : [];
+}
+
 export async function setLineText(id: number, line: number, text: string): Promise<void> {
   if (insideTauri()) await invoke("set_line_text", { id, line, text });
 }
