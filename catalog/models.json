@@ -4,7 +4,7 @@
       "id": "whisper-tiny",
       "name": "Whisper tiny",
       "kind": "stt",
-      "description": "Fastest, lowest accuracy. Good for quick drafts.",
+      "description": "Fastest and least accurate. For quick drafts of clear, close-up speech.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -20,7 +20,7 @@
       "id": "whisper-base",
       "name": "Whisper base",
       "kind": "stt",
-      "description": "Balanced for clear speech.",
+      "description": "Fast and light. Good for clean recordings in a quiet room.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -36,7 +36,7 @@
       "id": "whisper-small",
       "name": "Whisper small",
       "kind": "stt",
-      "description": "Noticeably better with accents and background noise.",
+      "description": "The best balance for most people: copes with accents and some background noise.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -52,7 +52,7 @@
       "id": "whisper-medium",
       "name": "Whisper medium",
       "kind": "stt",
-      "description": "High accuracy, slower.",
+      "description": "High accuracy for difficult audio. Noticeably slower.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -68,7 +68,7 @@
       "id": "whisper-large-v3-turbo",
       "name": "Whisper large-v3 turbo",
       "kind": "stt",
-      "description": "Near-best accuracy, much faster than large-v3.",
+      "description": "Close to the best accuracy at a much higher speed. Cannot translate.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -85,7 +85,7 @@
       "id": "whisper-large-v3-turbo-q5",
       "name": "Whisper large-v3 turbo (compact)",
       "kind": "stt",
-      "description": "Quantized large-v3 turbo at about a third of the size.",
+      "description": "The turbo model compressed to about a third of the download, a little less precise.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -102,7 +102,7 @@
       "id": "whisper-large-v3",
       "name": "Whisper large-v3",
       "kind": "stt",
-      "description": "Highest accuracy, slowest.",
+      "description": "Highest accuracy and slowest. For hard recordings where quality matters most.",
       "languages": ["multilingual"],
       "license": "MIT",
       "files": [
@@ -118,7 +118,7 @@
       "id": "wespeaker-resnet34",
       "name": "Speaker identification (WeSpeaker ResNet34)",
       "kind": "diarization",
-      "description": "Tells voices apart so transcripts can label who is speaking. Small and fast on the CPU.",
+      "description": "Tells voices apart so a transcript can label who is speaking. Small and fast on the CPU.",
       "languages": ["multilingual"],
       "license": "Apache-2.0",
       "files": [
@@ -134,7 +134,7 @@
       "id": "kokoro-82m",
       "name": "Kokoro 82M (English voices)",
       "kind": "tts",
-      "description": "Natural English speech in six voices (American, female and male). Runs on the CPU.",
+      "description": "Reads English text aloud in six natural American voices. Runs on the CPU.",
       "languages": ["en"],
       "license": "Apache-2.0",
       "files": [

@@ -5,7 +5,7 @@
   import Icon from "./Icon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
 
-  let { model }: { model: ModelStatus } = $props();
+  let { model, recommended = false }: { model: ModelStatus; recommended?: boolean } = $props();
 
   const progress = $derived(models.progress[model.id]);
   const error = $derived(models.errors[model.id]);
@@ -15,11 +15,15 @@
 <tr>
   <td>
     <strong>{model.name}</strong>
+    {#if recommended}<span class="badge">Recommended</span>{/if}
     <div class="muted">{model.description}</div>
+    <div class="muted meta">
+      {languageLabel(model.languages)} · {model.license} licence{model.can_translate
+        ? " · can translate to English"
+        : ""}
+    </div>
   </td>
-  <td class="mono">{formatBytes(model.size_bytes)}</td>
-  <td>{languageLabel(model.languages)}</td>
-  <td>{model.license}</td>
+  <td class="size mono">{formatBytes(model.size_bytes)}</td>
   <td class="action">
     {#if progress}
       <div class="downloading">
@@ -51,6 +55,25 @@
 
   tr:last-child td {
     border-bottom: 0;
+  }
+
+  .size {
+    width: 90px;
+  }
+
+  .badge {
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: var(--accent-bg);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .meta {
+    margin-top: 2px;
+    font-size: 11.5px;
   }
 
   .action {
