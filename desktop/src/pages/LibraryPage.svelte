@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import EmptyState from "../components/EmptyState.svelte";
   import Icon from "../components/Icon.svelte";
   import LibraryRow from "../components/LibraryRow.svelte";
@@ -12,17 +13,14 @@
 </script>
 
 <section>
-  <PageHeader
-    title="Library"
-    subtitle={count === 1 ? "1 transcript" : `${count} transcripts, searchable by what was said`}
-  >
+  <PageHeader title={t("library.title")} subtitle={t("library.subtitle", { count })}>
     {#snippet actions()}
       <label class="search">
         <Icon name="search" />
         <input
           type="search"
-          placeholder="Search transcripts"
-          aria-label="Search transcripts"
+          placeholder={t("library.search")}
+          aria-label={t("library.search")}
           value={library.query}
           oninput={(event) => library.search(event.currentTarget.value)}
         />
@@ -33,21 +31,21 @@
   {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
 
   {#if library.items === null}
-    <p class="muted">Loading…</p>
+    <p class="muted">{t("common.loading")}</p>
   {:else if library.hits !== null}
     {#if library.hits.length === 0}
-      <EmptyState title="No matches" text="No transcript contains all of those words." />
+      <EmptyState title={t("library.noMatches.title")} text={t("library.noMatches.text")} />
     {:else}
-      <ul class="list" aria-label="Search results">
+      <ul class="list" aria-label={t("library.results")}>
         {#each library.hits as hit (hit.item.id)}
           <LibraryRow item={hit.item} snippet={hit.snippet} startMs={hit.start_ms} />
         {/each}
       </ul>
     {/if}
   {:else if library.items.length === 0}
-    <EmptyState title="Nothing here yet" text="Transcribe a file and it will be saved here." />
+    <EmptyState title={t("library.empty.title")} text={t("library.empty.text")} />
   {:else}
-    <ul class="list" aria-label="Transcripts">
+    <ul class="list" aria-label={t("library.list")}>
       {#each library.items as item (item.id)}<LibraryRow {item} />{/each}
     </ul>
   {/if}

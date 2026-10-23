@@ -4,39 +4,44 @@
   import PageHeader from "../components/PageHeader.svelte";
   import { info } from "../lib/app-info.svelte";
   import { formatBytes } from "../lib/format";
+  import { t } from "../lib/i18n.svelte";
   import { groupModels } from "../lib/model-groups";
   import { models } from "../lib/models.svelte";
   import { nav } from "../lib/nav.svelte";
 </script>
 
 <section>
-  <PageHeader
-    title="Models"
-    subtitle="Downloaded once, then used offline. Remove any you don't need."
-  >
+  <PageHeader title={t("models.title")} subtitle={t("models.subtitle")}>
     {#snippet actions()}
       {#if models.items}
         <div class="usage">
-          <strong>{models.installed.length} of {models.items.length} installed</strong>
-          <div class="muted">{formatBytes(models.installedBytes)} on disk</div>
+          <strong
+            >{t("models.installedCount", {
+              installed: models.installed.length,
+              total: models.items.length,
+            })}</strong
+          >
+          <div class="muted">
+            {t("models.onDisk", { size: formatBytes(models.installedBytes) })}
+          </div>
         </div>
       {/if}
     {/snippet}
   </PageHeader>
 
   {#if models.items === null}
-    <p class="muted">Loading…</p>
+    <p class="muted">{t("common.loading")}</p>
   {:else if models.items.length === 0}
-    <EmptyState title="No models to show" text="Models are only available in the desktop app." />
+    <EmptyState title={t("models.none.title")} text={t("models.none.text")} />
   {:else}
     {#each groupModels(models.items) as { group, models: members } (group.kind)}
       <div class="group">
         <div class="group-head">
           <div>
-            <h2>{group.title}</h2>
-            <p class="muted">{group.purpose}</p>
+            <h2>{t(group.title)}</h2>
+            <p class="muted">{t(group.purpose)}</p>
           </div>
-          <button class="btn" onclick={() => nav.go(group.page)}>{group.pageLabel}</button>
+          <button class="btn" onclick={() => nav.go(group.page)}>{t(group.pageLabel)}</button>
         </div>
         <table>
           <tbody>
@@ -47,7 +52,7 @@
         </table>
       </div>
     {/each}
-    <p class="muted folder">Stored in <span class="mono">{info.value?.dataDir ?? "…"}</span></p>
+    <p class="muted folder">{t("models.storedIn", { path: info.value?.dataDir ?? "…" })}</p>
   {/if}
 </section>
 
@@ -94,7 +99,7 @@
     font-size: 12px;
   }
 
-  .folder span {
+  .folder {
     user-select: text;
   }
 </style>

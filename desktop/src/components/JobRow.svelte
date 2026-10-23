@@ -1,20 +1,22 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { formatClock, percent } from "../lib/format";
   import { jobs } from "../lib/jobs.svelte";
   import { nav } from "../lib/nav.svelte";
+  import type { MessageKey } from "../locales/en";
   import type { JobInfo, JobState } from "../lib/types";
   import Icon from "./Icon.svelte";
   import ProgressBar from "./ProgressBar.svelte";
 
   let { job }: { job: JobInfo } = $props();
 
-  const LABELS: Record<JobState, string> = {
-    waiting: "Waiting",
-    running: "Transcribing",
-    paused: "Paused",
-    done: "Done",
-    failed: "Failed",
-    cancelled: "Cancelled",
+  const LABELS: Record<JobState, MessageKey> = {
+    waiting: "job.waiting",
+    running: "job.running",
+    paused: "job.paused",
+    done: "job.done",
+    failed: "job.failed",
+    cancelled: "job.cancelled",
   };
 
   const finished = $derived(
@@ -26,30 +28,41 @@
 <li>
   <div class="top">
     <strong class="title">{job.title}</strong>
-    <span class="badge {job.state}">{LABELS[job.state]}</span>
+    <span class="badge {job.state}">{t(LABELS[job.state])}</span>
     <span class="spacer"></span>
     {#if job.state === "waiting"}
-      <button class="icon" aria-label="Move {job.title} up" onclick={() => jobs.moveUp(job.id)}>
+      <button
+        class="icon"
+        aria-label={t("job.moveUp", { title: job.title })}
+        onclick={() => jobs.moveUp(job.id)}
+      >
         <Icon name="up" />
       </button>
     {/if}
     {#if job.state === "running" || job.state === "waiting"}
-      <button class="btn" onclick={() => jobs.cancel(job.id)}>Cancel</button>
+      <button class="btn" onclick={() => jobs.cancel(job.id)}>{t("common.cancel")}</button>
     {/if}
     {#if job.state === "done" && job.item_id !== null}
       {@const itemId = job.item_id}
-      <button class="btn" onclick={() => nav.open(itemId)}>Open</button>
+      <button class="btn" onclick={() => nav.open(itemId)}>{t("job.open")}</button>
     {/if}
     {#if finished || job.state === "waiting"}
-      <button class="icon" aria-label="Remove {job.title}" onclick={() => jobs.remove(job.id)}>
+      <button
+        class="icon"
+        aria-label={t("job.remove", { title: job.title })}
+        onclick={() => jobs.remove(job.id)}
+      >
         <Icon name="x" />
       </button>
     {/if}
   </div>
   {#if job.state === "running"}
-    <ProgressBar value={done} label="Transcribing {job.title}" />
+    <ProgressBar value={done} label={t("job.progressLabel", { title: job.title })} />
     <div class="muted mono small">
-      {formatClock(job.processed_ms)} of {formatClock(job.total_ms)} processed
+      {t("job.processed", {
+        done: formatClock(job.processed_ms),
+        total: formatClock(job.total_ms),
+      })}
     </div>
   {/if}
   {#if job.error}<div class="error small">{job.error}</div>{/if}

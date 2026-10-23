@@ -10,24 +10,27 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { SAMPLE_BACKEND } from "./screenshots-data.mjs";
 
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const OUT = new URL("../docs/screenshots/", import.meta.url).pathname;
+const OUT = process.env.SHOTS_OUT ?? new URL("../docs/screenshots/", import.meta.url).pathname;
 const SITE = "http://127.0.0.1:4173";
 const DEBUG_PORT = 9333;
 
-/** page: sidebar label to click, then optional text of a row to open. */
+/** page: position of the sidebar item to click (labels change with the language), then optionally a row to open. */
 const SHOTS = [
-  { name: "transcribe", page: "Transcribe" },
-  { name: "transcript", page: "Library", open: "Quarterly planning meeting" },
+  { name: "transcribe", page: 0 },
+  { name: "transcript", page: 2, open: "Quarterly planning meeting" },
   {
     name: "speak",
-    page: "Speak",
+    page: 1,
     text: "Welcome back. Your recordings stay on this computer, and so does everything you make from them.",
   },
-  { name: "models", page: "Models", height: 1000 },
+  { name: "models", page: 3, height: 1000 },
 ];
+
+const LOCALE = process.env.SHOTS_LOCALE ?? "en";
 
 const mockScript = (theme) => `
   localStorage.setItem("voice-studio-theme", "${theme}");
+  localStorage.setItem("voice-studio-locale", "${LOCALE}");
   const backend = ${JSON.stringify(SAMPLE_BACKEND)};
   let callbackId = 1;
   window.__TAURI_INTERNALS__ = {
@@ -105,7 +108,7 @@ async function shoot(shot, theme) {
   await session.send("Page.addScriptToEvaluateOnNewDocument", { source: mockScript(theme) });
   await session.send("Page.navigate", { url: SITE });
   await sleep(1200);
-  await session.evaluate(clickByText(shot.page));
+  await session.evaluate(`document.querySelectorAll("aside .item")[${shot.page}].click()`);
   await sleep(400);
   if (shot.open) {
     await session.evaluate(clickByText(shot.open));

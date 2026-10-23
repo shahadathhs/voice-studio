@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { baseName, formatClock, percent } from "../lib/format";
+  import { i18n } from "../lib/i18n.svelte";
   import { languageName } from "../lib/languages";
   import type { TranscriptView } from "../lib/types";
   import Icon from "./Icon.svelte";
@@ -29,16 +31,16 @@
 
   const total = $derived(view.speakers.reduce((sum, speaker) => sum + speaker.talk_ms, 0));
   const details = $derived([
-    ["Source", view.item.source_path ? baseName(view.item.source_path) : "—"],
-    ["Model", view.item.model ?? "—"],
-    ["Language", languageName(view.item.language)],
-    ["Words", view.word_count.toLocaleString()],
+    [t("details.source"), view.item.source_path ? baseName(view.item.source_path) : "—"],
+    [t("details.model"), view.item.model ?? "—"],
+    [t("details.language"), languageName(view.item.language)],
+    [t("details.words"), view.word_count.toLocaleString(i18n.locale.code)],
   ]);
 </script>
 
 <aside>
   {#if view.speakers.length > 0}
-    <h2>Speakers</h2>
+    <h2>{t("speakers.title")}</h2>
     <ul>
       {#each view.speakers as speaker, index (speaker.name)}
         <li style:--colour="var(--sp{index % 4})">
@@ -46,7 +48,7 @@
             <span class="dot"></span>
             {#if editing === speaker.name}
               <input
-                aria-label="New name for {speaker.name}"
+                aria-label={t("speakers.newName", { name: speaker.name })}
                 bind:value={draft}
                 onblur={commit}
                 onkeydown={(event) => {
@@ -59,8 +61,8 @@
               <span class="label-text">{speaker.name}</span>
               <button
                 class="edit"
-                aria-label="Rename {speaker.name}"
-                title="Rename. A name that is already taken merges the two speakers."
+                aria-label={t("speakers.rename", { name: speaker.name })}
+                title={t("speakers.renameHint")}
                 onclick={() => edit(speaker.name)}
               >
                 <Icon name="edit" size={14} />
@@ -75,7 +77,7 @@
       {/each}
     </ul>
   {/if}
-  <h2>Details</h2>
+  <h2>{t("details.title")}</h2>
   <dl>
     {#each details as [label, value] (label)}
       <dt class="muted">{label}</dt>

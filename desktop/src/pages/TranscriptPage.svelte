@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import ExportDialog from "../components/ExportDialog.svelte";
   import Icon from "../components/Icon.svelte";
   import SpeakerPanel from "../components/SpeakerPanel.svelte";
@@ -49,43 +50,49 @@
   <div class="page">
     <div class="main">
       <header>
-        <button class="btn" aria-label="Back to the library" onclick={() => nav.go("library")}>
+        <button class="btn" aria-label={t("transcript.back")} onclick={() => nav.go("library")}>
           <Icon name="back" />
         </button>
         <div class="heading">
           <h1>{view.item.title}</h1>
           <p class="muted">
             {formatClock(view.item.duration_ms)} · {languageName(view.item.language)}
-            {view.item.speaker_count > 0 ? ` · ${view.item.speaker_count} speakers` : ""}
+            {view.item.speaker_count > 0
+              ? ` · ${t("row.speakers", { count: view.item.speaker_count })}`
+              : ""}
           </p>
         </div>
         <label class="search">
           <Icon name="search" />
           <input
             type="search"
-            placeholder="Search transcript"
-            aria-label="Search transcript"
+            placeholder={t("transcript.search")}
+            aria-label={t("transcript.search")}
             bind:value={query}
           />
         </label>
         <button class="btn" onclick={() => player.play(id, "all", 0, null)}>
           <Icon name={player.isActive(id, "all") ? "pause" : "play"} />
-          {player.isActive(id, "all") ? "Pause" : "Play"}
+          {player.isActive(id, "all") ? t("player.pause") : t("player.play")}
         </button>
-        <button class="btn" onclick={copy}><Icon name="copy" />{copied ? "Copied" : "Copy"}</button>
+        <button class="btn" onclick={copy}
+          ><Icon name="copy" />{copied ? t("transcript.copied") : t("transcript.copy")}</button
+        >
         <button class="btn primary" onclick={() => (exporting = true)}>
-          <Icon name="down" />Export
+          <Icon name="down" />{t("transcript.export")}
         </button>
         {#if confirmingDelete}
-          <button class="btn danger" onclick={remove}>Delete for good</button>
+          <button class="btn danger" onclick={remove}>{t("transcript.deleteForGood")}</button>
         {:else}
-          <button class="btn" onclick={() => (confirmingDelete = true)}>Delete</button>
+          <button class="btn" onclick={() => (confirmingDelete = true)}
+            >{t("transcript.delete")}</button
+          >
         {/if}
       </header>
       {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
       <div class="lines">
         {#if view.transcript.segments.length === 0}
-          <p class="muted empty">No speech was found in this recording.</p>
+          <p class="muted empty">{t("transcript.noSpeech")}</p>
         {:else}
           <TranscriptLines itemId={id} segments={view.transcript.segments} {query} {speakerOrder} />
         {/if}
@@ -97,7 +104,7 @@
     <ExportDialog itemId={id} title={view.item.title} onclose={() => (exporting = false)} />
   {/if}
 {:else}
-  <p class="muted loading">Loading…</p>
+  <p class="muted loading">{t("common.loading")}</p>
 {/if}
 
 <style>

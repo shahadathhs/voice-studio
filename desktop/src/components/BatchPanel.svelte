@@ -1,32 +1,32 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { baseName } from "../lib/format";
-  import { LANGUAGES } from "../lib/languages";
+  import { languageOptions } from "../lib/languages";
   import { batch } from "../lib/batch.svelte";
   import { jobs } from "../lib/jobs.svelte";
   import { nav } from "../lib/nav.svelte";
   import Icon from "./Icon.svelte";
 
   const count = $derived(batch.files.length);
-  const noun = $derived(count === 1 ? "file" : "files");
 </script>
 
-<section class="panel" aria-label="Files ready to transcribe">
+<section class="panel" aria-label={t("batch.label")}>
   <header>
     <div>
-      <h2>{count} {noun} ready</h2>
-      <p class="muted">Choose how to transcribe {count === 1 ? "it" : "them"}, then start.</p>
+      <h2>{t("batch.ready", { count })}</h2>
+      <p class="muted">{t("batch.choose", { count })}</p>
     </div>
-    <button class="btn" onclick={() => batch.clear()}>Cancel</button>
+    <button class="btn" onclick={() => batch.clear()}>{t("common.cancel")}</button>
   </header>
 
-  <ul class="files" aria-label="Files">
+  <ul class="files" aria-label={t("batch.files")}>
     {#each batch.files as path (path)}
       <li>
         <Icon name="doc" size={14} />
         <span class="name" title={path}>{baseName(path)}</span>
         <button
           class="icon"
-          aria-label="Remove {baseName(path)}"
+          aria-label={t("batch.remove", { name: baseName(path) })}
           onclick={() => batch.remove(path)}
         >
           <Icon name="x" size={14} />
@@ -37,7 +37,7 @@
 
   <div class="options">
     <div class="option">
-      <label class="label" for="batch-model">Model</label>
+      <label class="label" for="batch-model">{t("batch.model")}</label>
       <select
         id="batch-model"
         class="field"
@@ -51,10 +51,10 @@
     </div>
 
     <div class="option">
-      <label class="label" for="batch-language">Language</label>
+      <label class="label" for="batch-language">{t("batch.language")}</label>
       <select id="batch-language" class="field" bind:value={batch.language}>
-        <option value="">Detect automatically</option>
-        {#each LANGUAGES as option (option.code)}
+        <option value="">{t("batch.detect")}</option>
+        {#each languageOptions() as option (option.code)}
           <option value={option.code}>{option.label}</option>
         {/each}
       </select>
@@ -63,10 +63,10 @@
     <div class="option">
       <label class="check">
         <input type="checkbox" bind:checked={batch.translate} disabled={!batch.canTranslate} />
-        Translate to English
+        {t("batch.translate")}
       </label>
       {#if !batch.canTranslate}
-        <p class="hint muted">{batch.model?.name} cannot translate. Choose another model.</p>
+        <p class="hint muted">{t("batch.cannotTranslate", { model: batch.model?.name ?? "" })}</p>
       {/if}
     </div>
 
@@ -77,16 +77,18 @@
           bind:checked={batch.identifySpeakers}
           disabled={batch.speakerModel === null}
         />
-        Identify who is speaking
+        {t("batch.identify")}
       </label>
       {#if batch.speakerModel === null}
         <p class="hint muted">
-          Needs the speaker model.
-          <button class="link" onclick={() => nav.go("models")}>Install it in Models</button>
+          {t("batch.needsSpeakerModel")}
+          <button class="link" onclick={() => nav.go("models")}
+            >{t("batch.installSpeakerModel")}</button
+          >
         </p>
       {:else}
         <p class="hint muted">
-          Labels each line SPEAKER_00, SPEAKER_01, … You can rename them later.
+          {t("batch.speakerHint")}
         </p>
       {/if}
     </div>
@@ -96,8 +98,7 @@
 
   <footer>
     <button class="btn primary" onclick={() => batch.start()}>
-      Transcribe {count}
-      {noun}
+      {t("batch.start", { count })}
     </button>
   </footer>
 </section>

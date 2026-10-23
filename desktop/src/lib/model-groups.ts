@@ -1,14 +1,15 @@
+import type { MessageKey } from "../locales/en";
 import type { PageId } from "./nav.svelte";
 import type { ModelKind, ModelStatus } from "./types";
 
 /** A section of the Models page: the models that serve one purpose, and what that purpose is. */
 export interface ModelGroup {
   kind: ModelKind;
-  title: string;
-  purpose: string;
+  title: MessageKey;
+  purpose: MessageKey;
   /** The screen that uses these models. */
   page: PageId;
-  pageLabel: string;
+  pageLabel: MessageKey;
   /** Model to suggest to someone who does not know which to pick. */
   recommended?: string;
 }
@@ -16,27 +17,25 @@ export interface ModelGroup {
 const GROUPS: readonly ModelGroup[] = [
   {
     kind: "stt",
-    title: "Transcription",
-    purpose:
-      "Turn audio and video into text. You need one of these; larger models are more accurate but slower. Not sure? Start with Whisper small.",
+    title: "models.group.stt.title",
+    purpose: "models.group.stt.purpose",
     page: "transcribe",
-    pageLabel: "Go to Transcribe",
+    pageLabel: "models.goTranscribe",
     recommended: "whisper-small",
   },
   {
     kind: "diarization",
-    title: "Speaker labels",
-    purpose:
-      "Optional. Adds who said what to a transcript. It works alongside a transcription model, and you switch it on with Identify speakers.",
+    title: "models.group.diarization.title",
+    purpose: "models.group.diarization.purpose",
     page: "transcribe",
-    pageLabel: "Go to Transcribe",
+    pageLabel: "models.goTranscribe",
   },
   {
     kind: "tts",
-    title: "Speech",
-    purpose: "Read text aloud with natural voices. The Speak screen needs one of these.",
+    title: "models.group.tts.title",
+    purpose: "models.group.tts.purpose",
     page: "speak",
-    pageLabel: "Go to Speak",
+    pageLabel: "models.goSpeak",
   },
 ];
 

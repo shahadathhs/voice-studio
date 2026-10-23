@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { formatClock } from "../lib/format";
   import { player } from "../lib/player.svelte";
   import type { Segment } from "../lib/types";
@@ -47,9 +48,10 @@
     <li class:current={isPlaying(index) || isCurrent(segment)}>
       <button
         class="time mono"
-        aria-label="{isPlaying(index) ? 'Pause' : 'Play'} audio from {formatClock(
-          segment.start_ms,
-        )} to {formatClock(segment.end_ms)}"
+        aria-label={t(isPlaying(index) ? "transcript.pauseFrom" : "transcript.playFrom", {
+          start: formatClock(segment.start_ms),
+          end: formatClock(segment.end_ms),
+        })}
         onclick={() => player.play(itemId, index, segment.start_ms, segment.end_ms)}
       >
         <Icon name={isPlaying(index) ? "pause" : "play"} size={14} />

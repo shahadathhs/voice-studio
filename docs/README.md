@@ -10,6 +10,7 @@
 | [architecture.md](architecture.md)               | How the core, CLI and desktop app fit together; tech choices; data model |
 | [design/README.md](design/README.md)             | Visual principles, theming, and the screen mockups                       |
 | [guidelines.md](guidelines.md)                   | Code rules: size limits, reuse, errors, tests, commits                   |
+| [localization.md](localization.md)               | Translating the interface: catalogs, plurals, adding a language          |
 | [releasing.md](releasing.md)                     | Version bump script and the release workflow                             |
 
 Start with [features.md](product/features.md) to learn what is being built, and

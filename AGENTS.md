@@ -39,6 +39,7 @@ commit and enforce Conventional Commit messages.
 - `vtt-core` never prints, parses argv or exits; the CLI and the desktop shell stay thin.
 - Reuse and extract real duplication; no `utils`/`helpers` modules; share CLI arg groups and UI components.
 - No `unwrap`/`expect`/panics/`todo!` outside tests. Unfinished features return `Error::NotImplemented`.
+- UI text goes through `t()` with keys in `desktop/src/locales/` (English plus every other language; see docs/localization.md).
 - Colours come from CSS variables in `desktop/src/styles/tokens.css`; UI logic that is not presentation
   belongs in Rust.
 - Every behavior change has a test; CLI behavior is tested black-box in `crates/cli/tests`.

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { nav } from "../lib/nav.svelte";
   import type { PageEntry } from "../lib/pages";
   import Icon from "./Icon.svelte";
@@ -14,7 +15,7 @@
   onclick={() => nav.go(page.id)}
 >
   <Icon name={page.icon} />
-  {page.label}
+  {t(page.label)}
 </button>
 
 <style>

@@ -1,0 +1,24 @@
+import type { common as english } from "../en/common";
+
+export const common: Record<keyof typeof english, string> = {
+  "nav.main": "Principal",
+  "nav.transcribe": "Transcribir",
+  "nav.speak": "Hablar",
+  "nav.library": "Biblioteca",
+  "nav.models": "Modelos",
+  "nav.settings": "Ajustes",
+  "status.offline": "Sin conexión: todo se ejecuta en este dispositivo",
+  "theme.label": "Apariencia",
+  "theme.system": "Sistema",
+  "theme.light": "Claro",
+  "theme.dark": "Oscuro",
+  "common.cancel": "Cancelar",
+  "common.close": "Cerrar",
+  "common.loading": "Cargando…",
+  "common.unknown": "Desconocido",
+  "common.multilingual": "Multilingüe",
+  "player.play": "Reproducir",
+  "player.pause": "Pausar",
+  "player.onlyDesktop": "La reproducción solo está disponible en la aplicación de escritorio.",
+  "player.cannotPlay": "Este formato de audio no se puede reproducir aquí.",
+};

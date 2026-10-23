@@ -1,3 +1,4 @@
+import { t } from "./i18n.svelte";
 import {
   cancelSpeech,
   chooseSavePath,
@@ -117,7 +118,7 @@ class SpeechStore {
   }
 
   #finished(event: SpeechFinished): void {
-    if (event.outcome === "failed") this.error = event.message ?? "Speaking failed.";
+    if (event.outcome === "failed") this.error = event.message ?? t("speak.failed");
     if (event.outcome !== "done" || !event.path) {
       this.status = "idle";
       return;
@@ -126,7 +127,7 @@ class SpeechStore {
     audio.addEventListener("play", () => (this.playing = true));
     audio.addEventListener("pause", () => (this.playing = false));
     audio.addEventListener("timeupdate", () => (this.positionMs = audio.currentTime * MS));
-    audio.addEventListener("error", () => (this.error = "This audio cannot be played here."));
+    audio.addEventListener("error", () => (this.error = t("player.cannotPlay")));
     this.#audio = audio;
     this.durationMs = event.duration_ms;
     this.status = "ready";

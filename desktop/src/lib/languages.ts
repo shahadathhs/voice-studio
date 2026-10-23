@@ -1,26 +1,43 @@
-/** Languages offered for a fixed source language; Whisper accepts many more by code. */
-export const LANGUAGES: readonly { code: string; label: string }[] = [
-  { code: "en", label: "English" },
-  { code: "bn", label: "Bengali" },
-  { code: "zh", label: "Chinese" },
-  { code: "nl", label: "Dutch" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "hi", label: "Hindi" },
-  { code: "it", label: "Italian" },
-  { code: "ja", label: "Japanese" },
-  { code: "ko", label: "Korean" },
-  { code: "pl", label: "Polish" },
-  { code: "pt", label: "Portuguese" },
-  { code: "ru", label: "Russian" },
-  { code: "es", label: "Spanish" },
-  { code: "sv", label: "Swedish" },
-  { code: "tr", label: "Turkish" },
-  { code: "uk", label: "Ukrainian" },
-];
+import { i18n, t } from "./i18n.svelte";
 
-/** Name for a language code such as "en"; falls back to the code itself. */
+/** Source languages offered in the language list; Whisper accepts many more by code. */
+const CODES = [
+  "en",
+  "bn",
+  "zh",
+  "nl",
+  "fr",
+  "de",
+  "hi",
+  "it",
+  "ja",
+  "ko",
+  "pl",
+  "pt",
+  "ru",
+  "es",
+  "sv",
+  "tr",
+  "uk",
+] as const;
+
+/** A language's name in the interface language, from the platform's own language data. */
+function displayName(code: string): string {
+  try {
+    return new Intl.DisplayNames([i18n.locale.code], { type: "language" }).of(code) ?? code;
+  } catch {
+    return code.toUpperCase();
+  }
+}
+
+/** The languages to choose from, named in the interface language and sorted by those names. */
+export function languageOptions(): { code: string; label: string }[] {
+  return CODES.map((code) => ({ code, label: displayName(code) })).sort((a, b) =>
+    a.label.localeCompare(b.label, i18n.locale.code),
+  );
+}
+
+/** Name for a language code such as "en"; "Unknown" when there is none. */
 export function languageName(code: string | null): string {
-  if (!code) return "Unknown";
-  return LANGUAGES.find((language) => language.code === code)?.label ?? code.toUpperCase();
+  return code ? displayName(code) : t("common.unknown");
 }

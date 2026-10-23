@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { chooseSavePath, renderExport, saveExport } from "../lib/api";
+  import type { MessageKey } from "../locales/en";
   import type { ExportFormat, ExportSettings } from "../lib/types";
   import Icon from "./Icon.svelte";
   import Segmented, { type SegmentOption } from "./Segmented.svelte";
@@ -13,12 +15,12 @@
     { value: "json", label: "JSON" },
     { value: "md", label: "Markdown" },
   ];
-  const DESCRIPTIONS: Record<ExportFormat, string> = {
-    txt: "Plain text, one paragraph per line of speech.",
-    srt: "Subtitle file with numbered cues, readable by most video players and editors.",
-    vtt: "WebVTT subtitles for the web.",
-    json: "Every line with its timestamps; can be converted again with vtt export.",
-    md: "Markdown with the speaker names in bold.",
+  const DESCRIPTIONS: Record<ExportFormat, MessageKey> = {
+    txt: "export.txt",
+    srt: "export.srt",
+    vtt: "export.vtt",
+    json: "export.json",
+    md: "export.md",
   };
   const PREVIEW_CHARS = 700;
 
@@ -59,44 +61,49 @@
 
 <dialog bind:this={dialog} aria-labelledby="export-title" {onclose} oncancel={onclose}>
   <header>
-    <h2 id="export-title">Export transcript</h2>
-    <button class="icon" aria-label="Close" onclick={onclose}><Icon name="x" /></button>
+    <h2 id="export-title">{t("export.title")}</h2>
+    <button class="icon" aria-label={t("common.close")} onclick={onclose}><Icon name="x" /></button>
   </header>
   <div class="body">
     <div>
-      <div class="label">Format</div>
-      <Segmented options={FORMATS} value={format} label="Format" onchange={(f) => (format = f)} />
-      <p class="muted hint">{DESCRIPTIONS[format]}</p>
+      <div class="label">{t("export.format")}</div>
+      <Segmented
+        options={FORMATS}
+        value={format}
+        label={t("export.format")}
+        onchange={(f) => (format = f)}
+      />
+      <p class="muted hint">{t(DESCRIPTIONS[format])}</p>
     </div>
     <label class="check">
-      <input type="checkbox" bind:checked={settings.speakerNames} />Include speaker names
+      <input type="checkbox" bind:checked={settings.speakerNames} />{t("export.speakerNames")}
     </label>
     <label class="check">
-      <input type="checkbox" bind:checked={settings.timestamps} />Include timestamps in text
+      <input type="checkbox" bind:checked={settings.timestamps} />{t("export.timestamps")}
     </label>
     {#if subtitles}
       <label class="row">
-        Maximum characters per line
+        {t("export.maxChars")}
         <select class="field" bind:value={settings.maxCharsPerLine}>
           {#each [32, 42, 60] as count (count)}<option value={count}>{count}</option>{/each}
         </select>
       </label>
       <label class="row">
-        Lines per cue
+        {t("export.linesPerCue")}
         <select class="field" bind:value={settings.linesPerCue}>
           {#each [1, 2, 3] as count (count)}<option value={count}>{count}</option>{/each}
         </select>
       </label>
     {/if}
     <div>
-      <div class="label">Preview</div>
+      <div class="label">{t("export.preview")}</div>
       <pre>{preview}</pre>
     </div>
     {#if error}<p class="error" role="alert">{error}</p>{/if}
   </div>
   <footer>
-    <button class="btn" onclick={onclose}>Cancel</button>
-    <button class="btn primary" onclick={save}>Export…</button>
+    <button class="btn" onclick={onclose}>{t("common.cancel")}</button>
+    <button class="btn primary" onclick={save}>{t("export.action")}</button>
   </footer>
 </dialog>
 

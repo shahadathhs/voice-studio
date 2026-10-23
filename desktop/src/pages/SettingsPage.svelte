@@ -2,37 +2,55 @@
   import PageHeader from "../components/PageHeader.svelte";
   import ThemeSwitcher from "../components/ThemeSwitcher.svelte";
   import { info } from "../lib/app-info.svelte";
+  import { i18n, LOCALES, t } from "../lib/i18n.svelte";
 </script>
 
 <section>
-  <PageHeader title="Settings" />
+  <PageHeader title={t("settings.title")} />
 
   <div>
-    <h2>General</h2>
+    <h2>{t("settings.general")}</h2>
     <div class="panel">
       <div class="row">
         <div>
-          <strong>Appearance</strong>
-          <p class="muted">Follows the system unless you choose.</p>
+          <strong>{t("settings.appearance")}</strong>
+          <p class="muted">{t("settings.appearanceHint")}</p>
         </div>
         <ThemeSwitcher />
+      </div>
+      <div class="row">
+        <div>
+          <label for="language"><strong>{t("settings.language")}</strong></label>
+          <p class="muted">{t("settings.languageHint")}</p>
+        </div>
+        <select
+          id="language"
+          class="field"
+          value={i18n.preference}
+          onchange={(event) => i18n.set(event.currentTarget.value)}
+        >
+          <option value="system">{t("settings.languageSystem")}</option>
+          {#each LOCALES as locale (locale.code)}
+            <option value={locale.code}>{locale.name}</option>
+          {/each}
+        </select>
       </div>
     </div>
   </div>
 
   <div>
-    <h2>About</h2>
+    <h2>{t("settings.about")}</h2>
     <dl class="panel">
       <div class="row">
-        <dt>Version</dt>
+        <dt>{t("settings.version")}</dt>
         <dd>{info.value?.version ?? "—"}</dd>
       </div>
       <div class="row">
-        <dt>Core engine</dt>
+        <dt>{t("settings.engine")}</dt>
         <dd>{info.value?.coreVersion ?? "—"}</dd>
       </div>
       <div class="row">
-        <dt>Data folder</dt>
+        <dt>{t("settings.dataFolder")}</dt>
         <dd class="mono">{info.value?.dataDir ?? "—"}</dd>
       </div>
     </dl>

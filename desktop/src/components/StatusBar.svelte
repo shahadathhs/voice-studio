@@ -1,9 +1,10 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { info } from "../lib/app-info.svelte";
 </script>
 
 <footer>
-  <span><span class="dot"></span>Offline — everything runs on this device</span>
+  <span><span class="dot"></span>{t("status.offline")}</span>
   <span class="grow"></span>
   <span>{info.value?.version ?? ""}</span>
 </footer>

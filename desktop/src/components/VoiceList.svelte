@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { speech } from "../lib/speech.svelte";
 </script>
 
-<div class="voices" role="radiogroup" aria-label="Voice">
+<div class="voices" role="radiogroup" aria-label={t("speak.voice")}>
   {#each speech.voices as voice (voice.id)}
     {@const selected = speech.voice?.id === voice.id}
     <button

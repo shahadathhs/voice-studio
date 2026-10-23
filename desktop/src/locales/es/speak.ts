@@ -1,0 +1,37 @@
+import type { speak as english } from "../en/speak";
+
+export const speak: Record<keyof typeof english, string> = {
+  "speak.title": "Hablar",
+  "speak.subtitle": "Escribe o pega un texto, elige una voz y escúchalo o guárdalo.",
+  "speak.openFile": "Abrir archivo de texto…",
+  "speak.needModel.title": "Instala primero el modelo de voz",
+  "speak.needModel.text":
+    "Las voces se descargan una vez (unos 100 MB) y luego funcionan sin conexión.",
+  "speak.openModels": "Abrir Modelos",
+  "speak.textLabel": "Texto para leer",
+  "speak.placeholder": "Escribe o pega el texto que quieres escuchar.",
+  "speak.count": "{characters} caracteres · {words} palabras",
+  "speak.sentence": "Frase {done} de {total}",
+  "speak.speaking": "Hablando",
+  "speak.voice": "Voz",
+  "speak.loadingVoices": "Cargando voces…",
+  "speak.speed": "Velocidad",
+  "speak.cancel": "Cancelar",
+  "speak.generate": "Generar y reproducir",
+  "speak.privacy": "La voz se genera en este ordenador. No se envía nada a ningún sitio.",
+  "speak.failed": "No se pudo generar la voz.",
+  "speak.position": "Posición",
+  "speak.saveWav": "Guardar WAV…",
+  "settings.title": "Ajustes",
+  "settings.general": "General",
+  "settings.appearance": "Apariencia",
+  "settings.appearanceHint": "Sigue al sistema salvo que elijas otra.",
+  "settings.language": "Idioma",
+  "settings.languageHint":
+    "El idioma de la interfaz. Las transcripciones conservan su propio idioma.",
+  "settings.languageSystem": "Predeterminado del sistema",
+  "settings.about": "Acerca de",
+  "settings.version": "Versión",
+  "settings.engine": "Motor principal",
+  "settings.dataFolder": "Carpeta de datos",
+};

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import BatchPanel from "../components/BatchPanel.svelte";
   import DropZone from "../components/DropZone.svelte";
   import EmptyState from "../components/EmptyState.svelte";
@@ -16,23 +17,25 @@
   const recent = $derived((library.items ?? []).slice(0, RECENT_COUNT));
   const summary = $derived(
     jobs.items.length === 0
-      ? "Turn recordings into text. Audio never leaves this computer."
-      : `${jobs.items.length} file${jobs.items.length === 1 ? "" : "s"} · ${jobs.active.length} in progress`,
+      ? t("transcribe.subtitle.idle")
+      : t("transcribe.subtitle.queue", { count: jobs.items.length, active: jobs.active.length }),
   );
 
   $effect(() => () => player.stop());
 </script>
 
 <section>
-  <PageHeader title="Transcribe" subtitle={summary}>
+  <PageHeader title={t("transcribe.title")} subtitle={summary}>
     {#snippet actions()}
       {#if jobs.active.length > 0}
         <button class="btn" onclick={() => jobs.setPaused(!jobs.paused)}>
-          {jobs.paused ? "Resume queue" : "Pause queue"}
+          {jobs.paused ? t("transcribe.resume") : t("transcribe.pause")}
         </button>
       {/if}
       {#if jobs.items.some((job) => !jobs.active.includes(job))}
-        <button class="btn" onclick={() => jobs.clearFinished()}>Clear finished</button>
+        <button class="btn" onclick={() => jobs.clearFinished()}
+          >{t("transcribe.clearFinished")}</button
+        >
       {/if}
     {/snippet}
   </PageHeader>
@@ -44,19 +47,19 @@
   {/if}
 
   {#if jobs.items.length > 0}
-    <ul class="list" aria-label="Queue">
+    <ul class="list" aria-label={t("transcribe.queue")}>
       {#each jobs.items as job (job.id)}<JobRow {job} />{/each}
     </ul>
   {/if}
 
-  <Notice>Files are read in place and never uploaded.</Notice>
+  <Notice>{t("transcribe.privacy")}</Notice>
 
-  <h2>Recent</h2>
+  <h2>{t("transcribe.recent")}</h2>
   {#if player.error}<p class="error" role="alert">{player.error}</p>{/if}
   {#if recent.length === 0}
-    <EmptyState title="No transcripts yet" text="Finished transcripts will appear here." />
+    <EmptyState title={t("transcribe.noRecent.title")} text={t("transcribe.noRecent.text")} />
   {:else}
-    <ul class="list" aria-label="Recent transcripts">
+    <ul class="list" aria-label={t("transcribe.recentList")}>
       {#each recent as item (item.id)}<LibraryRow {item} />{/each}
     </ul>
   {/if}

@@ -1,3 +1,5 @@
+import { i18n, t } from "./i18n.svelte";
+
 const UNITS = ["B", "KB", "MB", "GB"] as const;
 
 /** Human-readable size using decimal units, matching what the OS file manager shows. */
@@ -15,7 +17,7 @@ export function formatBytes(bytes: number): string {
 /** Short label for a model's language support; the catalog uses "multilingual" for Whisper. */
 export function languageLabel(languages: readonly string[]): string {
   if (languages.length === 0) return "—";
-  if (languages.includes("multilingual")) return "Multilingual";
+  if (languages.includes("multilingual")) return t("common.multilingual");
   return languages.map((code) => code.toUpperCase()).join(", ");
 }
 
@@ -37,7 +39,7 @@ export function formatClock(ms: number): string {
 
 /** Local date of a Unix timestamp in seconds, e.g. "Oct 22, 2026". */
 export function formatDate(seconds: number): string {
-  return new Date(seconds * 1000).toLocaleDateString(undefined, {
+  return new Date(seconds * 1000).toLocaleDateString(i18n.locale.code, {
     year: "numeric",
     month: "short",
     day: "numeric",

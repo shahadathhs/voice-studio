@@ -1,3 +1,4 @@
+import { t } from "./i18n.svelte";
 import { playbackUrl } from "./api";
 
 const MS = 1000;
@@ -51,7 +52,7 @@ class Player {
   async #load(itemId: number): Promise<HTMLAudioElement> {
     if (this.#audio && this.#loadedItem === itemId) return this.#audio;
     const url = await playbackUrl(itemId);
-    if (!url) throw new Error("Playback is only available in the desktop app.");
+    if (!url) throw new Error(t("player.onlyDesktop"));
     this.#audio?.pause();
     const audio = new Audio(url);
     audio.addEventListener("timeupdate", () => this.#tick(audio));
@@ -69,7 +70,7 @@ class Player {
 
   #failed(): void {
     this.active = null;
-    this.error = "This audio format cannot be played here.";
+    this.error = t("player.cannotPlay");
     this.#audio = null;
     this.#loadedItem = null;
   }

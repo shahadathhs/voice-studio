@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { MAIN_PAGES, SETTINGS_PAGE } from "../lib/pages";
   import NavItem from "./NavItem.svelte";
   import ThemeSwitcher from "./ThemeSwitcher.svelte";
@@ -6,7 +7,7 @@
 
 <aside>
   <div class="brand">Voice Studio</div>
-  <nav aria-label="Main">
+  <nav aria-label={t("nav.main")}>
     {#each MAIN_PAGES as page (page.id)}
       <NavItem {page} />
     {/each}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import EmptyState from "../components/EmptyState.svelte";
   import Icon from "../components/Icon.svelte";
   import Notice from "../components/Notice.svelte";
@@ -23,54 +24,56 @@
 </script>
 
 <section>
-  <PageHeader title="Speak" subtitle="Type or paste text, pick a voice, and listen or save it.">
+  <PageHeader title={t("speak.title")} subtitle={t("speak.subtitle")}>
     {#snippet actions()}
       <button class="btn" onclick={() => speech.openFile()} disabled={working}>
-        <Icon name="folder" />Open text file…
+        <Icon name="folder" />{t("speak.openFile")}
       </button>
     {/snippet}
   </PageHeader>
 
   {#if models.items !== null && !installed}
-    <EmptyState
-      title="Install the voice model first"
-      text="Voices are downloaded once (about 100 MB) and then work offline."
-    />
+    <EmptyState title={t("speak.needModel.title")} text={t("speak.needModel.text")} />
     <div class="center">
-      <button class="btn primary" onclick={() => nav.go("models")}>Open Models</button>
+      <button class="btn primary" onclick={() => nav.go("models")}>{t("speak.openModels")}</button>
     </div>
   {:else}
     <div class="layout">
       <div class="main">
         <div class="editor">
           <textarea
-            aria-label="Text to speak"
-            placeholder="Type or paste the text you want to hear."
+            aria-label={t("speak.textLabel")}
+            placeholder={t("speak.placeholder")}
             bind:value={speech.text}
             disabled={working}></textarea>
           <div class="stats muted">
-            <span>{speech.text.length} characters · {speech.words} words</span>
+            <span>{t("speak.count", { characters: speech.text.length, words: speech.words })}</span>
             {#if speech.progress && working}
-              <span>Sentence {speech.progress.done} of {speech.progress.total}</span>
+              <span
+                >{t("speak.sentence", {
+                  done: speech.progress.done,
+                  total: speech.progress.total,
+                })}</span
+              >
             {/if}
           </div>
         </div>
         {#if working}
-          <ProgressBar value={done} label="Speaking" />
+          <ProgressBar value={done} label={t("speak.speaking")} />
         {/if}
         {#if speech.error}<p class="error" role="alert">{speech.error}</p>{/if}
         {#if speech.status === "ready"}<SpeechPlayer />{/if}
       </div>
 
       <aside>
-        <h2>Voice</h2>
+        <h2>{t("speak.voice")}</h2>
         {#if speech.voices.length === 0}
-          <p class="muted">Loading voices…</p>
+          <p class="muted">{t("speak.loadingVoices")}</p>
         {:else}
           <VoiceList />
         {/if}
 
-        <h2>Speed</h2>
+        <h2>{t("speak.speed")}</h2>
         <label class="speed">
           <input
             type="range"
@@ -78,26 +81,26 @@
             max="2"
             step="0.1"
             bind:value={speech.speed}
-            aria-label="Speed"
+            aria-label={t("speak.speed")}
             disabled={working}
           />
           <span class="mono">{speech.speed.toFixed(1)}×</span>
         </label>
 
         {#if working}
-          <button class="btn go" onclick={() => speech.cancel()}>Cancel</button>
+          <button class="btn go" onclick={() => speech.cancel()}>{t("speak.cancel")}</button>
         {:else}
           <button
             class="btn primary go"
             onclick={() => speech.generate()}
             disabled={!speech.text.trim() || !speech.voice}
           >
-            <Icon name="play" />Generate &amp; play
+            <Icon name="play" />{t("speak.generate")}
           </button>
         {/if}
       </aside>
     </div>
-    <Notice>Speech is made on this computer. Nothing is sent anywhere.</Notice>
+    <Notice>{t("speak.privacy")}</Notice>
   {/if}
 </section>
 

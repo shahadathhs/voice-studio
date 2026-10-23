@@ -104,6 +104,8 @@ Config lives at the repo root: `.oxlintrc.json`, `prettier.config.mjs`, `.pretti
   Rust goes through `lib/api.ts` only.
 - Reuse the existing components (`Segmented`, `PageHeader`, `Notice`, `EmptyState`, `Icon`) before
   writing new markup. Colours come from CSS variables in `styles/tokens.css`, never hard-coded.
+- No user-facing text in markup or stores: add a key to `locales/en/` and every other locale, and use `t()`
+  (see [localization.md](localization.md)). Use `Intl` for dates, numbers and language names.
 - Anything that is logic rather than presentation belongs in Rust (`vtt-core`) behind a Tauri command.
 - Accessibility is part of done: real buttons, labels, focus styles, keyboard operation, AA contrast in
   both themes.

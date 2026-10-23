@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { chooseFiles, onFilesDropped } from "../lib/api";
   import Icon from "./Icon.svelte";
 
@@ -19,12 +20,12 @@
 
 <div class="drop">
   <span class="faint"><Icon name="down" size={20} /></span>
-  <strong>Drop audio or video files here</strong>
-  <p class="muted">WAV, MP3, M4A, FLAC, OGG, AAC, MP4, MOV, MKV</p>
+  <strong>{t("drop.title")}</strong>
+  <p class="muted">{t("drop.formats")}</p>
   <button class="btn primary" {disabled} onclick={choose}
-    ><Icon name="folder" />Choose files…</button
+    ><Icon name="folder" />{t("drop.choose")}</button
   >
-  {#if disabled}<p class="muted small">Install a speech model in Models first.</p>{/if}
+  {#if disabled}<p class="muted small">{t("drop.needModel")}</p>{/if}
 </div>
 
 <style>

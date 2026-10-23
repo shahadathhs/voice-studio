@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { i18n, t } from "../lib/i18n.svelte";
   import { languageLabel, formatBytes, percent } from "../lib/format";
   import { models } from "../lib/models.svelte";
   import type { ModelStatus } from "../lib/types";
@@ -15,31 +16,36 @@
 <tr>
   <td>
     <strong>{model.name}</strong>
-    {#if recommended}<span class="badge">Recommended</span>{/if}
-    <div class="muted">{model.description}</div>
+    {#if recommended}<span class="badge">{t("models.recommended")}</span>{/if}
+    <div class="muted">{i18n.tOr(`modelInfo.${model.id}`, model.description)}</div>
     <div class="muted meta">
-      {languageLabel(model.languages)} · {model.license} licence{model.can_translate
-        ? " · can translate to English"
-        : ""}
+      {languageLabel(model.languages)} · {t("models.licence", {
+        license: model.license,
+      })}{model.can_translate ? ` · ${t("models.canTranslate")}` : ""}
     </div>
   </td>
   <td class="size mono">{formatBytes(model.size_bytes)}</td>
   <td class="action">
     {#if progress}
       <div class="downloading">
-        <ProgressBar value={done} label="Downloading {model.name}" />
+        <ProgressBar value={done} label={t("models.downloading", { name: model.name })} />
         <span class="mono muted">{done}%</span>
-        <button class="btn" onclick={() => models.cancel(model.id)}>Cancel</button>
+        <button class="btn" onclick={() => models.cancel(model.id)}>{t("common.cancel")}</button>
       </div>
       <div class="muted small">
-        {formatBytes(progress.downloaded)} of {formatBytes(progress.total)}
+        {t("models.downloaded", {
+          done: formatBytes(progress.downloaded),
+          total: formatBytes(progress.total),
+        })}
       </div>
     {:else if model.installed}
-      <span class="installed">Installed</span>
-      <button class="btn remove" onclick={() => models.remove(model.id)}>Remove</button>
+      <span class="installed">{t("models.installed")}</span>
+      <button class="btn remove" onclick={() => models.remove(model.id)}
+        >{t("models.remove")}</button
+      >
     {:else}
       <button class="btn" onclick={() => models.install(model)}>
-        <Icon name="down" />Install
+        <Icon name="down" />{t("models.install")}
       </button>
     {/if}
     {#if error}<div class="error small">{error}</div>{/if}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { formatClock } from "../lib/format";
   import { speech } from "../lib/speech.svelte";
   import Icon from "./Icon.svelte";
@@ -7,7 +8,7 @@
 <div class="player">
   <button
     class="play"
-    aria-label={speech.playing ? "Pause" : "Play"}
+    aria-label={speech.playing ? t("player.pause") : t("player.play")}
     onclick={() => speech.togglePlay()}
   >
     <Icon name={speech.playing ? "pause" : "play"} />
@@ -20,11 +21,12 @@
     max={speech.durationMs}
     step="100"
     value={speech.positionMs}
-    aria-label="Position"
+    aria-label={t("speak.position")}
     oninput={(event) => speech.seek(Number(event.currentTarget.value))}
   />
   <span class="mono time muted">{formatClock(speech.durationMs)}</span>
-  <button class="btn" onclick={() => speech.save()}><Icon name="down" />Save WAV…</button>
+  <button class="btn" onclick={() => speech.save()}><Icon name="down" />{t("speak.saveWav")}</button
+  >
 </div>
 
 <style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { t } from "../lib/i18n.svelte";
   import { formatClock, formatDate } from "../lib/format";
   import { languageName } from "../lib/languages";
   import { library } from "../lib/library.svelte";
@@ -14,9 +15,7 @@
   }: { item: LibraryItem; snippet?: string; startMs?: number } = $props();
 
   const speakers = $derived(
-    item.speaker_count > 0
-      ? ` · ${item.speaker_count} speaker${item.speaker_count === 1 ? "" : "s"}`
-      : "",
+    item.speaker_count > 0 ? ` · ${t("row.speakers", { count: item.speaker_count })}` : "",
   );
   let confirming = $state(false);
 
@@ -33,7 +32,7 @@
 <li>
   <button
     class="play"
-    aria-label="{playing ? 'Pause' : 'Play'} {item.title}"
+    aria-label={t(playing ? "row.pause" : "row.play", { title: item.title })}
     onclick={() => player.play(item.id, "all", startMs, null)}
   >
     <Icon name={playing ? "pause" : "play"} />
@@ -55,10 +54,14 @@
   </button>
   <div class="actions">
     {#if confirming}
-      <button class="btn danger" onclick={remove}>Delete</button>
-      <button class="btn" onclick={() => (confirming = false)}>Keep</button>
+      <button class="btn danger" onclick={remove}>{t("row.delete")}</button>
+      <button class="btn" onclick={() => (confirming = false)}>{t("row.keep")}</button>
     {:else}
-      <button class="trash" aria-label="Delete {item.title}" onclick={() => (confirming = true)}>
+      <button
+        class="trash"
+        aria-label={t("row.deleteLabel", { title: item.title })}
+        onclick={() => (confirming = true)}
+      >
         <Icon name="trash" />
       </button>
     {/if}
