@@ -1,82 +1,135 @@
 # Voice Studio
 
-Offline speech-to-text and text-to-speech for the desktop and the command line.
-Cross-platform (Windows, macOS, Linux), open source, and private: audio and text never leave your computer.
+**Turn speech into text, and text into speech, without sending anything anywhere.**
 
-> **Status: early development.** The core library, a first slice of the CLI and the desktop app shell
-> exist. Transcription and speech synthesis are being built in phases. Nothing is released yet, and
+Voice Studio is a desktop app and a command-line tool that transcribes recordings, labels who said what,
+and reads text aloud, all on your own computer. No account, no cloud, no per-minute fees. Models download
+once; after that it works offline.
+
+Windows, macOS and Linux. Open source (MIT).
+
+> **Status: early development, not released yet.** Transcription, speaker labels and text to speech work.
+> Recording, live captions, dictation and installers are still to come (see the [roadmap](docs/product/roadmap.md)).
 > "Voice Studio" is a working name.
 
-## What it will do
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcript-dark.png">
+  <img alt="A transcript with three speakers, timestamps and a speaker panel" src="docs/screenshots/transcript-light.png">
+</picture>
 
-- **Speech to text:** transcribe audio and video, record from the microphone, identify speakers,
-  translate to English, export to TXT, SRT, VTT, JSON, Markdown and DOCX.
-- **Text to speech:** natural offline voices with speed control, saved as WAV, MP3 or FLAC.
-- **Desktop app:** native Rust engine with a clean interface, light/dark/system themes, a searchable
-  library and a model manager.
-- **Command line:** the same engine as the app, scriptable, with machine-readable output.
+_Screenshots show the real interface with made-up sample data._
 
-Everything is documented in [docs/](docs/README.md): [features](docs/product/features.md),
-[CLI design](docs/product/cli.md), [roadmap](docs/product/roadmap.md),
-[architecture](docs/architecture.md) and [UI mockups](docs/design/README.md).
+## What you can do
 
-## What works today
+- **Transcribe audio and video.** Drop in WAV, MP3, M4A, FLAC, OGG, MP4, MOV or MKV files. A queue works
+  through them one at a time, skipping silence, with progress you can pause, reorder or cancel.
+- **Know who said what.** Turn on _Identify speakers_ to label each line, see who talked how much, and
+  rename or merge speakers afterwards.
+- **Search everything you have transcribed.** Every transcript goes into a library with full-text search.
+  Click a timestamp to hear that moment.
+- **Export anywhere.** TXT, SRT and VTT subtitles, Markdown and JSON, with control over line width,
+  timestamps and speaker names.
+- **Read text aloud.** Paste text or open a file, pick one of six natural English voices, and play or save it.
+- **Choose your models.** A model manager shows what each model is for, how big it is, and its licence.
+- **Light, dark or system theme.**
 
-```
-vtt export transcript.json -f srt       # convert a transcript to txt, srt, vtt, md or json
-vtt models list                         # the model catalog and what is installed
-vtt models pull whisper-base            # download a model (resumable, checksum-verified)
-vtt models remove whisper-base          # delete it again
-vtt transcribe talk.m4a                 # transcribe audio or video (prints the text)
-vtt transcribe talk.m4a -f srt -o talk.srt   # subtitles; also txt, vtt, md, json
-vtt config path                         # where data and config live
-vtt doctor                              # basic environment check
-vtt completions zsh                     # shell completions
-```
+## Private by design
 
-`transcribe` runs Whisper locally (GPU on macOS) on WAV, MP3, M4A/AAC, FLAC, OGG and MKV/MP4/MOV audio.
-Speaker identification, `speak`, `record`, `library` and `devices` are defined but not implemented yet; they exit
-with code 70 and a clear message. The desktop app opens with navigation, theming (system, light, dark),
-a **working Models page** (install, cancel, remove, with live download progress) and Settings. The
-transcription screens are present but disabled until the engine lands.
+Audio and text never leave your computer. The only network use is downloading models, which you start
+yourself, and each download is checked against a published checksum. The app has no telemetry.
 
-## Build from source
+## Screens
 
-Requirements: [Rust](https://rustup.rs) (stable), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
-from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
-[Tauri system packages](https://tauri.app/start/prerequisites/).
+<table>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcribe-dark.png">
+        <img alt="The transcription queue and recent transcripts" src="docs/screenshots/transcribe-light.png">
+      </picture>
+      <br><sub><b>Transcribe:</b> a queue for many files.</sub>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/models-dark.png">
+        <img alt="Models grouped by purpose, with sizes and licences" src="docs/screenshots/models-light.png">
+      </picture>
+      <br><sub><b>Models:</b> grouped by what they are for.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/speak-dark.png">
+        <img alt="Text to speech with a voice list and speed control" src="docs/screenshots/speak-light.png">
+      </picture>
+      <br><sub><b>Speak:</b> text to speech with six voices.</sub>
+    </td>
+    <td width="50%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcript-light.png">
+        <img alt="A transcript in the light theme" src="docs/screenshots/transcript-light.png">
+      </picture>
+      <br><sub><b>Transcript:</b> speakers, timestamps, playback and export.</sub>
+    </td>
+  </tr>
+</table>
+
+## Command line
+
+The same engine as the app, for scripts and servers.
 
 ```bash
-make setup                        # Rust + CMake if missing, JS dependencies, git hooks, first UI build
-make dev                          # desktop app with hot reload
-make cli ARGS="export t.json -f srt"   # the CLI
-make check                        # everything CI runs
+vtt models pull whisper-small                  # download a model (resumable, checksum-verified)
+vtt transcribe talk.m4a                        # print the text
+vtt transcribe talk.m4a -f srt -o talk.srt     # subtitles; also txt, vtt, md, json
+vtt transcribe meeting.mp4 --diarize           # label the speakers
+vtt speak "Hello from my own computer" -o hello.wav
+vtt library search "roadmap"                   # search everything you have transcribed
+vtt --json transcribe talk.m4a                 # machine-readable events for scripts
 ```
 
-GPU: macOS uses Metal automatically. On Windows and Linux the default build runs on the CPU; build with
-`cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or `--features cuda` (needs the CUDA
-toolkit) for a GPU build. `vtt-desktop` forwards the same features.
+Run `vtt --help` or see the [CLI reference](docs/product/cli.md) for every command, option and exit code.
+Whisper uses the GPU on macOS (Metal) automatically; on Windows and Linux it uses the CPU unless you build
+with the optional Vulkan or CUDA feature (see below).
 
-`make` lists every target. The package manager is [pnpm](https://pnpm.io). On Windows use Git Bash or
-WSL, or run the underlying commands shown in the [Makefile](Makefile). More in [CONTRIBUTING](CONTRIBUTING.md).
+## Get it
 
-## Repository layout
+There are no installers yet. Until the first release, build from source.
 
-```
-crates/core      vtt-core: types, errors, exporters, engine traits, model catalog, paths
-crates/cli       vtt-cli: the `vtt` binary and its black-box tests
-desktop/         Tauri 2 app: Svelte UI in src/, Rust shell in src-tauri/
-catalog/         model catalog (compiled into the binary)
-docs/            product docs, architecture, design mockups, code guidelines
+```bash
+make setup     # Rust and CMake if missing, JS dependencies, git hooks, first UI build
+make dev       # run the desktop app with hot reload
+make check     # everything CI runs
 ```
 
-The earlier Python/FastAPI prototype is preserved at the git tag `python-final`.
+You need [Rust](https://rustup.rs), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
+from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
+[Tauri system packages](https://tauri.app/start/prerequisites/). On Windows use Git Bash or WSL.
+`make` lists every target.
+
+GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or
+`--features cuda` (needs the CUDA toolkit). The desktop crate forwards the same features.
+
+## Under the hood
+
+A Rust core (`vtt-core`) does the work: whisper.cpp for transcription, a WeSpeaker model for speaker
+labels, Kokoro for speech, SQLite for the library. The desktop app is a [Tauri 2](https://tauri.app)
+shell with a Svelte interface calling the core in-process, so there is no server and no sidecar. The CLI
+is a thin front end on the same core. See [architecture](docs/architecture.md).
+
+## Documentation
+
+[Features](docs/product/features.md) · [CLI](docs/product/cli.md) · [Roadmap](docs/product/roadmap.md) ·
+[Architecture](docs/architecture.md) · [Design](docs/design/README.md) · [Releasing](docs/releasing.md) ·
+[Index](docs/README.md)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/guidelines.md](docs/guidelines.md).
-Please read the [Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code guidelines](docs/guidelines.md). Please read the
+[Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md). The earlier Python
+prototype is preserved at the git tag `python-final`.
 
-## License
+## Licence
 
 [MIT](LICENSE)

@@ -1,10 +1,11 @@
 name: CI
 
+# Runs on pull requests into main and on pushes to main, not on every push to dev.
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [main]
   push:
-    branches: [dev]
+    branches: [main]
 
 jobs:
   web:
