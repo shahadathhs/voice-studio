@@ -8,7 +8,6 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::path::{Path, PathBuf};
 
-use ort::environment::Environment;
 use ort::session::Session;
 use ort::value::Tensor;
 
@@ -46,7 +45,6 @@ fn engine_error(e: impl Display) -> Error {
 /// A loaded Kokoro model with its pronunciation dictionary and voices.
 pub struct KokoroEngine {
     session: Session,
-    _environment: Environment,
     vocab: Vocab,
     phonemizer: Phonemizer,
     dir: PathBuf,
@@ -63,16 +61,9 @@ impl KokoroEngine {
             }
         }
         let read = |name: &str| std::fs::read_to_string(dir.join(name));
-        let environment = ort::environment::init()
-            .with_name("voice-studio")
-            .build()
-            .map_err(engine_error)?;
-        let session = Session::builder(&environment)
-            .and_then(|mut builder| builder.commit_from_file(dir.join(MODEL_FILE)))
-            .map_err(engine_error)?;
+        let session = crate::onnx::load_session(&dir.join(MODEL_FILE)).map_err(engine_error)?;
         Ok(KokoroEngine {
             session,
-            _environment: environment,
             vocab: Vocab::from_tokenizer_json(&read(TOKENIZER_FILE)?)?,
             phonemizer: Phonemizer::new(Lexicon::from_json(
                 &read(GOLD_FILE)?,

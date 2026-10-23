@@ -1,19 +1,14 @@
-//! The speaker embedding model (`WeSpeaker` `ResNet34`, `ONNX`), run in pure Rust with `tract`.
+//! The speaker embedding model (`WeSpeaker` `ResNet34`, `ONNX`), run with `ONNX Runtime`.
 
-use std::collections::HashMap;
 use std::fmt::Display;
 use std::path::Path;
 
-use tract_onnx::prelude::*;
+use ort::session::Session;
+use ort::value::Tensor;
 
 use super::SpeakerEmbedder;
 use super::fbank::{Fbank, MEL_BINS};
 use crate::{Error, Result};
-
-/// The model is compiled once per input length; this bounds how many compiled copies are kept.
-const MAX_COMPILED: usize = 64;
-
-type Plan = TypedRunnableModel<TypedModel>;
 
 fn engine_error(e: impl Display) -> Error {
     Error::Engine(format!("speaker model: {e}"))
@@ -21,8 +16,7 @@ fn engine_error(e: impl Display) -> Error {
 
 /// A loaded speaker embedding model.
 pub struct SpeakerModel {
-    model: InferenceModel,
-    plans: HashMap<usize, Plan>,
+    session: Session,
     fbank: Fbank,
 }
 
@@ -32,33 +26,11 @@ impl SpeakerModel {
         if !path.exists() {
             return Err(Error::ModelMissing(model_id.to_string()));
         }
-        let model = tract_onnx::onnx()
-            .model_for_path(path)
-            .map_err(engine_error)?;
+        let session = crate::onnx::load_session(path).map_err(engine_error)?;
         Ok(SpeakerModel {
-            model,
-            plans: HashMap::new(),
+            session,
             fbank: Fbank::new(),
         })
-    }
-
-    fn plan(&mut self, frames: usize) -> Result<&Plan> {
-        if !self.plans.contains_key(&frames) {
-            if self.plans.len() >= MAX_COMPILED {
-                self.plans.clear();
-            }
-            let plan = self
-                .model
-                .clone()
-                .with_input_fact(0, f32::fact([1, frames, MEL_BINS]).into())
-                .and_then(InferenceModel::into_optimized)
-                .and_then(TypedModel::into_runnable)
-                .map_err(engine_error)?;
-            self.plans.insert(frames, plan);
-        }
-        self.plans
-            .get(&frames)
-            .ok_or_else(|| Error::Engine("speaker model: no plan".into()))
     }
 }
 
@@ -69,13 +41,16 @@ impl SpeakerEmbedder for SpeakerModel {
         if frames == 0 {
             return Err(Error::Engine("speaker model: audio too short".into()));
         }
-        let input = Tensor::from_shape(&[1, frames, MEL_BINS], &features).map_err(engine_error)?;
-        let output = self
-            .plan(frames)?
-            .run(tvec!(input.into()))
+        let input =
+            Tensor::from_array(([1usize, frames, MEL_BINS], features)).map_err(engine_error)?;
+        let outputs = self
+            .session
+            .run(ort::inputs![input])
             .map_err(engine_error)?;
-        let embedding = output[0].to_array_view::<f32>().map_err(engine_error)?;
-        Ok(embedding.iter().copied().collect())
+        let (_, embedding) = outputs[0]
+            .try_extract_tensor::<f32>()
+            .map_err(engine_error)?;
+        Ok(embedding.to_vec())
     }
 }
 

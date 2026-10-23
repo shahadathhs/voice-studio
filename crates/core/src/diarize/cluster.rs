@@ -94,23 +94,34 @@ impl State {
     }
 }
 
+/// The full merge history, closest pair first. With average linkage the distances never decrease,
+/// so stopping early is the same as keeping a prefix of this list.
+fn dendrogram(embeddings: &[Vec<f32>]) -> Vec<(usize, usize, f32)> {
+    let mut state = State::new(embeddings);
+    let mut merges = Vec::with_capacity(embeddings.len().saturating_sub(1));
+    while let Some((i, j, distance)) = state.closest() {
+        state.merge(i, j);
+        merges.push((i, j, distance));
+    }
+    merges
+}
+
+/// How many merges to apply for `stop`, given the merge distances in ascending order.
+fn merges_to_apply(heights: &[f32], stop: Stop) -> usize {
+    match stop {
+        Stop::Clusters(wanted) => (heights.len() + 1).saturating_sub(wanted.max(1)),
+        Stop::Distance(limit) => heights.partition_point(|d| *d <= limit),
+    }
+}
+
 /// Clusters `embeddings` and returns one label per embedding, numbered by first appearance
 /// (the first embedding is always in cluster 0).
 pub fn agglomerate(embeddings: &[Vec<f32>], stop: Stop) -> Vec<usize> {
-    let mut state = State::new(embeddings);
+    let merges = dendrogram(embeddings);
+    let heights: Vec<f32> = merges.iter().map(|m| m.2).collect();
     let mut owner: Vec<usize> = (0..embeddings.len()).collect();
-    let mut count = embeddings.len();
-    while let Some((i, j, distance)) = state.closest() {
-        let done = match stop {
-            Stop::Clusters(wanted) => count <= wanted.max(1),
-            Stop::Distance(limit) => distance > limit,
-        };
-        if done {
-            break;
-        }
-        state.merge(i, j);
-        owner.iter_mut().filter(|o| **o == j).for_each(|o| *o = i);
-        count -= 1;
+    for (i, j, _) in merges.iter().take(merges_to_apply(&heights, stop)) {
+        owner.iter_mut().filter(|o| **o == *j).for_each(|o| *o = *i);
     }
     renumber(&owner)
 }

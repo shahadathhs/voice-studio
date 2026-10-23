@@ -20,7 +20,7 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    screens in the app. Not yet: audio player with waveform, inline editing, crash-safe job resume,
    parallel jobs, a neural VAD (Silero), and Vulkan/CUDA builds in CI.
 3. **Speaker identification and translation (done):** `vtt transcribe --diarize` with a WeSpeaker ResNet34
-   model run in pure Rust (`tract`): windowed embeddings, average-linkage clustering, voting and smoothing, as in
+   model run on ONNX Runtime: windowed embeddings, average-linkage clustering, voting and smoothing, as in
    the earlier prototype; `--translate` refuses the turbo models, which cannot translate. The app has an
    "Identify speakers" option, a speaker panel with talk-time shares, and rename or merge of speakers. Evaluated
    on a small labelled set of synthetic voices (see [diarization.md](diarization.md)). Not yet: a set of real

@@ -20,7 +20,7 @@ The method is the one of the earlier Python prototype (git tag `python-final`), 
    piece in time. A line of 2 s or less that sits between two lines of the same other speaker is flipped to
    that speaker, which removes one-off flicker.
 
-Everything runs on the CPU in pure Rust (`tract`), with no native runtime. Embedding runs at roughly 20× real time,
+Everything runs on the CPU through ONNX Runtime (the same runtime as speech), with no extra setup. Embedding runs at roughly 20× real time,
 so a one-hour recording takes a few minutes after transcription.
 
 ## The model
@@ -60,6 +60,16 @@ background noise, and each voice is very consistent. Real recordings vary more w
 best threshold to be somewhat higher, and expect worse results with overlapping speech, similar voices, noise or
 many speakers. When you know how many people speak, `--speakers N` is more reliable than the threshold. A set of
 real, labelled recordings is still needed before this is called measured.
+
+## A real recording
+
+Checked on a 3-minute NASA recording (Apollo 13 air-to-ground radio, public domain: three voices, static, radio
+clipping). Whisper small transcribed it well, but the default threshold found **33 speakers**. Sweeping the
+threshold: 0.6 gives 8, 0.7 gives 3 (the right number), 0.8 gives 1. The merge distances rise smoothly with no clear
+gap, so choosing the count automatically from their shape was tried and does not work on this audio. Noisy
+audio needs a much higher threshold than the clean synthetic set, so a single default cannot suit both:
+**when you know the number of speakers, pass `--speakers N`**; otherwise raise `--diarize-threshold` for noisy
+recordings.
 
 ## Limits
 

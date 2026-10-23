@@ -19,8 +19,9 @@ Everything runs on this computer.
 5. The sentences are joined with pauses and written as a 16-bit mono WAV at 24 kHz.
 
 Pronunciation is done in plain Rust, so the app needs no extra speech tools. The model runs on ONNX Runtime through
-the `ort` crate, linked into the program. (The `tract` runtime used for speaker identification cannot run this model:
-the length of its output depends on durations the model predicts while running.)
+the `ort` crate, linked into the program. Speaker identification uses the same runtime, so the program carries one
+inference engine. (An earlier version ran speaker identification on the pure-Rust `tract`, which cannot run this
+model: the length of its output depends on durations the model predicts while running.)
 
 ## The files
 
