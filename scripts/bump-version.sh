@@ -6,7 +6,7 @@
 #
 # The VERSION file is the source of truth for release builds. This script also updates the Rust
 # workspace, the Tauri config and the two package.json files, so they never drift. When the bump
-# reaches main, the release workflow publishes v0.2.0 (see docs/releasing.md).
+# reaches main, `make tag` tags it and CI publishes v0.2.0 (see docs/releasing.md).
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

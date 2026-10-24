@@ -1,8 +1,7 @@
 name: CI
 
-# One workflow for checks and releases. Pull requests and main pushes run the checks. A main push
-# whose VERSION file names a version with no release yet, or a pushed v* tag, also builds the
-# installers once the checks pass and publishes the release. See docs/releasing.md. To check dev
+# One workflow for checks and releases. Pull requests and main pushes run the checks. A pushed v*
+# tag (make tag) also builds the installers once the checks pass and publishes the release. See docs/releasing.md. To check dev
 # on demand: gh workflow run ci.yml --ref dev
 on:
   pull_request:
@@ -71,33 +70,24 @@ jobs:
 
   version:
     name: Resolve version
-    if: github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     outputs:
-      is-release: ${{ steps.ver.outputs.is-release }}
       version: ${{ steps.ver.outputs.version }}
     steps:
       - uses: actions/checkout@v6
       - id: ver
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-          else
-            VERSION="$(tr -d '[:space:]' < VERSION)"
-          fi
-          if gh release view "v${VERSION}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
-            echo "is-release=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "is-release=true" >> "$GITHUB_OUTPUT"
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "${VERSION}" != "$(tr -d '[:space:]' < VERSION)" ]]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match the VERSION file." >&2
+            exit 1
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build (${{ matrix.os }})
     needs: [version, web, rust]
-    if: needs.version.outputs.is-release == 'true'
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
