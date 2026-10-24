@@ -1,6 +1,6 @@
 export const NAV = [
-  { href: "/#screens", label: "Screens" },
-  { href: "/#private", label: "Private" },
-  { href: "/#cli", label: "CLI" },
+  { href: "/features", label: "Features" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/cli", label: "Command line" },
   { href: "/build", label: "Build" },
 ] as const;

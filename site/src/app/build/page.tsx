@@ -1,23 +1,30 @@
-import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { BuildGuide } from "@/components/build-guide";
 import { PageShell } from "@/components/page-shell";
+import { PageTitle } from "@/components/page-title";
 import { REPO_URL } from "@/lib/links";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Build from source",
   description:
-    "Build Voice Studio and the vtt command-line tool from source on macOS, Windows or Linux.",
-};
+    "Build Voice Studio and the vtt command-line tool from source on macOS, Windows or Linux. A copy you build yourself starts without signing warnings.",
+  path: "/build",
+});
 
 export default function BuildPage() {
   return (
     <PageShell>
-      <div className="min-h-[60vh] px-6 py-12 md:px-10">
-        <h1 className="text-3xl font-semibold tracking-tight">Build from source</h1>
-        <p className="mt-3 max-w-2xl text-muted">
+      <div className="px-6 pt-8 md:px-10">
+        <Breadcrumbs trail={[{ name: "Home", href: "/" }, { name: "Build from source" }]} />
+      </div>
+      <PageTitle eyebrow="Get it" title="Build from source.">
+        <p>
           There are no prebuilt downloads: installers need code signing, and unsigned ones are
           blocked or warned about by macOS and Windows. A copy you build yourself starts normally.
         </p>
+      </PageTitle>
+      <div className="px-6 pb-12 md:px-10">
         <BuildGuide />
         <p className="mt-10 max-w-2xl text-sm text-muted">
           GPU on Windows and Linux, and the full reference, are in{" "}

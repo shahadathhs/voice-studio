@@ -5,16 +5,18 @@ interface ScreenshotProps {
   width: number;
   height: number;
   priority?: boolean;
+  /** Crop to the box the parent gives, from the top, instead of keeping the image's own shape. */
+  fit?: boolean;
 }
 
 /** A real app screenshot in the current theme: both are in the page and CSS shows the matching one. */
-export function Screenshot({ name, alt, width, height, priority }: ScreenshotProps) {
+export function Screenshot({ name, alt, width, height, priority, fit }: ScreenshotProps) {
   const common = {
     width,
     height,
     alt,
     loading: priority ? ("eager" as const) : ("lazy" as const),
-    className: "h-auto w-full",
+    className: fit ? "h-full w-full object-cover object-top" : "h-auto w-full",
   };
   return (
     <>

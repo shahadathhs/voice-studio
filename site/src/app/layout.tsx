@@ -1,25 +1,37 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
-import { SITE_URL } from "@/lib/links";
 import { ThemeScript } from "@/components/theme-script";
+import { SITE_URL } from "@/lib/links";
+import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
-
-const DESCRIPTION =
-  "Turn speech into text, and text into speech, on your own computer. A free, open source desktop app and command-line tool. No account, no cloud.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Voice Studio: offline speech to text and text to speech",
-    template: "%s · Voice Studio",
+    default: `${SITE_NAME}: offline speech to text and text to speech`,
+    template: `%s · ${SITE_NAME}`,
   },
-  description: DESCRIPTION,
-  openGraph: {
-    title: "Voice Studio",
-    description: DESCRIPTION,
-    type: "website",
-    siteName: "Voice Studio",
-  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    "speech to text",
+    "text to speech",
+    "offline transcription",
+    "Whisper",
+    "speaker diarization",
+    "voice cloning",
+    "open source",
+  ],
+  openGraph: { siteName: SITE_NAME, type: "website", locale: "en_US" },
+  twitter: { card: "summary_large_image" },
+  robots: { index: true, follow: true },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f3f0" },
+    { media: "(prefers-color-scheme: dark)", color: "#171716" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

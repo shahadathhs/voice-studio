@@ -22,7 +22,7 @@ export function ThemeToggle() {
       type="button"
       onClick={toggleTheme}
       aria-label="Switch between light and dark theme"
-      className="grid size-8 place-items-center rounded-md border border-line text-muted hover:text-ink"
+      className="grid size-8 place-items-center rounded-md border border-line text-muted hover:bg-raised hover:text-ink"
     >
       <svg
         className="icon-moon size-4"

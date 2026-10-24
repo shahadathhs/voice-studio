@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./motion.css";
 
 /* Colour tokens: the same values as desktop/src/styles/tokens.css, plus a sunken tone for code and
    frames. With no choice made the site follows the system theme; the toggle sets data-theme. */
@@ -74,6 +75,11 @@ body {
     color 0.3s;
 }
 
+button,
+summary {
+  cursor: pointer;
+}
+
 a:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--accent);
@@ -123,29 +129,5 @@ button:focus-visible {
 
   :root:not([data-theme="light"]) .icon-sun {
     display: block;
-  }
-}
-
-/* Motion: sections fade up once as they scroll in. Nothing loops, nothing needs JavaScript,
-   and a browser without scroll-driven animation (or with reduced motion) sees the finished page. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 35%;
-    }
-
-    @keyframes reveal {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-
-      to {
-        opacity: 1;
-        transform: none;
-      }
-    }
   }
 }

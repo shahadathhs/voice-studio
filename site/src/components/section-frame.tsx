@@ -12,7 +12,7 @@ interface SectionFrameProps {
 export function SectionFrame({ id, index, name, tag, children }: SectionFrameProps) {
   return (
     <section id={id} className="scroll-mt-14 border-t border-line">
-      <div className="flex justify-between gap-4 border-b border-line px-6 py-2 font-mono text-[11px] tracking-widest text-muted uppercase">
+      <div className="section-bar relative flex justify-between gap-4 border-b border-line px-6 py-2 font-mono text-[11px] tracking-widest text-muted uppercase">
         <span>
           {index} / {name}
         </span>
