@@ -7,7 +7,7 @@ export function CliTeaser({ index }: { index: string }) {
   return (
     <SectionFrame index={index} name="Command line" tag="vtt">
       <div className="reveal grid gap-8 px-6 py-14 md:grid-cols-5 md:gap-10 md:px-10">
-        <div className="md:col-span-2">
+        <div className="min-w-0 md:col-span-2">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-4xl">
             The same engine, for scripts.
           </h2>
@@ -21,7 +21,7 @@ export function CliTeaser({ index }: { index: string }) {
             </ButtonLink>
           </div>
         </div>
-        <div className="md:col-span-3">
+        <div className="min-w-0 md:col-span-3">
           <CodeBlock code={CLI_GROUPS[0].code} />
         </div>
       </div>

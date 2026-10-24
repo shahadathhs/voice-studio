@@ -12,6 +12,13 @@ Tailwind 4, TypeScript 7) with no client-side JavaScript of its own.
 | `/cli`             | `src/app/cli/page.tsx`             | `vtt` examples by task, and exit codes                             |
 | `/build`           | `src/app/build/page.tsx`           | Build from source: prerequisites, commands, where the app lands    |
 
+The docs section (`/docs`, `/docs/[slug]`, `/docs/models`, `/docs/languages`) is rendered from the repository itself:
+`src/lib/docs-manifest.ts` lists the pages, and the markdown files in `docs/` and `CONTRIBUTING.md` are read at build time,
+with relative links rewritten to site pages (or to GitHub for other files). Models and licences come from
+`catalog/models.json`, so they cannot drift. Languages come from `src/lib/languages.ts` (keep it in step with
+`docs/product/speech.md` and `docs/product/cli.md`). Code fences with a language are syntax highlighted. To add a doc, add a line to the manifest. Vercel must have
+"Include source files outside of the Root Directory" enabled, because the build reads `../docs` and `../catalog`.
+
 The per-feature copy lives in `src/lib/features.ts`, the command-line examples in `src/lib/cli-groups.ts`. Both must
 match the README and `docs/product/features.md`, including the limits.
 
@@ -34,6 +41,7 @@ builds it on every pull request.
 - **SEO:** each page sets its title, description, canonical URL and social cards through `pageMetadata` in `src/lib/seo.ts`. The home page carries `SoftwareApplication` structured data and feature pages carry breadcrumbs. There is a sitemap, `robots.txt`, a web manifest, a generated Open Graph image and favicons.
 - **Logo:** `src/components/logo-mark.tsx` and `src/app/icon.svg` draw the same mark: a sound wave that dips toward the middle on the accent colour. `src/lib/logo-bars.ts` holds the bar heights.
 - **Build instructions** on `/build` come from `src/lib/build-steps.ts` and must match `docs/building.md`.
+- **Search** (header button, Ctrl or ⌘ K) reads `/search-index.json`, built at deploy time by `src/lib/search-index.ts` from the docs sections, features, FAQ and models. It is ranked by a small function in `src/lib/search-rank.ts`; there is no server and no dependency. It loads the index only when first opened.
 - **Copy** must match `docs/product/features.md` and the roadmap.
 
 ## Deploy (Vercel)

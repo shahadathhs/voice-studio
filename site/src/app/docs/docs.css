@@ -1,0 +1,166 @@
+/* Rendered markdown (the docs section). Colours come from the site's theme tokens. */
+.docs-prose {
+  color: var(--text2);
+  font-size: 0.95rem;
+  line-height: 1.75;
+}
+
+.docs-prose > :first-child {
+  margin-top: 0;
+}
+
+.docs-prose h2 {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--text);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 4.5rem;
+}
+
+.docs-prose h3 {
+  margin-top: 2rem;
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 600;
+  scroll-margin-top: 4.5rem;
+}
+
+.docs-prose h4 {
+  margin-top: 1.5rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.docs-prose p,
+.docs-prose ul,
+.docs-prose ol,
+.docs-prose blockquote,
+.docs-prose pre,
+.docs-prose .table-wrap {
+  margin-top: 1rem;
+}
+
+.docs-prose ul,
+.docs-prose ol {
+  padding-left: 1.4rem;
+}
+
+.docs-prose ul {
+  list-style: square;
+}
+
+.docs-prose ol {
+  list-style: decimal;
+}
+
+.docs-prose li {
+  margin-top: 0.35rem;
+}
+
+.docs-prose li::marker {
+  color: var(--accent);
+}
+
+.docs-prose a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.docs-prose strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.docs-prose code {
+  padding: 0.12em 0.35em;
+  border-radius: 4px;
+  background: var(--sunken);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.docs-prose pre {
+  overflow-x: auto;
+  padding: 1rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--sunken);
+  line-height: 1.6;
+}
+
+.docs-prose pre code {
+  padding: 0;
+  background: none;
+  font-size: 0.82rem;
+}
+
+.docs-prose blockquote {
+  padding-left: 1rem;
+  border-left: 2px solid var(--accent);
+}
+
+.docs-prose .table-wrap {
+  overflow-x: auto;
+}
+
+.docs-prose table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.docs-prose th,
+.docs-prose td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.docs-prose th {
+  background: var(--raised);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.docs-prose hr {
+  margin-top: 2rem;
+  border-color: var(--line);
+}
+
+/* Syntax highlighting (rehype-highlight classes), in the site's own colours. */
+.docs-prose .hljs-keyword,
+.docs-prose .hljs-built_in,
+.docs-prose .hljs-literal,
+.docs-prose .hljs-selector-tag {
+  color: var(--accent);
+}
+
+.docs-prose .hljs-string,
+.docs-prose .hljs-attr,
+.docs-prose .hljs-regexp {
+  color: var(--hl-string);
+}
+
+.docs-prose .hljs-number,
+.docs-prose .hljs-symbol,
+.docs-prose .hljs-type,
+.docs-prose .hljs-title {
+  color: var(--hl-number);
+}
+
+.docs-prose .hljs-comment,
+.docs-prose .hljs-quote {
+  color: var(--text2);
+  font-style: italic;
+}
+
+.docs-prose .hljs-meta,
+.docs-prose .hljs-variable,
+.docs-prose .hljs-params {
+  color: var(--text);
+}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/logo-mark";
 import { FEATURES } from "@/lib/features";
-import { DOCS_URL, ISSUES_URL, LICENSE_URL, REPO_URL } from "@/lib/links";
+import { ISSUES_URL, LICENSE_URL, REPO_URL } from "@/lib/links";
 
 const COLUMNS = [
   {
@@ -12,6 +12,8 @@ const COLUMNS = [
     title: "Product",
     links: [
       { href: "/privacy", label: "Privacy" },
+      { href: "/docs", label: "Documentation" },
+      { href: "/faq", label: "FAQ" },
       { href: "/cli", label: "Command line" },
       { href: "/build", label: "Build from source" },
     ],
@@ -20,7 +22,6 @@ const COLUMNS = [
     title: "Project",
     links: [
       { href: REPO_URL, label: "GitHub" },
-      { href: DOCS_URL, label: "Documentation" },
       { href: ISSUES_URL, label: "Issues" },
       { href: LICENSE_URL, label: "MIT licence" },
     ],

@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./motion.css";
+@import "./docs/docs.css";
 
 /* Colour tokens: the same values as desktop/src/styles/tokens.css, plus a sunken tone for code and
    frames. With no choice made the site follows the system theme; the toggle sets data-theme. */
@@ -14,6 +15,8 @@
   --accent: #1f6f5c;
   --accent-bg: #e1efea;
   --accent-fg: #ffffff;
+  --hl-string: #8a6a10;
+  --hl-number: #2f6db4;
   color-scheme: light;
 }
 
@@ -29,6 +32,8 @@
     --accent: #4db89b;
     --accent-bg: #1c3a32;
     --accent-fg: #0c1f1a;
+    --hl-string: #d3b558;
+    --hl-number: #7daee6;
     color-scheme: dark;
   }
 }
@@ -44,6 +49,8 @@
   --accent: #4db89b;
   --accent-bg: #1c3a32;
   --accent-fg: #0c1f1a;
+  --hl-string: #d3b558;
+  --hl-number: #7daee6;
   color-scheme: dark;
 }
 
