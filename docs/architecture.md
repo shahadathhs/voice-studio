@@ -23,7 +23,7 @@ One Rust core, three front ends. See [product/features.md](product/features.md) 
         └────────────────────────────────────────┘
 ```
 
-No sidecar process and no localhost port in the desktop app: the UI calls Rust directly. `vtt serve` is a separate, opt-in front end.
+No sidecar process and no localhost port in the desktop app: the UI calls Rust directly. `vtt serve` (a local HTTP API) is planned as a separate, opt-in front end and is not built.
 
 **Repository layout**
 
@@ -50,17 +50,19 @@ the colour tokens shared with the mockups. Logic that is not about presentation 
 
 **Technology choices**
 
-| Concern        | Choice                                                                                                | Why                                                                                     |
-| -------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Shell          | Tauri 2                                                                                               | Native Rust backend, small binaries, signed installers, updater, tray, global shortcuts |
-| UI             | Svelte 5 + TypeScript + Vite                                                                          | Small runtime, plain CSS tokens as in the mockups, no UI kit                            |
-| Speech to text | whisper.cpp or sherpa-onnx (Whisper models)                                                           | Prebuilt, fast, Metal/Vulkan/CUDA capable                                               |
-| Text to speech | Kokoro-82M, Piper voices via ONNX Runtime                                                             | Small, CPU-capable, permissive licenses (verify per voice)                              |
-| Diarization    | Speaker embeddings + agglomerative clustering + temporal smoothing, ported from the earlier prototype | Proven heuristics; models via ONNX                                                      |
-| VAD            | Silero VAD (ONNX)                                                                                     | Skips silence and prevents Whisper hallucinating on it                                  |
-| Audio          | `symphonia` (decode), `cpal` (devices), `rubato` (resample)                                           | No ffmpeg dependency                                                                    |
-| Storage        | SQLite via `rusqlite`, FTS5 for search                                                                | One file, searchable, easy backup                                                       |
-| Updates        | Tauri updater against GitHub Releases                                                                 | Signed, optional                                                                        |
+| Concern        | Choice                                                                                                | Why                                                                                                 |
+| -------------- | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Shell          | Tauri 2                                                                                               | Native Rust backend, small binaries, tray, global shortcuts (installers and updater are not set up) |
+| UI             | Svelte 5 + TypeScript + Vite                                                                          | Small runtime, plain CSS tokens as in the mockups, no UI kit                                        |
+| Speech to text | whisper.cpp or sherpa-onnx (Whisper models)                                                           | Prebuilt, fast, Metal/Vulkan/CUDA capable                                                           |
+| Text to speech | Kokoro-82M via ONNX Runtime (Piper is not used)                                                       | Small, CPU-capable, permissive licenses                                                             |
+| Diarization    | Speaker embeddings + agglomerative clustering + temporal smoothing, ported from the earlier prototype | Proven heuristics; models via ONNX                                                                  |
+| VAD            | Energy-based (a neural VAD such as Silero is planned)                                                 | Skips silence and prevents Whisper hallucinating on it                                              |
+| Audio          | `symphonia` (decode), `cpal` (devices), `rubato` (resample)                                           | No ffmpeg dependency                                                                                |
+| Storage        | SQLite via `rusqlite`, FTS5 for search                                                                | One file, searchable, easy backup                                                                   |
+| Language model | Qwen 2.5 (GGUF) on `candle`                                                                           | Summaries and translation; cannot share a binary with whisper.cpp's ggml via llama.cpp              |
+| Voice cloning  | Chatterbox Multilingual (ONNX Runtime)                                                                | MIT; runs locally, needs the person's consent                                                       |
+| Updates        | Tauri updater against GitHub Releases (not built yet)                                                 | Signed, optional                                                                                    |
 
 ## Data model (sketch)
 

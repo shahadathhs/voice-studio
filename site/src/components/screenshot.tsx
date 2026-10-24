@@ -1,24 +1,35 @@
 interface ScreenshotProps {
   name: string;
   alt: string;
-  width?: number;
-  height?: number;
+  /** Pixel size of the PNG, so the page reserves the space before it loads. */
+  width: number;
+  height: number;
+  priority?: boolean;
 }
 
-/** A real app screenshot in the visitor's theme (light by default, dark when the system is dark). */
-export function Screenshot({ name, alt, width = 1440, height = 900 }: ScreenshotProps) {
+/** A real app screenshot in the current theme: both are in the page and CSS shows the matching one. */
+export function Screenshot({ name, alt, width, height, priority }: ScreenshotProps) {
+  const common = {
+    width,
+    height,
+    alt,
+    loading: priority ? ("eager" as const) : ("lazy" as const),
+    className: "h-auto w-full",
+  };
   return (
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcSet={`/screenshots/${name}-dark.png`} />
+    <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={`/screenshots/${name}-light.png`}
-        alt={alt}
-        width={width}
-        height={height}
-        loading="lazy"
-        className="h-auto w-full rounded-md border border-line"
+        {...common}
+        className={`shot-light ${common.className}`}
       />
-    </picture>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={`/screenshots/${name}-dark.png`}
+        {...common}
+        className={`shot-dark ${common.className}`}
+      />
+    </>
   );
 }

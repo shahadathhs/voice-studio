@@ -56,10 +56,22 @@ Command-line behavior is specified in [cli.md](cli.md); how it is built is in [.
 ### Speak — text to speech ([05](../design/mockups/05-speak.png))
 
 - Text area (paste or open a .txt/.md file); character, word and estimated-duration counters.
-- Voice list with preview, speed slider, output format (WAV, MP3, FLAC), optional paragraph pause.
+- Language and voice pickers (35 voices in English, Spanish, French, Italian, Brazilian Portuguese, Hindi and Mandarin Chinese), speed slider, output format (WAV or FLAC; MP3 is not planned).
+- "Translate, then speak": the text is translated with the language model and spoken in that language's voice.
 - Sentence-level highlighting while playing; generation streams sentence by sentence, so playback starts before synthesis finishes.
-- Save to file, or keep in Library as a generated item.
+- Save to file. (Keeping generated speech in the Library is not built yet.)
 - Long documents are chunked and can be cancelled.
+
+### Voices
+
+- **Blend:** mix 2 to 4 built-in voices of one language into a named preset, with a preview. Presets work anywhere a voice does.
+- **Clone:** make a voice from a 3 to 30 second sample. The person must confirm they own the voice or have permission; cloned voices are marked as such, can be deleted, and saved audio carries a "synthetic voice" note. There is no watermark.
+- Cloning needs the Chatterbox model (about 1.6 GB) and supports English, Spanish, French, Italian, Portuguese and Hindi.
+
+### Summaries, chapters and translation
+
+- On a transcript: a summary with key points, chapters (titles that seek the player), action items, and a translation into one of 20 languages. All written by a small local language model (Qwen 2.5, 1.5B or 7B) and labelled as such.
+- Results are kept with the transcript; a translation is stored as a new library item. Bengali output is flagged as unreliable.
 
 ### Models ([06](../design/mockups/06-models.png))
 
@@ -92,10 +104,10 @@ Command-line behavior is specified in [cli.md](cli.md); how it is built is in [.
 
 ### Tray, dictation, read-aloud ([10](../design/mockups/10-tray-dictation.png))
 
-- Tray/menu-bar menu: start dictation, read selection, transcribe a file, queue status, open, quit.
-- **Dictation into any app:** global hotkey shows a small floating pill with a live level and partial text; on finish, the text is inserted into the focused app.
-- **Read selection aloud:** global hotkey copies the selection and speaks it.
-- Both depend on OS permissions and have platform limits (see Risks).
+- Tray/menu-bar menu: open the window, start or stop dictation, quit. (Transcribe a file and queue status in the menu are not built.)
+- **Dictation:** a global shortcut starts and stops recording; a small floating window shows the state, and on finish the text is copied to the clipboard, ready to paste. It is not typed into the focused app, because that needs accessibility permissions on every system.
+- **Read selection aloud:** not built.
+- Dictation depends on OS permissions and has platform limits (see Risks).
 
 ### Command line
 
@@ -104,14 +116,16 @@ One binary, same core, no GUI needed:
 ```
 vtt transcribe talk.m4a --model small --diarize --format srt -o talk.srt
 vtt speak "Hello" --voice heart --speed 1.1 -o hello.wav
-vtt speak -f article.md --voice emma -o article.mp3
+vtt speak -f article.txt --translate-to es -o articulo.flac
+vtt record -o note.wav --live --transcribe
+vtt voice create Warm --blend af_heart:0.6,af_bella:0.4
+vtt summarize 12 --chapters --actions
 vtt models list | pull <id> | remove <id>
 vtt library list | search <query> | export <id>
-vtt serve --port 8765        # optional local HTTP API, off by default
 ```
 
 Machine-readable output with `--json`; progress on stderr; exit codes documented.
 
 ## Not in scope (for now)
 
-Cloud sync, accounts, team features, voice cloning, mobile apps, plugin system, real-time translation of live audio.
+Cloud sync, accounts, team features, a local HTTP API (`vtt serve`), mobile apps, plugin system, real-time translation of live audio, MP3 output.

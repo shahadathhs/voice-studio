@@ -1,21 +1,25 @@
-import { FeatureGrid } from "@/components/feature-grid";
-import { HomeHero } from "@/components/home-hero";
+import { CliSection } from "@/components/cli-section";
+import { GetSection } from "@/components/get-section";
+import { Hero } from "@/components/hero";
 import { PageShell } from "@/components/page-shell";
-import { PrivacyCallout } from "@/components/privacy-callout";
-import { Screenshot } from "@/components/screenshot";
+import { PrivateSection } from "@/components/private-section";
+import { ScreenSection } from "@/components/screen-section";
+import { SCREENS } from "@/lib/screens";
+
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function HomePage() {
+  const after = SCREENS.length + 1;
   return (
     <PageShell>
-      <HomeHero />
-      <div className="mt-12">
-        <Screenshot
-          name="transcript"
-          alt="A transcript with three speakers, timestamps and a speaker panel"
-        />
-      </div>
-      <FeatureGrid />
-      <PrivacyCallout />
+      <Hero />
+      <div id="screens" />
+      {SCREENS.map((screen, i) => (
+        <ScreenSection key={screen.id} screen={screen} index={pad(i + 1)} flip={i % 2 === 1} />
+      ))}
+      <PrivateSection index={pad(after)} />
+      <CliSection index={pad(after + 1)} />
+      <GetSection index={pad(after + 2)} />
     </PageShell>
   );
 }

@@ -6,13 +6,16 @@ interface ButtonLinkProps {
   quiet?: boolean;
 }
 
-/** One filled primary button per screenful; secondary actions are quiet text links. */
+/** One filled primary button per screenful; other actions are quiet mono links. */
 export function ButtonLink({ href, children, quiet }: ButtonLinkProps) {
   const style = quiet
-    ? "text-muted underline underline-offset-4 hover:text-ink"
-    : "bg-accent text-accent-ink px-5 py-2.5 font-medium hover:opacity-90";
+    ? "border border-line-strong text-ink hover:bg-raised"
+    : "bg-accent text-accent-ink hover:opacity-90";
   return (
-    <a href={href} className={`inline-block rounded-md text-sm ${style}`}>
+    <a
+      href={href}
+      className={`inline-block rounded-md px-5 py-2.5 font-mono text-xs font-medium tracking-widest uppercase transition-colors duration-150 ${style}`}
+    >
       {children}
     </a>
   );
