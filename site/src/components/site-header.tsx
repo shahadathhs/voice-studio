@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LogoMark } from "@/components/logo-mark";
 import { MobileMenu } from "@/components/mobile-menu";
+import { SearchDialog } from "@/components/search-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { NAV } from "@/lib/nav";
 
@@ -30,6 +31,7 @@ export function SiteHeader() {
               </li>
             ))}
           </ul>
+          <SearchDialog />
           <ThemeToggle />
           <MobileMenu />
         </div>
