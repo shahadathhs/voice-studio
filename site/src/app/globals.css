@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* Colour tokens: the same values as desktop/src/styles/tokens.css. The site follows the system
+   theme with CSS only, so it renders fully without JavaScript. */
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --line: #e2dfd9;
+  --text: #1c1c1a;
+  --text2: #5e5c57;
+  --accent: #1f6f5c;
+  --accent-bg: #e1efea;
+  --accent-fg: #ffffff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171716;
+    --surface: #1f1f1d;
+    --line: #2d2d2a;
+    --text: #ecebe7;
+    --text2: #a5a29b;
+    --accent: #4db89b;
+    --accent-bg: #1c3a32;
+    --accent-fg: #0c1f1a;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-ink: var(--text);
+  --color-muted: var(--text2);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-ink: var(--accent-fg);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.6;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

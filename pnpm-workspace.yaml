@@ -1,5 +1,6 @@
 packages:
   - desktop
+  - site
 minimumReleaseAgeExclude:
   - "@tauri-apps/cli-darwin-arm64@2.12.4"
   - "@tauri-apps/cli-darwin-x64@2.12.4"

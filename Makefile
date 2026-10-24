@@ -6,7 +6,8 @@ CARGO := cargo
 
 .DEFAULT_GOAL := help
 .PHONY: notices help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
-        format format-check typecheck test test-e2e check clean mockups screenshots version release
+        format format-check typecheck test test-e2e check clean mockups screenshots version release tag \
+        site-dev site-build
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -60,7 +61,7 @@ lint-ui: ## oxlint (type-aware, includes the file/function size limits)
 
 lint: lint-rust lint-ui ## Run all linters
 
-typecheck: ## svelte-check (TypeScript 7) + tsc
+typecheck: ## svelte-check (TypeScript 7) + tsc for the UI, tsc for the site
 	pnpm typecheck
 
 test: ## Run all Rust tests (includes the 300-line file limit)
@@ -71,6 +72,14 @@ check: format-check lint-ui typecheck ## Everything CI runs: format, lint, types
 	$(PNPM) build
 	$(CARGO) lint
 	$(CARGO) test --workspace
+
+# ---- Website -----------------------------------------------------------------
+
+site-dev: ## Run the marketing site on http://localhost:3000
+	pnpm --dir site dev
+
+site-build: ## Build the marketing site (also checks its types)
+	pnpm --dir site build
 
 # ---- Versions and releases ---------------------------------------------------
 

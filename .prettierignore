@@ -6,3 +6,6 @@ desktop/.svelte-check/
 desktop/src-tauri/gen/
 # Hand-written HTML used to render the design PNGs
 docs/design/mockups/
+site/.next/
+site/public/screenshots/
+site/next-env.d.ts

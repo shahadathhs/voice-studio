@@ -12,6 +12,7 @@
 | [guidelines.md](guidelines.md)                   | Code rules: size limits, reuse, errors, tests, commits                   |
 | [localization.md](localization.md)               | Translating the interface: catalogs, plurals, adding a language          |
 | [releasing.md](releasing.md)                     | Version bump script and the release workflow                             |
+| [site.md](site.md)                               | The marketing website in `site/`: pages, how it stays in sync, deploy    |
 
 Start with [features.md](product/features.md) to learn what is being built, and
 [guidelines.md](guidelines.md) before writing code.

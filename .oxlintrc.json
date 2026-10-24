@@ -49,6 +49,7 @@
     "target",
     ".husky",
     "desktop/.svelte-check",
+    "site/.next",
     "desktop/src-tauri",
     "docs/design/mockups",
     "pnpm-lock.yaml"

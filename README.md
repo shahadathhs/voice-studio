@@ -1,16 +1,23 @@
+<div align="center">
+
 # Voice Studio
 
 **Turn speech into text, and text into speech, without sending anything anywhere.**
 
-Voice Studio is a desktop app and a command-line tool that transcribes recordings, labels who said what,
-and reads text aloud, all on your own computer. No account, no cloud, no per-minute fees. Models download
-once; after that it works offline.
+An offline desktop app and command-line tool for Windows, macOS and Linux.
+No account, no cloud, no per-minute fees.
 
-Windows, macOS and Linux. Open source (MIT).
+[![CI](https://github.com/shahadathhs/voice-to-text/actions/workflows/ci.yml/badge.svg)](https://github.com/shahadathhs/voice-to-text/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/shahadathhs/voice-to-text?include_prereleases&sort=semver)](https://github.com/shahadathhs/voice-to-text/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Platforms](https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-> **Status: early development, not released yet.** Transcription, speaker labels and text to speech work.
-> Recording, live captions, dictation and installers are still to come (see the [roadmap](docs/product/roadmap.md)).
-> "Voice Studio" is a working name.
+[Download](https://github.com/shahadathhs/voice-to-text/releases/latest) ·
+[Documentation](docs/README.md) · [CLI reference](docs/product/cli.md) ·
+[Roadmap](docs/product/roadmap.md) · [Report a bug](https://github.com/shahadathhs/voice-to-text/issues/new/choose)
+
+</div>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/transcript-dark.png">
@@ -19,7 +26,34 @@ Windows, macOS and Linux. Open source (MIT).
 
 _Screenshots show the real interface with made-up sample data._
 
-## What you can do
+> [!NOTE]
+> **Early development.** Transcription, speaker labels and text to speech work. Recording, live captions and
+> dictation are still to come (see the [roadmap](docs/product/roadmap.md)). Installers are not code-signed yet.
+> "Voice Studio" is a working name.
+
+## Table of contents
+
+- [About](#about)
+- [Features](#features)
+- [Private by design](#private-by-design)
+- [Screens](#screens)
+- [Installation](#installation)
+- [Usage](#usage)
+- [How it works](#how-it-works)
+- [Roadmap](#roadmap)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [Security](#security)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
+## About
+
+Voice Studio transcribes recordings, labels who said what, and reads text aloud, all on your own computer.
+Models download once; after that it works offline. The desktop app and the `vtt` command-line tool share
+one engine, so what you script is what you click.
+
+## Features
 
 - **Transcribe audio and video.** Drop in WAV, MP3, M4A, FLAC, OGG, MP4, MOV or MKV files. A queue works
   through them one at a time, skipping silence, with progress you can pause, reorder or cancel.
@@ -75,7 +109,37 @@ yourself, and each download is checked against a published checksum. The app has
   </tr>
 </table>
 
-## Command line
+## Installation
+
+### Download
+
+Get the installer for your system from the [latest release](https://github.com/shahadathhs/voice-to-text/releases/latest).
+Every file comes with a `.sha256` checksum, and each release also ships the `vtt` command-line binary.
+
+Builds are not signed yet, so the first launch shows a warning: on macOS right-click the app and choose
+**Open**; on Windows choose **More info**, then **Run anyway**.
+
+### Build from source
+
+```bash
+git clone https://github.com/shahadathhs/voice-to-text.git
+cd voice-to-text
+make setup     # Rust and CMake if missing, JS dependencies, git hooks, first UI build
+make dev       # run the desktop app with hot reload
+make check     # everything CI runs
+```
+
+You need [Rust](https://rustup.rs), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
+from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
+[Tauri system packages](https://tauri.app/start/prerequisites/) and the ALSA headers (`libasound2-dev`) for
+microphone recording. On Windows use Git Bash or WSL. `make` lists every target.
+
+GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or
+`--features cuda` (needs the CUDA toolkit). The desktop crate forwards the same features.
+
+## Usage
+
+### Command line
 
 The same engine as the app, for scripts and servers.
 
@@ -91,44 +155,44 @@ vtt --json transcribe talk.m4a                 # machine-readable events for scr
 
 Run `vtt --help` or see the [CLI reference](docs/product/cli.md) for every command, option and exit code.
 Whisper uses the GPU on macOS (Metal) automatically; on Windows and Linux it uses the CPU unless you build
-with the optional Vulkan or CUDA feature (see below).
+with the optional Vulkan or CUDA feature (see [Installation](#installation)).
 
-## Get it
-
-There are no installers yet. Until the first release, build from source.
-
-```bash
-make setup     # Rust and CMake if missing, JS dependencies, git hooks, first UI build
-make dev       # run the desktop app with hot reload
-make check     # everything CI runs
-```
-
-You need [Rust](https://rustup.rs), a C++ compiler and [CMake](https://cmake.org) (whisper.cpp is built
-from source), Node.js 22+, [pnpm](https://pnpm.io) and `make`. On Linux, also the
-[Tauri system packages](https://tauri.app/start/prerequisites/) and the ALSA headers (`libasound2-dev`) for microphone recording. On Windows use Git Bash or WSL.
-`make` lists every target.
-
-GPU on Windows and Linux: `cargo build --release -p vtt-cli --features vulkan` (needs the Vulkan SDK) or
-`--features cuda` (needs the CUDA toolkit). The desktop crate forwards the same features.
-
-## Under the hood
+## How it works
 
 A Rust core (`vtt-core`) does the work: whisper.cpp for transcription, pyannote and WeSpeaker models for speaker
 labels, Kokoro for speech, SQLite for the library. The desktop app is a [Tauri 2](https://tauri.app)
 shell with a Svelte interface calling the core in-process, so there is no server and no sidecar. The CLI
 is a thin front end on the same core. See [architecture](docs/architecture.md).
 
+## Roadmap
+
+Recording, live captions, dictation, signed installers and an updater are planned, along with a Bengali voice
+and voice cloning (both still research gates). See the [roadmap](docs/product/roadmap.md) for status.
+
 ## Documentation
 
 [Features](docs/product/features.md) · [CLI](docs/product/cli.md) · [Roadmap](docs/product/roadmap.md) ·
-[Architecture](docs/architecture.md) · [Design](docs/design/README.md) · [Releasing](docs/releasing.md) ·
-[Index](docs/README.md)
+[Architecture](docs/architecture.md) · [Design](docs/design/README.md) · [Website](docs/site.md) ·
+[Releasing](docs/releasing.md) · [Index](docs/README.md)
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) and the [code guidelines](docs/guidelines.md). Please read the
-[Code of Conduct](CODE_OF_CONDUCT.md) and the [Security Policy](SECURITY.md).
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [code guidelines](docs/guidelines.md)
+first; work happens on the `dev` branch and commits follow
+[Conventional Commits](https://www.conventionalcommits.org). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Licence
+## Security
+
+Report vulnerabilities privately; see the [Security Policy](SECURITY.md).
+
+## Acknowledgements
+
+Voice Studio stands on [whisper.cpp](https://github.com/ggml-org/whisper.cpp) (transcription),
+[pyannote](https://github.com/pyannote/pyannote-audio) and [WeSpeaker](https://github.com/wenet-e2e/wespeaker)
+(speaker labels), [Kokoro](https://github.com/hexgrad/kokoro) (speech), [Tauri](https://tauri.app) and
+[Svelte](https://svelte.dev). Each model's licence is listed in the app and in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## License
 
 [MIT](LICENSE)

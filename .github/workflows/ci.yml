@@ -1,8 +1,8 @@
 name: CI
 
 # One workflow for checks and releases. Pull requests and main pushes run the checks. A pushed v*
-# tag (make tag) also builds the installers once the checks pass and publishes the release. See docs/releasing.md. To check dev
-# on demand: gh workflow run ci.yml --ref dev
+# tag (make tag) also builds the installers once the checks pass and publishes the release. See docs/releasing.md.
+# To check dev on demand: gh workflow run ci.yml --ref dev
 on:
   pull_request:
     branches: [main]
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   web:
-    name: UI (lint, types, build)
+    name: UI and site (lint, types, build)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,6 +31,7 @@ jobs:
       - run: pnpm exec prettier --check .
       - run: pnpm typecheck
       - run: pnpm --dir desktop build
+      - run: pnpm --dir site build
 
   rust:
     name: Rust (${{ matrix.os }})
