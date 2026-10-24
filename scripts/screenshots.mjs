@@ -14,17 +14,23 @@ const OUT = process.env.SHOTS_OUT ?? new URL("../docs/screenshots/", import.meta
 const SITE = "http://127.0.0.1:4173";
 const DEBUG_PORT = 9333;
 
-/** page: position of the sidebar item to click (labels change with the language), then optionally a row to open. */
+/** Position of each item in the sidebar (desktop/src/lib/pages.ts: MAIN_PAGES, then Settings). */
+const PAGE = { transcribe: 0, record: 1, speak: 2, voices: 3, library: 4, models: 5, settings: 6 };
+
+/** page: sidebar position to click, then optionally a row to open (labels change with the language). */
 const SHOTS = [
-  { name: "transcribe", page: 0 },
-  { name: "transcript", page: 2, open: "Quarterly planning meeting" },
+  { name: "transcribe", page: PAGE.transcribe },
+  { name: "record", page: PAGE.record },
+  { name: "transcript", page: PAGE.library, open: "Quarterly planning meeting" },
   {
     name: "speak",
-    page: 1,
+    page: PAGE.speak,
     text: "Welcome back. Your recordings stay on this computer, and so does everything you make from them.",
   },
-  { name: "models", page: 3, height: 1000 },
-  { name: "settings", page: 4, height: 1000 },
+  { name: "voices", page: PAGE.voices, height: 1000 },
+  { name: "library", page: PAGE.library },
+  { name: "models", page: PAGE.models, height: 1000 },
+  { name: "settings", page: PAGE.settings, height: 1000 },
   { name: "onboarding", fresh: true, height: 900 },
 ];
 
