@@ -9,11 +9,13 @@ Never edit those by hand.
 1. On `dev`, with a clean working tree: `make release v=0.2.0`. This writes the version everywhere,
    commits `chore(release): v0.2.0` and pushes. Use `make version v=0.2.0` to change the files only.
 2. Merge `dev` into `main` through a pull request.
-3. The `Release` workflow sees that `VERSION` names a version with no release yet, builds installers
-   on Linux, macOS and Windows, and publishes `v0.2.0` with generated notes, SHA-256 files and the
-   `vtt` command-line binary for each platform.
+3. On `main`, up to date and clean: `make tag`. It tags the commit `v0.2.0` from the `VERSION` file and
+   pushes the tag.
+4. The `CI` workflow (`.github/workflows/ci.yml`, the only workflow) runs the checks on the tag, then
+   builds installers on Linux, macOS and Windows and publishes `v0.2.0` with generated notes, SHA-256
+   files and the `vtt` command-line binary for each platform. The tag must match `VERSION`.
 
-Pushing a `v*` tag does the same. A main push whose version already has a release builds nothing.
+Pushes to `main` without a tag only run the checks. Nothing is released until a tag is pushed.
 
 The script refuses to go backwards, to repeat the current version, or to run with uncommitted changes.
 

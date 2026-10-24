@@ -13,7 +13,6 @@ Read first: `docs/README.md` (index), `docs/guidelines.md` (the rules below in f
 - `desktop/src`: Svelte UI (`components/`, `pages/`, `lib/`, `styles/`).
 - `catalog/models.json`: model catalog (Whisper, WeSpeaker, Kokoro) with pinned URLs, sizes, SHA-256 and licenses.
 - `docs/`: `releasing.md`, `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
-- The earlier Python prototype lives only at git tag `python-final`.
 
 ## Commands
 

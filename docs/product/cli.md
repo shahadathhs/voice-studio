@@ -2,7 +2,7 @@
 
 The CLI is a first-class front end, not a debug tool. It links the same Rust `core` crate as the desktop app, so a transcript made on the command line is identical to one made in the GUI and shows up in the same Library (shared data directory).
 
-Binary name: `vtt` (the Python package already exposes `vtt` and `voice-to-text`; both names are kept).
+Binary name: `vtt`.
 
 ## Design rules
 
@@ -256,17 +256,6 @@ The final transcript document uses the same schema the app stores and `vtt expor
 {"language":"en","duration_ms":2892000,"model":"whisper-base",
  "segments":[{"start_ms":1020,"end_ms":4810,"speaker":"SPEAKER_00","text":"…"}]}
 ```
-
-## Migration from the Python CLI
-
-| Python (`transcribe.py` / `cli.py`)   | `vtt`                                                   |
-| ------------------------------------- | ------------------------------------------------------- |
-| `--model base`                        | `-m whisper-base` (bare `base` still accepted)          |
-| `--translate`                         | `--translate`                                           |
-| `--diarize`                           | `--diarize`                                             |
-| `--max-speakers N`                    | `--speakers N` (old flag kept as an alias)              |
-| `--diarize-threshold X`               | `--diarize-threshold X`                                 |
-| output always to `media/transcripts/` | stdout by default; `-o` to choose; Library keeps a copy |
 
 ## Testing
 

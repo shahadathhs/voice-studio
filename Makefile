@@ -80,6 +80,9 @@ version: ## Write a new version into every file that carries it (no git): make v
 release: ## Bump, commit and push a release: make release v=0.2.0 (run by you, never automatic)
 	@v=$(v) scripts/bump-version.sh release
 
+tag: ## Tag main with the VERSION file's version and push it; CI then publishes the release
+	@scripts/tag-release.sh
+
 # ---- Housekeeping ------------------------------------------------------------
 
 mockups: ## Re-render the design mockups to PNG (needs Google Chrome)
