@@ -1,0 +1,160 @@
+/* Motion. Scroll-driven animations (CSS `animation-timeline`): nothing loops, nothing autoplays.
+   Browsers without them get the same reveals from a small script (components/scroll-reveal.tsx,
+   switched on by the `reveal-js` class from the head script). With reduced motion on, or without
+   either, the page is simply complete. Hover transitions live in the components (150 ms). */
+
+.scroll-progress,
+.section-bar::after {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The hero introduces itself once on load, one piece after another. */
+  .hero-in > * {
+    animation: rise 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+  }
+
+  .hero-in > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+
+  .hero-in > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+
+  .hero-in > :nth-child(4) {
+    animation-delay: 0.24s;
+  }
+
+  .hero-in > :nth-child(5) {
+    animation-delay: 0.32s;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @supports (animation-timeline: view()) {
+    /* A bar under the header that fills as you read down the page. */
+    .scroll-progress {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+      height: 3px;
+      background: var(--accent);
+      transform-origin: 0 50%;
+      animation: grow linear both;
+      animation-timeline: scroll(root);
+    }
+
+    @keyframes grow {
+      from {
+        transform: scaleX(0);
+      }
+
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+    /* Each section's label bar draws an accent line across as the section arrives. */
+    .section-bar::after {
+      content: "";
+      display: block;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: var(--accent);
+      transform-origin: 0 50%;
+      animation: grow linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+
+    /* Blocks slide up and fade in as they enter the viewport. */
+    .reveal,
+    .reveal-item {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 60%;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(64px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* Grid cards arrive one after another, left to right. */
+    .reveal-group > .reveal-item:nth-child(3n + 2) {
+      animation-range: entry 8% entry 68%;
+    }
+
+    .reveal-group > .reveal-item:nth-child(3n + 3) {
+      animation-range: entry 16% entry 76%;
+    }
+
+    /* Screenshots rise from small and tilted back, and settle flat. */
+    .hero-shot {
+      animation: settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+      transform-origin: 50% 100%;
+    }
+
+    @keyframes settle {
+      from {
+        opacity: 0.15;
+        transform: perspective(1400px) translateY(90px) rotateX(10deg) scale(0.86);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+
+  /* The same reveals, driven by the observer, where scroll-driven animation does not exist. */
+  .reveal-js .reveal,
+  .reveal-js .reveal-item,
+  .reveal-js .hero-shot {
+    opacity: 0;
+    transform: translateY(56px);
+    transition:
+      opacity 0.8s cubic-bezier(0.2, 0.9, 0.2, 1),
+      transform 0.8s cubic-bezier(0.2, 0.9, 0.2, 1);
+  }
+
+  .reveal-js .reveal-group > .reveal-item:nth-child(3n + 2) {
+    transition-delay: 0.1s;
+  }
+
+  .reveal-js .reveal-group > .reveal-item:nth-child(3n + 3) {
+    transition-delay: 0.2s;
+  }
+
+  .reveal-js .is-in {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -11,7 +11,8 @@
 | [design/README.md](design/README.md)             | Visual principles, theming, and the screen mockups                       |
 | [guidelines.md](guidelines.md)                   | Code rules: size limits, reuse, errors, tests, commits                   |
 | [localization.md](localization.md)               | Translating the interface: catalogs, plurals, adding a language          |
-| [releasing.md](releasing.md)                     | Version bump script and the release workflow                             |
+| [building.md](building.md)                       | Build from source, where the output lands, versions                      |
+| [site.md](site.md)                               | The marketing website in `site/`: pages, how it stays in sync, deploy    |
 
 Start with [features.md](product/features.md) to learn what is being built, and
 [guidelines.md](guidelines.md) before writing code.

@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import "./motion.css";
+
+/* Colour tokens: the same values as desktop/src/styles/tokens.css, plus a sunken tone for code and
+   frames. With no choice made the site follows the system theme; the toggle sets data-theme. */
+:root {
+  --bg: #f4f3f0;
+  --raised: #ffffff;
+  --sunken: #eceae6;
+  --line: #e2dfd9;
+  --line-strong: #cfcbc3;
+  --text: #1c1c1a;
+  --text2: #5e5c57;
+  --accent: #1f6f5c;
+  --accent-bg: #e1efea;
+  --accent-fg: #ffffff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171716;
+    --raised: #1f1f1d;
+    --sunken: #121211;
+    --line: #2d2d2a;
+    --line-strong: #43433e;
+    --text: #ecebe7;
+    --text2: #a5a29b;
+    --accent: #4db89b;
+    --accent-bg: #1c3a32;
+    --accent-fg: #0c1f1a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #171716;
+  --raised: #1f1f1d;
+  --sunken: #121211;
+  --line: #2d2d2a;
+  --line-strong: #43433e;
+  --text: #ecebe7;
+  --text2: #a5a29b;
+  --accent: #4db89b;
+  --accent-bg: #1c3a32;
+  --accent-fg: #0c1f1a;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raised: var(--raised);
+  --color-sunken: var(--sunken);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--text2);
+  --color-accent: var(--accent);
+  --color-accent-bg: var(--accent-bg);
+  --color-accent-ink: var(--accent-fg);
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.6;
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+button,
+summary {
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Screenshots come in both themes; show the one that matches. */
+.shot-dark {
+  display: none;
+}
+
+:root[data-theme="dark"] .shot-light {
+  display: none;
+}
+
+:root[data-theme="dark"] .shot-dark {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .shot-light {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .shot-dark {
+    display: block;
+  }
+}
+
+/* The toggle shows the icon of the theme you would switch to. */
+.icon-sun {
+  display: none;
+}
+
+:root[data-theme="dark"] .icon-moon {
+  display: none;
+}
+
+:root[data-theme="dark"] .icon-sun {
+  display: block;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .icon-moon {
+    display: none;
+  }
+
+  :root:not([data-theme="light"]) .icon-sun {
+    display: block;
+  }
+}

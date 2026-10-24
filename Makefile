@@ -6,7 +6,8 @@ CARGO := cargo
 
 .DEFAULT_GOAL := help
 .PHONY: notices help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
-        format format-check typecheck test test-e2e check clean mockups screenshots version release
+        format format-check typecheck test test-e2e check clean mockups screenshots version \
+        site-dev site-build
 
 help: ## Show this help
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -31,12 +32,12 @@ cli: ## Run the CLI, e.g. make cli ARGS="export transcript.json -f srt"
 
 # ---- Build -------------------------------------------------------------------
 
-build: build-cli build-desktop ## Build the CLI and the desktop installers (release)
+build: build-cli build-desktop ## Build the CLI and the desktop app from source (release mode)
 
 build-cli: ## Build the release CLI binary (target/release/vtt)
 	$(CARGO) build --release -p vtt-cli
 
-build-desktop: ## Build the desktop app installers for this platform
+build-desktop: ## Build the desktop app and its installer for this platform (target/release/bundle)
 	$(PNPM) tauri build
 
 # ---- Quality -----------------------------------------------------------------
@@ -60,7 +61,7 @@ lint-ui: ## oxlint (type-aware, includes the file/function size limits)
 
 lint: lint-rust lint-ui ## Run all linters
 
-typecheck: ## svelte-check (TypeScript 7) + tsc
+typecheck: ## svelte-check (TypeScript 7) + tsc for the UI, tsc for the site
 	pnpm typecheck
 
 test: ## Run all Rust tests (includes the 300-line file limit)
@@ -72,16 +73,18 @@ check: format-check lint-ui typecheck ## Everything CI runs: format, lint, types
 	$(CARGO) lint
 	$(CARGO) test --workspace
 
-# ---- Versions and releases ---------------------------------------------------
+# ---- Website -----------------------------------------------------------------
+
+site-dev: ## Run the marketing site on http://localhost:3000
+	pnpm --dir site dev
+
+site-build: ## Build the marketing site (also checks its types)
+	pnpm --dir site build
+
+# ---- Versions ---------------------------------------------------
 
 version: ## Write a new version into every file that carries it (no git): make version v=0.2.0
 	@v=$(v) scripts/bump-version.sh version
-
-release: ## Bump, commit and push a release: make release v=0.2.0 (run by you, never automatic)
-	@v=$(v) scripts/bump-version.sh release
-
-tag: ## Tag main with the VERSION file's version and push it; CI then publishes the release
-	@scripts/tag-release.sh
 
 # ---- Housekeeping ------------------------------------------------------------
 

@@ -11,8 +11,9 @@ Read first: `docs/README.md` (index), `docs/guidelines.md` (the rules below in f
 - `crates/cli` (`vtt-cli`, binary `vtt`): clap front end and black-box tests.
 - `desktop/src-tauri` (`vtt-desktop`): Tauri shell; thin commands that call `vtt-core` in-process.
 - `desktop/src`: Svelte UI (`components/`, `pages/`, `lib/`, `styles/`).
+- `site`: Next.js marketing site (static, Vercel); see `site/AGENTS.md` and `docs/site.md`.
 - `catalog/models.json`: model catalog (Whisper, WeSpeaker, Kokoro) with pinned URLs, sizes, SHA-256 and licenses.
-- `docs/`: `releasing.md`, `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
+- `docs/`: `building.md`, `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
 
 ## Commands
 
@@ -22,6 +23,7 @@ make dev            # desktop app with hot reload
 make cli ARGS="..." # run the CLI
 make check          # format-check, lint, types, UI build, clippy, tests: run before finishing
 make test-e2e       # real model + real speech (needs VTT_TEST_MODEL, VTT_TEST_SPEECH); not part of check
+make site-dev       # marketing site on :3000 (make site-build before finishing site changes)
 make version v=X.Y.Z # write a new version into every file that carries it (no git)
 make format         # rustfmt + Prettier (also run by the pre-commit hook on staged files)
 make                # list all targets
@@ -42,7 +44,7 @@ commit and enforce Conventional Commit messages.
 - Colours come from CSS variables in `desktop/src/styles/tokens.css`; UI logic that is not presentation
   belongs in Rust.
 - Every behavior change has a test; CLI behavior is tested black-box in `crates/cli/tests`.
-- Conventional Commits. Work on `dev`. Never run `make release` (it commits and pushes); the user does.
+- Conventional Commits. Work on `dev`; the user commits, pushes and merges.
 
 ## Contracts to keep in sync
 
@@ -50,7 +52,7 @@ commit and enforce Conventional Commit messages.
 - `vtt_core::Transcript` JSON is the interchange format (`--json`, `vtt export`, the app's store);
   changing it is a breaking change.
 - Types crossing the Tauri boundary: `desktop/src-tauri/src/commands.rs` and `desktop/src/lib/types.ts`.
-- Colour tokens: `desktop/src/styles/tokens.css` and `docs/design/mockups/src/common.css`.
+- Colour tokens: `desktop/src/styles/tokens.css`, `docs/design/mockups/src/common.css` and `site/src/app/globals.css`.
 
 ## Decided and open
 

@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the latest release receives security fixes. Nothing has been released yet.
+Only the latest commit on `main` receives security fixes. There are no published releases; Voice Studio is built from source.
 
 ## Reporting a vulnerability
 

@@ -178,10 +178,21 @@ export const SAMPLE_BACKEND = {
   list_library: library,
   search_library: [],
   get_transcript: transcript,
+  list_input_devices: [
+    { name: "MacBook Pro Microphone", is_default: true },
+    { name: "External USB microphone", is_default: false },
+  ],
   list_voices: [
     { id: "af_heart", name: "Heart", description: "American, female, warm", language: "en" },
     { id: "af_bella", name: "Bella", description: "American, female, bright", language: "en" },
     { id: "am_michael", name: "Michael", description: "American, male, steady", language: "en" },
     { id: "am_fenrir", name: "Fenrir", description: "American, male, deep", language: "en" },
+    {
+      id: "custom_studio",
+      name: "Studio blend",
+      description: "Heart and Michael, mixed 60/40",
+      language: "en",
+      custom: true,
+    },
   ],
 };

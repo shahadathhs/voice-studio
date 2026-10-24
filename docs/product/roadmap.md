@@ -1,7 +1,7 @@
 # Roadmap
 
-Status: early development. Phases 0 to 4 are complete. The plan for phases 5 to 11 is below; the order and the
-gates are decided, the details of each phase are settled when it starts.
+Status: early development. Phases 0 to 10 are built, with the open items listed in each phase. Voice Studio is built from
+source ([building.md](../building.md)); prebuilt installers need code signing and are not published (phase 11).
 
 ## Phases
 
@@ -33,11 +33,11 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    [speech.md](speech.md)). The Speak screen has a text box (or a text file), a voice list, speed, progress per sentence, playback
    and Save audio as WAV or FLAC (`--format flac` in the CLI). Still to do: playing audio from the CLI, mp3 output (needs an
    LGPL encoder), keeping speech in the library, British voices, a waveform in the player.
-5. **Prove it on all three systems (next):** push `dev` and get CI green on Linux, macOS and Windows, including the
+5. **Prove it on all three systems (CI done; real-machine runs still to do):** push `dev` and get CI green on Linux, macOS and Windows, including the
    Windows and Linux builds nobody has run yet; build installers once as CI artifacts (not published) and run the
    app on a real Windows and a real Linux machine; write the third-party notices file (see
    [Legal and safety](#legal-and-safety)). Exit: the app starts, installs a model, transcribes and speaks on each
-   system. Why first: every later phase adds weight to code that has only run on macOS.
+   system. CI is green on all three and the installers build for each. Not yet confirmed: the app run by hand on a real Windows and a real Linux machine. Why first: every later phase adds weight to code that has only run on macOS.
 6. **Language models: summaries and translation (built; Bengali quality open).** A `TextEngine` trait and a Qwen 2.5
    engine on `candle` (Metal on Macs, CPU elsewhere) reading GGUF files, with two optional models: 1.5B and 7B (both
    Apache-2.0). The 3B model is excluded: it uses the Qwen Research licence. Not `llama.cpp`: it cannot share a binary
@@ -59,19 +59,23 @@ Each engine phase ships its CLI command and its desktop screen together, so the 
    (candidates: Indic Parler-TTS, AI4Bharat Indic-TTS, Thiva-indic; licences conflict between sources, read the
    licence files) and exportable to ONNX; Meta MMS is non-commercial and excluded. If none qualifies, Bengali stays
    text-only (translation and summaries) and we say so.
-8. **Custom voices and voice cloning (must have).** Two steps. First, voice presets: saved blends of the shipped
-   voices, with a name and a preview. Second, cloning from a short sample: model chosen by a spike that compares
-   OpenVoice v2 and Chatterbox (MIT as far as known: verify), checks ONNX export, speed and quality; a decision gate
-   before any build. Rules that are part of the feature, not extras: the person must confirm consent for the voice
-   in the sample; everything runs locally; cloned voices are marked as such and a disclosure is added to saved
-   audio (and a watermark if a permissive one exists); no third-party or celebrity voice is ever bundled; a cloned
-   voice can be deleted. `vtt voice create|list|delete`, a Voices screen.
-9. **Recording and live captions:** `vtt record`; Record screen; live captions with a streaming model, labelled
-   draft.
-10. **Tray, dictation, read-aloud:** global shortcuts and the floating dictation pill, with the documented limits on
-    Linux/Wayland.
-11. **Packaging and first release:** installers for all three platforms, signing and notarization, updater, first
-    public release (the release workflow and version script already exist).
+8. **Custom voices and voice cloning (built; quality review open).** Voice presets (saved blends of 2 to 4 shipped
+   voices of one language, with a name and a preview) and cloning from a 3 to 30 second sample with Chatterbox
+   Multilingual (MIT, ONNX, about 1.6 GB; English, Spanish, French, Italian, Portuguese and Hindi). Rules that are
+   part of the feature: the person must confirm consent for the voice in the sample (`--i-have-permission` in the
+   CLI); everything runs locally; cloned voices are marked as such and saved WAV and FLAC files carry a "synthetic
+   voice" note; no third-party or celebrity voice is ever bundled; a cloned voice can be deleted. `vtt voice
+create|clone|list|delete`, a Voices screen. **Still open: no watermark** (a permissive one has not been found),
+   and a native speaker's judgement of cloned speech in each language.
+9. **Recording and live captions (built):** `vtt record` (`--live`, `--transcribe`, `vtt devices`); the Record screen
+   with a level meter and live captions from a streaming pass, labelled draft.
+10. **Tray and dictation (built; read-aloud open):** a tray or menu-bar icon (open, start or stop dictation, quit),
+    a global dictation shortcut and a floating status window; the text is copied to the clipboard, not typed into the
+    focused app. Not built: read selection aloud, the tray's transcribe and queue entries, and a check of global
+    shortcuts on Linux/Wayland.
+11. **Prebuilt installers (not started; built from source for now):** a v0.1.0 release was published and withdrawn
+    because unsigned downloads are blocked or warned about by macOS and Windows. CI only checks. Needs macOS signing and
+    notarization, Windows code signing (both need accounts and certificates), a release workflow and the updater.
 
 Each of phases 6 to 8 ends with the same checks: CLI and app ship together, tests that need no model, a documented
 evaluation, every new model entered in the licence register, and the interface text translated (English and
@@ -98,7 +102,7 @@ These are conditions for shipping, checked at the end of every phase.
 2. **Diarization quality** depends on the embedding model and clustering. The shipped model scores perfectly on a small set of synthetic voices, which says little about real meetings (overlap, noise, similar voices). Needs a set of real recordings with known speakers; until then `--speakers N` is the reliable setting.
 3. **Live captions** need a streaming-capable model; accuracy will be below the post-recording pass. Label as draft.
 4. **Model licenses.** Whisper is MIT. The speaker model is Apache-2.0 on its card, but its VoxCeleb training data is CC BY 4.0 and was not reviewed. Verify the exact license of each Kokoro/Piper voice and each diarization model before listing it in the catalog. Do not ship non-commercial models.
-5. **Signing and distribution.** macOS notarization (Apple Developer account) and Windows code signing cost money; unsigned builds trigger OS warnings. Decide before the first public release.
+5. **Signing and distribution.** macOS notarization (Apple Developer account) and Windows code signing cost money; unsigned builds trigger OS warnings. Until then the app is built from source, which avoids the warnings.
 6. **Whisper repetition loops and long files.** Audio that repeats the same paragraph with no pauses sends greedy
    decoding into a loop ("we have a lot of information about this" repeated). Mitigations: the energy-based VAD
    transcribes speech in chunks of at most 28 s, which bounds a loop to one chunk; a loop (three identical lines in
