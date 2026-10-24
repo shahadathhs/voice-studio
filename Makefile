@@ -6,7 +6,7 @@ CARGO := cargo
 
 .DEFAULT_GOAL := help
 .PHONY: notices help setup dev ui cli build build-cli build-desktop lint lint-rust lint-ui \
-        format format-check typecheck test test-e2e check clean mockups screenshots version release tag \
+        format format-check typecheck test test-e2e check clean mockups screenshots version \
         site-dev site-build
 
 help: ## Show this help
@@ -32,12 +32,12 @@ cli: ## Run the CLI, e.g. make cli ARGS="export transcript.json -f srt"
 
 # ---- Build -------------------------------------------------------------------
 
-build: build-cli build-desktop ## Build the CLI and the desktop installers (release)
+build: build-cli build-desktop ## Build the CLI and the desktop app from source (release mode)
 
 build-cli: ## Build the release CLI binary (target/release/vtt)
 	$(CARGO) build --release -p vtt-cli
 
-build-desktop: ## Build the desktop app installers for this platform
+build-desktop: ## Build the desktop app and its installer for this platform (target/release/bundle)
 	$(PNPM) tauri build
 
 # ---- Quality -----------------------------------------------------------------
@@ -81,16 +81,10 @@ site-dev: ## Run the marketing site on http://localhost:3000
 site-build: ## Build the marketing site (also checks its types)
 	pnpm --dir site build
 
-# ---- Versions and releases ---------------------------------------------------
+# ---- Versions ---------------------------------------------------
 
 version: ## Write a new version into every file that carries it (no git): make version v=0.2.0
 	@v=$(v) scripts/bump-version.sh version
-
-release: ## Bump, commit and push a release: make release v=0.2.0 (run by you, never automatic)
-	@v=$(v) scripts/bump-version.sh release
-
-tag: ## Tag main with the VERSION file's version and push it; CI then publishes the release
-	@scripts/tag-release.sh
 
 # ---- Housekeeping ------------------------------------------------------------
 

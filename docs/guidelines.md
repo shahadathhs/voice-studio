@@ -75,7 +75,7 @@ discuss it in the PR and change the rule everywhere.
 - [Conventional Commits](https://www.conventionalcommits.org): `feat:`, `fix:`, `docs:`, `refactor:`,
   `test:`, `chore:`, `ci:`. Mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
 - Small, focused commits and PRs. One concern per PR.
-- Branches: work on `dev`; `main` is for releases.
+- Branches: work on `dev`; `main` is the stable branch.
 
 ## Desktop UI (Svelte + TypeScript)
 

@@ -13,7 +13,7 @@ Read first: `docs/README.md` (index), `docs/guidelines.md` (the rules below in f
 - `desktop/src`: Svelte UI (`components/`, `pages/`, `lib/`, `styles/`).
 - `site`: Next.js marketing site (static, Vercel); see `site/AGENTS.md` and `docs/site.md`.
 - `catalog/models.json`: model catalog (Whisper, WeSpeaker, Kokoro) with pinned URLs, sizes, SHA-256 and licenses.
-- `docs/`: `releasing.md`, `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
+- `docs/`: `building.md`, `product/` (features, cli, roadmap), `architecture.md`, `design/` (mockups), `guidelines.md`.
 
 ## Commands
 
@@ -44,7 +44,7 @@ commit and enforce Conventional Commit messages.
 - Colours come from CSS variables in `desktop/src/styles/tokens.css`; UI logic that is not presentation
   belongs in Rust.
 - Every behavior change has a test; CLI behavior is tested black-box in `crates/cli/tests`.
-- Conventional Commits. Work on `dev`. Never run `make release` (it commits and pushes); the user does.
+- Conventional Commits. Work on `dev`; the user commits, pushes and merges.
 
 ## Contracts to keep in sync
 
